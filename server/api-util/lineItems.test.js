@@ -384,17 +384,18 @@ describe('transactionLineItems', () => {
           publicData: {
             ...mockListing.attributes.publicData,
             unitType: 'item',
-            shippingPriceInSubunitsOneItem: 500, // €5.00
-            shippingPriceInSubunitsAdditionalItems: 200, // €2.00
+            // Refume: parcel size and carriers the seller offers
+            gabaryt: 'M',
+            shippingCarriers: ['inpost', 'pocztex'],
           },
         },
       };
 
-      // Refume: shipping price comes from the chosen carrier, not from listing publicData
+      // Refume: shipping price comes from the size + chosen carrier, not from seller prices
       const orderData = {
         stockReservationQuantity: 3,
         deliveryMethod: 'shipping',
-        shippingCarrier: 'dpd',
+        shippingCarrier: 'pocztex',
         currency: 'EUR',
       };
 
@@ -418,7 +419,7 @@ describe('transactionLineItems', () => {
       // Check shipping line item
       expect(result[1]).toEqual({
         code: 'line-item/shipping-fee',
-        unitPrice: new Money(1499, 'EUR'), // Refume: Kurier DPD, one fee per order
+        unitPrice: new Money(1399, 'EUR'), // Refume: Pocztex, size M, one fee per order
         quantity: 1,
         includeFor: ['customer', 'provider'],
       });
@@ -432,8 +433,8 @@ describe('transactionLineItems', () => {
           publicData: {
             ...mockListing.attributes.publicData,
             unitType: 'item',
-            shippingPriceInSubunitsOneItem: 500, // €5.00
-            shippingPriceInSubunitsAdditionalItems: 200, // €2.00
+            gabaryt: 'S',
+            shippingCarriers: ['orlen', 'dpd-pickup'],
           },
         },
       };
@@ -457,25 +458,48 @@ describe('transactionLineItems', () => {
       // Check shipping line item for single item
       expect(result[1]).toEqual({
         code: 'line-item/shipping-fee',
-        unitPrice: new Money(999, 'EUR'), // Refume: DPD Pickup
+        unitPrice: new Money(899, 'EUR'), // Refume: DPD Pickup, size S
         quantity: 1,
         includeFor: ['customer', 'provider'],
       });
     });
 
-    it('Refume: rejects shipping without a known carrier', () => {
-      const listing = {
+    describe('Refume: invalid shipping choices are rejected', () => {
+      const listingWith = publicData => ({
         ...mockListing,
         attributes: {
           ...mockListing.attributes,
-          publicData: { ...mockListing.attributes.publicData, unitType: 'item' },
+          publicData: { ...mockListing.attributes.publicData, unitType: 'item', ...publicData },
         },
-      };
-      const orderData = { stockReservationQuantity: 1, deliveryMethod: 'shipping' };
+      });
+      const order = shippingCarrier => ({
+        stockReservationQuantity: 1,
+        deliveryMethod: 'shipping',
+        shippingCarrier,
+      });
+      const run = (publicData, carrier) => () =>
+        transactionLineItems(
+          listingWith(publicData),
+          order(carrier),
+          mockProviderCommission,
+          mockCustomerCommission
+        );
 
-      expect(() =>
-        transactionLineItems(listing, orderData, mockProviderCommission, mockCustomerCommission)
-      ).toThrow('Unknown shipping carrier');
+      it('without a parcel size', () => {
+        expect(run({ shippingCarriers: ['inpost'] }, 'inpost')).toThrow('Unknown parcel size');
+      });
+
+      it('with a carrier not available for the size', () => {
+        expect(run({ gabaryt: 'L', shippingCarriers: ['pocztex'] }, 'inpost')).toThrow(
+          'not available for parcel size'
+        );
+      });
+
+      it('with a carrier the seller did not enable', () => {
+        expect(run({ gabaryt: 'S', shippingCarriers: ['orlen'] }, 'inpost')).toThrow(
+          'not offered for this listing'
+        );
+      });
     });
   });
 

@@ -22,11 +22,19 @@ const getItemQuantityAndLineItems = (orderData, publicData, currency) => {
   const isShipping = deliveryMethod === 'shipping';
   const isPickup = deliveryMethod === 'pickup';
 
-  // Refume: the shipping fee comes from the marketplace's fixed carrier prices
-  // (InPost / DPD / DPD Pickup) chosen by the buyer, not from seller-set prices
-  // (publicData.shippingPriceInSubunits*, which the template's calculateShippingFee used).
-  const shippingCarrier = orderData && orderData.shippingCarrier;
-  const shippingFee = isShipping ? getCarrierShippingFee(shippingCarrier, currency) : null;
+  // Refume: the shipping fee comes from the marketplace's fixed price table by parcel
+  // size (publicData.gabaryt) and the carrier the buyer chose, limited to the carriers the
+  // seller enabled (publicData.shippingCarriers). Seller-set shipping prices
+  // (publicData.shippingPriceInSubunits*) are no longer used.
+  const { gabaryt, shippingCarriers } = publicData || {};
+  const shippingFee = isShipping
+    ? getCarrierShippingFee({
+        carrier: orderData && orderData.shippingCarrier,
+        size: gabaryt,
+        enabledCarriers: shippingCarriers,
+        currency,
+      })
+    : null;
 
   // Add line-item for given delivery method.
   // Note: by default, pickup considered as free and, therefore, we don't add pickup fee line-item

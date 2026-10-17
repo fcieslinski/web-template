@@ -41,6 +41,8 @@ import { ModalInMobile, PrimaryButton, AvatarSmall, H1, H2 } from '../../compone
 import PriceVariantPicker from './PriceVariantPicker/PriceVariantPicker';
 import SubmitFinePrint from './SubmitFinePrint/SubmitFinePrint';
 
+import { getAvailableCarriers } from '../../util/refumeShipping';
+
 import css from './OrderPanel.module.css';
 
 const BookingTimeForm = loadable(() =>
@@ -371,6 +373,9 @@ const OrderPanel = props => {
   const isKnownProcess = supportedProcessesInfo.map(info => info.name).includes(processName);
 
   const { pickupEnabled, shippingEnabled } = listing?.attributes?.publicData || {};
+  // Refume: shipping options the buyer can pick (parcel size + carriers the seller offers).
+  // Listings without a parcel size or carriers can't be shipped.
+  const shippingCarrierOptions = getAvailableCarriers(listing?.attributes?.publicData);
 
   const listingTypeConfig = validListingTypes.find(conf => conf.listingType === listingType);
   const displayShipping = displayDeliveryShipping(listingTypeConfig);
@@ -541,7 +546,10 @@ const OrderPanel = props => {
             currentStock={currentStock}
             allowOrdersOfMultipleItems={allowOrdersOfMultipleItems}
             pickupEnabled={pickupEnabled && displayPickup}
-            shippingEnabled={shippingEnabled && displayShipping}
+            shippingEnabled={
+              shippingEnabled && displayShipping && shippingCarrierOptions.length > 0
+            }
+            shippingCarrierOptions={shippingCarrierOptions}
             displayDeliveryMethod={displayPickup || displayShipping}
             onContactUser={onContactUser}
             {...sharedProps}

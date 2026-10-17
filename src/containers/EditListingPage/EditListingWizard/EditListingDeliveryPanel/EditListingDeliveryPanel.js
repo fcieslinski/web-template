@@ -17,6 +17,8 @@ import { H3, ListingLink } from '../../../../components';
 
 // Import modules from this directory
 import EditListingDeliveryForm from './EditListingDeliveryForm';
+import { REFUME_CARRIERS, getCarriersForSize } from '../../../../util/refumeShipping';
+
 import css from './EditListingDeliveryPanel.module.css';
 
 const { Money } = sdkTypes;
@@ -41,6 +43,8 @@ const getInitialValues = props => {
     pickupEnabled,
     shippingPriceInSubunitsOneItem,
     shippingPriceInSubunitsAdditionalItems,
+    gabaryt,
+    shippingCarriers,
   } = publicData;
   const deliveryOptions = [];
 
@@ -73,6 +77,11 @@ const getInitialValues = props => {
     deliveryOptions,
     shippingPriceInSubunitsOneItem: shippingOneItemAsMoney,
     shippingPriceInSubunitsAdditionalItems: shippingAdditionalItemsAsMoney,
+    // Refume: parcel size and offered carriers (all offered by default)
+    gabaryt,
+    shippingCarriers: Array.isArray(shippingCarriers)
+      ? shippingCarriers
+      : Object.keys(REFUME_CARRIERS),
   };
 };
 
@@ -160,6 +169,8 @@ const EditListingDeliveryPanel = props => {
               shippingPriceInSubunitsOneItem,
               shippingPriceInSubunitsAdditionalItems,
               deliveryOptions,
+              gabaryt,
+              shippingCarriers = [],
             } = values;
 
             const shippingEnabled = deliveryOptions.includes('shipping');
@@ -169,6 +180,12 @@ const EditListingDeliveryPanel = props => {
 
             const pickupDataMaybe =
               pickupEnabled && address ? { location: { address, building } } : {};
+
+            // Refume: keep only carriers that exist for the chosen parcel size
+            const carriersForSize = getCarriersForSize(gabaryt).map(c => c.key);
+            const offeredCarriers = shippingCarriers.filter(key => carriersForSize.includes(key));
+            const refumeShippingMaybe =
+              shippingEnabled && gabaryt ? { gabaryt, shippingCarriers: offeredCarriers } : {};
 
             const shippingDataMaybe =
               shippingEnabled && shippingPriceInSubunitsOneItem != null
@@ -189,6 +206,7 @@ const EditListingDeliveryPanel = props => {
                 ...pickupDataMaybe,
                 shippingEnabled,
                 ...shippingDataMaybe,
+                ...refumeShippingMaybe,
               },
             };
 
@@ -202,6 +220,8 @@ const EditListingDeliveryPanel = props => {
                 shippingPriceInSubunitsOneItem,
                 shippingPriceInSubunitsAdditionalItems,
                 deliveryOptions,
+                gabaryt,
+                shippingCarriers,
               },
             });
             onSubmit(updateValues);

@@ -11,7 +11,11 @@ import {
   autocompletePlaceSelected,
   composeValidators,
 } from '../../../../util/validators';
-import { REFUME_SHIPPING_CARRIERS, formatCarrierOption } from '../../../../util/refumeShipping';
+import {
+  REFUME_PARCEL_SIZES,
+  getCarriersForSize,
+  formatCarrierOption,
+} from '../../../../util/refumeShipping';
 
 // Import shared components
 import {
@@ -20,6 +24,7 @@ import {
   Button,
   FieldTextInput,
   FieldCheckbox,
+  FieldRadioButton,
 } from '../../../../components';
 
 // Import modules from this directory
@@ -109,8 +114,26 @@ export const EditListingDeliveryForm = props => (
       const classes = classNames(css.root, className);
       const submitReady = (updated && pristine) || ready;
       const submitInProgress = updateInProgress;
+      // Refume: with shipping, the seller must pick a parcel size and keep at least one carrier
+      const parcelSize = values.gabaryt;
+      const carriersForSize = getCarriersForSize(parcelSize);
+      const selectedCarriers = (values.shippingCarriers || []).filter(key =>
+        carriersForSize.some(c => c.key === key)
+      );
+      const shippingSetupError = !shippingEnabled
+        ? null
+        : !parcelSize
+        ? 'Wybierz gabaryt paczki.'
+        : selectedCarriers.length === 0
+        ? 'Zostaw zaznaczoną przynajmniej jedną opcję dostawy.'
+        : null;
+
       const submitDisabled =
-        invalid || disabled || submitInProgress || (!shippingEnabled && !pickupEnabled);
+        invalid ||
+        disabled ||
+        submitInProgress ||
+        (!shippingEnabled && !pickupEnabled) ||
+        !!shippingSetupError;
 
       const shippingLabel = intl.formatMessage({ id: 'EditListingDeliveryForm.shippingLabel' });
       const pickupLabel = intl.formatMessage({ id: 'EditListingDeliveryForm.pickupLabel' });
@@ -207,17 +230,50 @@ export const EditListingDeliveryForm = props => (
             value="shipping"
           />
 
-          {/* Refume: sellers don't set shipping prices. The buyer picks one of the
-              marketplace's fixed options at checkout (see src/util/refumeShipping.js). */}
+          {/* Refume: sellers don't set shipping prices. They pick the parcel size and which of
+              the marketplace's fixed-price carriers for that size they offer; the buyer picks
+              one of those at checkout (see src/util/refumeShipping.js). */}
           <div className={shippingClasses}>
-            <p className={css.refumeShippingInfo}>
-              Kupujący wybierze sposób dostawy przy zamówieniu i za nią zapłaci:
-            </p>
-            <ul className={css.refumeShippingList}>
-              {REFUME_SHIPPING_CARRIERS.map(carrier => (
-                <li key={carrier.key}>{formatCarrierOption(carrier, intl, marketplaceCurrency)}</li>
-              ))}
-            </ul>
+            <fieldset className={css.refumeFieldset} disabled={!shippingEnabled}>
+              <legend className={css.refumeLegend}>Gabaryt paczki</legend>
+              <div className={css.refumeSizes}>
+                {REFUME_PARCEL_SIZES.map(size => (
+                  <FieldRadioButton
+                    key={size.key}
+                    id={`${formId}.gabaryt.${size.key}`}
+                    name="gabaryt"
+                    value={size.key}
+                    label={size.label}
+                    showAsRequired={shippingEnabled && !parcelSize}
+                  />
+                ))}
+              </div>
+            </fieldset>
+
+            {parcelSize ? (
+              <fieldset className={css.refumeFieldset} disabled={!shippingEnabled}>
+                <legend className={css.refumeLegend}>Opcje dostawy dla kupującego</legend>
+                <p className={css.refumeShippingInfo}>
+                  Odznacz te, których nie chcesz obsługiwać. Kupujący wybierze jedną z zaznaczonych
+                  i za nią zapłaci.
+                </p>
+                {carriersForSize.map(carrier => (
+                  <FieldCheckbox
+                    key={carrier.key}
+                    id={`${formId}.shippingCarriers.${carrier.key}`}
+                    name="shippingCarriers"
+                    value={carrier.key}
+                    label={formatCarrierOption(carrier, intl, marketplaceCurrency)}
+                  />
+                ))}
+              </fieldset>
+            ) : null}
+
+            {shippingSetupError ? (
+              <p className={css.refumeShippingError} role="alert">
+                {shippingSetupError}
+              </p>
+            ) : null}
           </div>
 
           <Button

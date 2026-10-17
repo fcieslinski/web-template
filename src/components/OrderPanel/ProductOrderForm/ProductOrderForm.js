@@ -5,12 +5,7 @@ import { FormattedMessage, useIntl } from '../../../util/reactIntl';
 import { propTypes } from '../../../util/types';
 import { numberAtLeast, required } from '../../../util/validators';
 import { PURCHASE_PROCESS_NAME } from '../../../transactions/transaction';
-import {
-  REFUME_SHIPPING_CARRIERS,
-  DEFAULT_SHIPPING_CARRIER,
-  getShippingCarrier,
-  formatCarrierOption,
-} from '../../../util/refumeShipping';
+import { formatCarrierOption } from '../../../util/refumeShipping';
 
 import {
   Form,
@@ -126,8 +121,8 @@ const DeliveryMethodMaybe = props => {
  * for parcel lockers / pickup points, enters the point code.
  */
 const ShippingCarrierFields = props => {
-  const { formId, intl, shippingCarrier, currency } = props;
-  const selected = getShippingCarrier(shippingCarrier);
+  const { formId, intl, shippingCarrier, currency, carrierOptions = [] } = props;
+  const selected = carrierOptions.find(c => c.key === shippingCarrier);
   const pointRequiredMsg = selected?.pickupPointLabel
     ? `Podaj: ${selected.pickupPointLabel.toLowerCase()}`
     : '';
@@ -141,7 +136,10 @@ const ShippingCarrierFields = props => {
         label="Sposób dostawy"
         validate={required('Wybierz sposób dostawy')}
       >
-        {REFUME_SHIPPING_CARRIERS.map(carrier => (
+        <option disabled value="">
+          Wybierz sposób dostawy
+        </option>
+        {carrierOptions.map(carrier => (
           <option key={carrier.key} value={carrier.key}>
             {formatCarrierOption(carrier, intl, currency)}
           </option>
@@ -190,6 +188,7 @@ const renderForm = formRenderProps => {
     marketplaceName,
     values,
     sectionHeadingAs = 'h3',
+    shippingCarrierOptions = [],
   } = formRenderProps;
 
   // Note: don't add custom logic before useEffect
@@ -232,7 +231,7 @@ const renderForm = formRenderProps => {
   // Otherwise continue with the default handleSubmit function.
   const handleFormSubmit = e => {
     const { quantity, deliveryMethod, shippingCarrier, shippingPointCode } = values || {};
-    const carrier = getShippingCarrier(shippingCarrier);
+    const carrier = (shippingCarrierOptions || []).find(c => c.key === shippingCarrier);
     const isShipping = deliveryMethod === 'shipping';
     if (!quantity || quantity < 1) {
       e.preventDefault();
@@ -336,6 +335,7 @@ const renderForm = formRenderProps => {
           intl={intl}
           shippingCarrier={values?.shippingCarrier}
           currency={price?.currency}
+          carrierOptions={shippingCarrierOptions}
         />
       ) : null}
 
@@ -439,11 +439,13 @@ const ProductOrderForm = props => {
       ? { deliveryMethod: 'none' }
       : {};
   const hasMultipleDeliveryMethods = pickupEnabled && shippingEnabled;
-  // Refume: preselect the first shipping option
+  // Refume: preselect the shipping option when the seller offers only one
+  const carrierOptions = props.shippingCarrierOptions || [];
+  const shippingCarrierMaybe = carrierOptions.length === 1 ? { shippingCarrier: carrierOptions[0].key } : {};
   const initialValues = {
     ...quantityMaybe,
     ...deliveryMethodMaybe,
-    shippingCarrier: DEFAULT_SHIPPING_CARRIER,
+    ...shippingCarrierMaybe,
   };
 
   return (

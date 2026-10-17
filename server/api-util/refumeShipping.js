@@ -1,19 +1,22 @@
 /**
- * Refume: fixed shipping options chosen by the buyer at checkout.
+ * Refume: fixed shipping prices by parcel size and carrier.
  *
- * Prices are set by the marketplace (not by sellers) and are the single source of truth
- * for the shipping fee line item. The client shows the same list for display only
- * (src/util/refumeShipping.js) — keep the two in sync when changing prices.
+ * The seller picks the parcel size (gabaryt S / M / L) and which of the carriers
+ * available for that size they are willing to use. The buyer picks one of those at
+ * checkout. Prices are set by the marketplace, never by the seller or the buyer.
+ *
+ * This file is the single source of truth for the shipping fee line item. The client
+ * shows the same table for display only (src/util/refumeShipping.js) — keep them in sync.
  *
  * Prices are in subunits (grosze). One shipping fee is charged per order.
  */
 const { types } = require('sharetribe-flex-sdk');
 const { Money } = types;
 
-const REFUME_SHIPPING_CARRIERS = {
-  inpost: { label: 'InPost Paczkomat', priceInSubunits: 1399, needsPickupPoint: true },
-  dpd: { label: 'Kurier DPD', priceInSubunits: 1499, needsPickupPoint: false },
-  'dpd-pickup': { label: 'DPD Pickup', priceInSubunits: 999, needsPickupPoint: true },
+const REFUME_SHIPPING_PRICES = {
+  S: { orlen: 799, inpost: 1299, 'dpd-pickup': 899, pocztex: 1399 },
+  M: { orlen: 899, inpost: 1299, 'dpd-pickup': 899, pocztex: 1399 },
+  L: { pocztex: 1499 },
 };
 
 const badRequest = message => {
@@ -26,19 +29,31 @@ const badRequest = message => {
 
 /**
  * Shipping fee for the carrier the buyer picked.
- * Throws a 400 error for an unknown carrier so that an order can't go through
- * without a valid, marketplace-priced shipping option.
  *
- * @param {string} carrier one of the keys of REFUME_SHIPPING_CARRIERS
- * @param {string} currency listing currency, e.g. 'PLN'
+ * Throws a 400 error when the parcel size or carrier is unknown, or when the seller
+ * hasn't enabled that carrier for the listing, so an order can't go through without a
+ * valid, marketplace-priced shipping option.
+ *
+ * @param {Object} params
+ * @param {string} params.carrier buyer's choice, e.g. 'inpost'
+ * @param {string} params.size listing's parcel size: 'S' | 'M' | 'L'
+ * @param {Array<string>?} params.enabledCarriers carriers the seller enabled for the listing
+ * @param {string} params.currency listing currency, e.g. 'PLN'
  * @returns {Money}
  */
-const getCarrierShippingFee = (carrier, currency) => {
-  const option = REFUME_SHIPPING_CARRIERS[carrier];
-  if (!option) {
-    throw badRequest(`Unknown shipping carrier: ${carrier}`);
+const getCarrierShippingFee = ({ carrier, size, enabledCarriers, currency }) => {
+  const pricesForSize = REFUME_SHIPPING_PRICES[size];
+  if (!pricesForSize) {
+    throw badRequest(`Unknown parcel size: ${size}`);
   }
-  return new Money(option.priceInSubunits, currency);
+  const price = pricesForSize[carrier];
+  if (price == null) {
+    throw badRequest(`Shipping carrier ${carrier} is not available for parcel size ${size}`);
+  }
+  if (!Array.isArray(enabledCarriers) || !enabledCarriers.includes(carrier)) {
+    throw badRequest(`Shipping carrier ${carrier} is not offered for this listing`);
+  }
+  return new Money(price, currency);
 };
 
-module.exports = { REFUME_SHIPPING_CARRIERS, getCarrierShippingFee };
+module.exports = { REFUME_SHIPPING_PRICES, getCarrierShippingFee };

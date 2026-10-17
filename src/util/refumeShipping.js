@@ -1,42 +1,79 @@
 /**
- * Refume: fixed shipping options the buyer picks from at checkout.
+ * Refume: fixed shipping options by parcel size.
  *
  * DISPLAY ONLY. The real prices are set on the server in
- * server/api-util/refumeShipping.js — keep the two lists in sync.
+ * server/api-util/refumeShipping.js — keep the two tables in sync.
  * Prices are in subunits (grosze).
+ *
+ * Listing public data:
+ * - gabaryt: 'S' | 'M' | 'L' — parcel size chosen by the seller
+ * - shippingCarriers: carrier keys the seller is willing to use (at least one)
  */
-export const REFUME_SHIPPING_CARRIERS = [
-  {
+
+// Carrier details, independent of size
+export const REFUME_CARRIERS = {
+  orlen: {
+    key: 'orlen',
+    label: 'Orlen Paczka',
+    needsPickupPoint: true,
+    pickupPointLabel: 'Kod punktu Orlen Paczka',
+    pickupPointPlaceholder: 'np. kod automatu lub punktu',
+  },
+  inpost: {
     key: 'inpost',
     label: 'InPost Paczkomat',
-    priceInSubunits: 1399,
     needsPickupPoint: true,
     pickupPointLabel: 'Kod paczkomatu',
     pickupPointPlaceholder: 'np. KRA01M',
   },
-  {
-    key: 'dpd',
-    label: 'Kurier DPD',
-    priceInSubunits: 1499,
-    needsPickupPoint: false,
-  },
-  {
+  'dpd-pickup': {
     key: 'dpd-pickup',
     label: 'DPD Pickup',
-    priceInSubunits: 999,
     needsPickupPoint: true,
     pickupPointLabel: 'Kod punktu DPD Pickup',
     pickupPointPlaceholder: 'np. PL12345',
   },
+  pocztex: {
+    key: 'pocztex',
+    label: 'Pocztex Kurier',
+    needsPickupPoint: false,
+  },
+};
+
+// Prices per parcel size, in the order they are shown
+export const REFUME_SHIPPING_PRICES = {
+  S: { orlen: 799, inpost: 1299, 'dpd-pickup': 899, pocztex: 1399 },
+  M: { orlen: 899, inpost: 1299, 'dpd-pickup': 899, pocztex: 1399 },
+  L: { pocztex: 1499 },
+};
+
+export const REFUME_PARCEL_SIZES = [
+  { key: 'S', label: 'S – mały' },
+  { key: 'M', label: 'M – średni' },
+  { key: 'L', label: 'L – duży' },
 ];
 
-export const DEFAULT_SHIPPING_CARRIER = 'inpost';
+/** Carrier details by key, or null. */
+export const getShippingCarrier = key => REFUME_CARRIERS[key] || null;
 
-export const getShippingCarrier = key => REFUME_SHIPPING_CARRIERS.find(c => c.key === key) || null;
+/** All carriers available for a parcel size, with prices: [{ ...carrier, priceInSubunits }] */
+export const getCarriersForSize = size =>
+  Object.entries(REFUME_SHIPPING_PRICES[size] || {}).map(([key, priceInSubunits]) => ({
+    ...REFUME_CARRIERS[key],
+    priceInSubunits,
+  }));
 
 /**
- * Label with price for a carrier option, e.g. "InPost Paczkomat – 13,99 zł".
+ * Carriers the buyer can pick for a listing: available for its size AND enabled by the seller.
+ * @param {Object} publicData listing public data
  */
+export const getAvailableCarriers = publicData => {
+  const { gabaryt, shippingCarriers } = publicData || {};
+  const enabled = Array.isArray(shippingCarriers) ? shippingCarriers : [];
+  return getCarriersForSize(gabaryt).filter(c => enabled.includes(c.key));
+};
+
+/** "Orlen Paczka – 7,99 zł" */
 export const formatCarrierOption = (carrier, intl, currency = 'PLN') => {
   const price = intl.formatNumber(carrier.priceInSubunits / 100, {
     style: 'currency',

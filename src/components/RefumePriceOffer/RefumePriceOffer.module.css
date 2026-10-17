@@ -1,0 +1,128 @@
+.root {
+  margin-top: 12px;
+}
+
+.toggle,
+.primary,
+.secondary {
+  width: 100%;
+  min-height: 48px;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font: inherit;
+  font-weight: var(--fontWeightSemiBold);
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.toggle,
+.secondary {
+  border: 1px solid var(--colorGrey900);
+  background-color: var(--colorWhite);
+  color: var(--colorGrey900);
+}
+
+.primary {
+  border: 0;
+  background-color: var(--colorGrey900);
+  color: var(--colorWhite);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.label {
+  font-size: 14px;
+  font-weight: var(--fontWeightSemiBold);
+}
+
+.inputRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.input {
+  flex: 1;
+  min-height: 48px;
+  padding: 10px 12px;
+  border: 1px solid var(--colorGrey300);
+  border-radius: 8px;
+  font: inherit;
+  font-size: 18px;
+}
+
+.suffix {
+  font-weight: var(--fontWeightSemiBold);
+}
+
+.hint {
+  margin: 0;
+  font-size: 13px;
+  color: var(--colorGrey700);
+}
+
+.buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.error {
+  margin: 0;
+  font-size: 14px;
+  color: var(--colorFail);
+}
+
+/* Offers panel in the chat */
+.panel {
+  margin: 0 0 24px 0;
+  padding: 16px;
+  border: 1px solid var(--colorGrey100);
+  border-radius: 12px;
+  background-color: var(--colorGrey50);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.panelTitle {
+  margin: 0;
+  font-size: 16px;
+  font-weight: var(--fontWeightBold);
+}
+
+.amount {
+  font-size: 24px;
+  font-weight: var(--fontWeightBold);
+}
+
+.strike {
+  text-decoration: line-through;
+  color: var(--colorGrey700);
+  font-size: 14px;
+  margin-left: 8px;
+}
+
+.statusText {
+  margin: 0;
+  font-size: 14px;
+}
+
+.accepted {
+  color: hsl(145 60% 24%);
+}
+
+.history {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 13px;
+  color: var(--colorGrey700);
+}

@@ -300,6 +300,7 @@ const OrderPanel = props => {
     titleDesktop,
     author,
     authorLink,
+    refumeOfferAction,
     onManageDisableScrolling,
     onFetchTimeSlots,
     monthlyTimeSlots,
@@ -595,6 +596,7 @@ const OrderPanel = props => {
             <FormattedMessage id="OrderPanel.unknownTransactionProcess" />
           </p>
         ) : null}
+        {showProductOrderForm ? refumeOfferAction : null}
       </ModalInMobile>
       <div className={css.openOrderForm}>
         <PriceMaybe

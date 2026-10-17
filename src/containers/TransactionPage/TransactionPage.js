@@ -86,7 +86,10 @@ import {
   clearUploadedFiles,
   selectFileUploads,
   downloadFile,
+  fetchTransaction,
+  fetchMessages,
 } from './TransactionPage.duck';
+import OffersPanel from '../../components/RefumePriceOffer/OffersPanel';
 import css from './TransactionPage.module.css';
 
 const MAX_MOBILE_SCREEN_WIDTH = 1023;
@@ -860,6 +863,16 @@ export const TransactionPageComponent = props => {
       showBookingLocation={showBookingLocation}
       hasViewingRights={hasViewingRights}
       showListingImage={showListingImage}
+      refumeOffersPanel={
+        transaction?.attributes?.lastTransition === 'transition/inquire' ? (
+          <OffersPanel
+            transaction={transaction}
+            listing={listing}
+            role={transactionRole}
+            onChanged={() => props.onRefreshOffers(transaction.id, transactionRole, config)}
+          />
+        ) : null
+      }
       sendMessageForm={
         showSendMessageForm ? (
           <SendMessageForm
@@ -1217,9 +1230,24 @@ const TransactionPage = props => {
   const onInitializeCardPaymentData = useCallback(() => dispatch(initializeCardPaymentData()), [
     dispatch,
   ]);
+  // Refume: the price estimate in the chat uses the conversation's accepted price offer
+  const txUuid = transaction?.id?.uuid;
   const onFetchTransactionLineItems = useCallback(
     (orderData, listingId, isOwnListing) =>
-      dispatch(fetchTransactionLineItems(orderData, listingId, isOwnListing)),
+      dispatch(
+        fetchTransactionLineItems(
+          txUuid ? { ...orderData, offerTransactionId: txUuid } : orderData,
+          listingId,
+          isOwnListing
+        )
+      ),
+    [dispatch, txUuid]
+  );
+  const onRefreshOffers = useCallback(
+    (txId, role, config) => {
+      dispatch(fetchTransaction(txId, role, config));
+      dispatch(fetchMessages(txId, 1, config));
+    },
     [dispatch]
   );
   const onFetchTimeSlots = useCallback(
@@ -1273,6 +1301,7 @@ const TransactionPage = props => {
       callSetInitialValues={callSetInitialValues}
       onInitializeCardPaymentData={onInitializeCardPaymentData}
       onFetchTransactionLineItems={onFetchTransactionLineItems}
+      onRefreshOffers={onRefreshOffers}
       onFetchTimeSlots={onFetchTimeSlots}
       onUploadFile={onUploadFile}
       onClearUploadedFiles={onClearUploadedFiles}

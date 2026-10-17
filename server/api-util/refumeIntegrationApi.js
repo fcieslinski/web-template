@@ -81,4 +81,7 @@ module.exports = {
   queryListings: query => integrationRequest('GET', '/listings/query', { query }),
   showListing: query => integrationRequest('GET', '/listings/show', { query }),
   updateListing: body => integrationRequest('POST', '/listings/update', { body }),
+  showTransaction: query => integrationRequest('GET', '/transactions/show', { query }),
+  updateTransactionMetadata: body =>
+    integrationRequest('POST', '/transactions/update_metadata', { body }),
 };

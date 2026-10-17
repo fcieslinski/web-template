@@ -56,6 +56,7 @@ import SectionGallery from './SectionGallery';
 import CustomListingFields from './CustomListingFields';
 import ListingPageAccessWrapper from './ListingPageAccessWrapper';
 
+import MakeOfferButton from '../../components/RefumePriceOffer/MakeOfferButton';
 import css from './ListingPage.module.css';
 
 const MIN_LENGTH_FOR_LONG_WORDS_IN_TITLE = 16;
@@ -329,6 +330,13 @@ export const ListingPageComponent = props => {
                 </H4>
               }
               sectionHeadingAs="h2"
+              refumeOfferAction={
+                <MakeOfferButton
+                  listing={currentListing}
+                  isOwnListing={isOwnListing}
+                  currentUser={currentUser}
+                />
+              }
               payoutDetailsWarning={payoutDetailsWarning}
               author={ensuredAuthor}
               onManageDisableScrolling={onManageDisableScrolling}

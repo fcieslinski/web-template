@@ -2,6 +2,7 @@ const sharetribeSdk = require('sharetribe-flex-sdk');
 const { assertExpectedPayinTotal } = require('../api-util/assertExpectedPayinTotal');
 const { transactionLineItems } = require('../api-util/lineItems');
 const { isIntentionToMakeOffer } = require('../api-util/negotiation');
+const { stripOfferPrice } = require('../api-util/refumeOffers');
 const {
   createCookieTokenStore,
   getSdk,
@@ -51,7 +52,8 @@ const getMetadata = (orderData, transition) => {
 };
 
 module.exports = (req, res) => {
-  const { isSpeculative, orderData, bodyParams, queryParams } = req.body || {};
+  const { isSpeculative, bodyParams, queryParams } = req.body || {};
+  const orderData = stripOfferPrice(req.body?.orderData);
   const transitionName = bodyParams.transition;
   // Share one cookie token store so a refresh during listings.show is reused for exchangeToken.
   const tokenStore = createCookieTokenStore(req, res);

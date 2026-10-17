@@ -10,6 +10,7 @@ const {
   isIntentionToUpdateOffer,
   throwErrorIfNegotiationOfferHasInvalidHistory,
 } = require('../api-util/negotiation');
+const { withAcceptedOfferPrice } = require('../api-util/refumeOffers');
 const {
   createCookieTokenStore,
   getSdk,
@@ -116,7 +117,8 @@ const getUpdatedMetadata = (orderData, transition, existingMetadata) => {
 };
 
 module.exports = (req, res) => {
-  const { isSpeculative, orderData, bodyParams, queryParams } = req.body || {};
+  const { isSpeculative, bodyParams, queryParams } = req.body || {};
+  let orderData = req.body?.orderData;
 
   // Share one cookie token store so a refresh during transactions.show is reused for exchangeToken.
   const tokenStore = createCookieTokenStore(req, res);
@@ -133,6 +135,13 @@ module.exports = (req, res) => {
       const commissionAsset = fetchAssetsResponse.data.data[0];
 
       const existingMetadata = transaction?.attributes?.metadata;
+
+      // Refume: buying after an inquiry uses the accepted price offer, if there is one.
+      // Any client-sent offer price is dropped.
+      orderData =
+        transitionName === 'transition/request-payment-after-inquiry'
+          ? withAcceptedOfferPrice(orderData, existingMetadata, listing)
+          : withAcceptedOfferPrice(orderData, null, listing);
       const existingOffers = existingMetadata?.offers || [];
       const transitions = transaction.attributes.transitions;
 

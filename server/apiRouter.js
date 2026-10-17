@@ -12,6 +12,7 @@ const { deserialize } = require('./api-util/sdk');
 
 const initiateLoginAs = require('./api/initiate-login-as');
 const loginAs = require('./api/login-as');
+const { makeOffer, respondToOffer } = require('./api/refume-offers');
 const transactionLineItems = require('./api/transaction-line-items');
 const initiatePrivileged = require('./api/initiate-privileged');
 const transitionPrivileged = require('./api/transition-privileged');
@@ -61,6 +62,8 @@ router.post('/delete-account', deleteAccount);
 // Refume: moderation of proof-of-purchase photos (moderators only)
 router.get('/moderacja/dowody', listPendingProofs);
 router.post('/moderacja/decyzja', decideProof);
+router.post('/oferty/zloz', makeOffer);
+router.post('/oferty/odpowiedz', respondToOffer);
 
 // Create user with identity provider (e.g. Facebook or Google)
 // This endpoint is called to create a new user after user has confirmed

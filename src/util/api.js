@@ -162,3 +162,7 @@ export const fetchPendingProofs = () => {
 export const decideProof = body => {
   return post('/api/moderacja/decyzja', body);
 };
+
+// Refume: price offers in the buyer–seller chat
+export const makePriceOffer = body => post('/api/oferty/zloz', body);
+export const respondToPriceOffer = body => post('/api/oferty/odpowiedz', body);

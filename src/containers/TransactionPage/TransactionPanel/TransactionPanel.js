@@ -122,6 +122,7 @@ export class TransactionPanelComponent extends Component {
       offer,
       fileAttachments,
       activityFeed,
+      refumeOffersPanel,
       actionButtons,
       isInquiryProcess,
       orderBreakdown,
@@ -277,6 +278,7 @@ export class TransactionPanelComponent extends Component {
                 />
               </div>
             ) : null}
+            {refumeOffersPanel}
             <FeedSection
               rootClassName={css.feedContainer}
               hasMessages={messages.length > 0}

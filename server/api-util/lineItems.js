@@ -156,7 +156,7 @@ exports.transactionLineItems = (listing, orderData, providerCommission, customer
   const priceAttribute = listing.attributes.price;
   const currency = priceAttribute?.currency || orderData.currency;
 
-  const { priceVariantName, offer } = orderData || {};
+  const { priceVariantName, offer, refumeOfferPrice } = orderData || {};
   const priceVariantConfig = priceVariants
     ? priceVariants.find(pv => pv.name === priceVariantName)
     : null;
@@ -168,6 +168,8 @@ exports.transactionLineItems = (listing, orderData, providerCommission, customer
       ? new Money(priceInSubunits, currency)
       : offer instanceof Money && isNegotiationUnitType
       ? offer
+      : refumeOfferPrice instanceof Money && unitType === 'item'
+      ? refumeOfferPrice // Refume: accepted price offer, set only by the server (refumeOffers.js)
       : priceAttribute;
 
   /**

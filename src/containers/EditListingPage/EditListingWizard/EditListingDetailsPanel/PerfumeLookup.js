@@ -36,8 +36,12 @@ const findEnumOption = (fieldConfigs, words) => {
   return null;
 };
 
+// "Dior" + "Dior Homme" → "Dior Homme" (no doubled brand); "Dior" + "Sauvage" → "Dior Sauvage"
+const fullName = (brand, name) =>
+  !brand || name.toLowerCase().includes(brand.toLowerCase()) ? name : `${brand} ${name}`;
+
 const composeTitle = (brand, name, concentration) => {
-  const base = name.toLowerCase().includes(brand.toLowerCase()) ? name : `${brand} ${name}`;
+  const base = fullName(brand, name);
   const short = concentration
     .replace(/eau de parfum/i, 'EDP')
     .replace(/eau de toilette/i, 'EDT')
@@ -59,6 +63,7 @@ const PerfumeLookup = props => {
   const [active, setActive] = useState(-1);
   const timer = useRef(null);
   const memo = useRef(new Map()); // same text typed again → no new request
+  const lastAutoTitle = useRef(null);
 
   useEffect(() => {
     clearTimeout(timer.current);
@@ -89,8 +94,12 @@ const PerfumeLookup = props => {
     const values = formApi.getState().values || {};
     const brand = canonicalBrand(perfume.brand);
     formApi.batch(() => {
-      if (!values.title?.trim()) {
-        formApi.change('title', composeTitle(brand, perfume.name, perfume.concentration));
+      // Fill the title when it's empty or still the one we filled in before
+      const currentTitle = values.title?.trim() || '';
+      if (!currentTitle || currentTitle === lastAutoTitle.current) {
+        const title = composeTitle(brand, perfume.name, perfume.concentration);
+        formApi.change('title', title);
+        lastAutoTitle.current = title;
       }
       if (listingFieldsConfig.some(fc => fc.key === 'marka')) {
         formApi.change('pub_marka', brand);
@@ -124,7 +133,8 @@ const PerfumeLookup = props => {
       }
       formApi.change('refumeFragellaId', perfume.id);
     });
-    const label = `${brand} ${perfume.name}`;
+    // The chosen perfume replaces whatever was typed in the search box
+    const label = fullName(brand, perfume.name);
     setChosen({ label, perfume });
     setQuery(label);
     setResults([]);
@@ -196,7 +206,7 @@ const PerfumeLookup = props => {
               >
                 {p.image ? <img src={p.image} alt="" className={css.thumb} loading="lazy" /> : null}
                 <span className={css.optionText}>
-                  <span className={css.optionName}>{p.name}</span>
+                  <span className={css.optionName}>{fullName(p.brand, p.name)}</span>
                   <span className={css.optionMeta}>
                     {[p.brand, p.concentration, p.year].filter(Boolean).join(' · ')}
                   </span>

@@ -19,12 +19,19 @@ const PageBuilder = loadable(() =>
   import(/* webpackChunkName: "PageBuilder" */ '../PageBuilder/PageBuilder')
 );
 
+// Refume: the catalog banner replaces the big hero from Console, so hero sections
+// of the landing page asset are skipped here (they still show if this code is not used).
+const withoutHeroSections = data =>
+  data?.sections
+    ? { ...data, sections: data.sections.filter(section => section?.sectionType !== 'hero') }
+    : data;
+
 export const LandingPageComponent = props => {
   const { pageAssetsData, inProgress, error, latestListings, latestListingsInProgress } = props;
 
   return (
     <PageBuilder
-      pageAssetsData={pageAssetsData?.[camelize(ASSET_NAME)]?.data}
+      pageAssetsData={withoutHeroSections(pageAssetsData?.[camelize(ASSET_NAME)]?.data)}
       inProgress={inProgress}
       error={error}
       fallbackPage={<FallbackPage error={error} />}

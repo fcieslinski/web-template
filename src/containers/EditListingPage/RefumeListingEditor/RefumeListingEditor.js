@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { Form as FinalForm } from 'react-final-form';
+import arrayMutators from 'final-form-arrays';
 import { useDispatch } from 'react-redux';
 import classNames from 'classnames';
 
@@ -336,6 +337,7 @@ const RefumeListingEditor = props => {
   return (
     <FinalForm
       onSubmit={onSubmit}
+      mutators={{ ...arrayMutators }}
       initialValues={initialValues}
       initialValuesEqual={(a, b) => JSON.stringify(a) === JSON.stringify(b)}
       validate={values => {

@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { isFieldForListingType } from '../../../util/fieldHelpers';
 import { NamedLink } from '../../../components';
 import FavoriteButton from '../../../components/FavoriteButton/FavoriteButton';
+import { timeAgoPl } from '../../../util/refumeTimeAgo';
 
 import css from './RefumeListingExtras.module.css';
 
@@ -72,8 +73,20 @@ const ListingSummary = props => {
   const brand = items.find(i => i.strong);
   const rest = items.filter(i => !i.strong);
 
+  // Relative time is computed in the browser only, so server and client render the same HTML
+  const createdAt = listing?.attributes?.createdAt;
+  const [addedText, setAddedText] = useState(null);
+  useEffect(() => {
+    if (!createdAt) return;
+    const update = () => setAddedText(timeAgoPl(createdAt));
+    update();
+    const timer = setInterval(update, 60 * 1000);
+    return () => clearInterval(timer);
+  }, [createdAt ? new Date(createdAt).getTime() : null]);
+
   return (
     <div className={css.summary}>
+      <div className={css.summaryText}>
       <p className={css.summaryLine}>
         {brand ? (
           <NamedLink
@@ -96,6 +109,12 @@ const ListingSummary = props => {
           </React.Fragment>
         ))}
       </p>
+      {addedText ? (
+        <p className={css.addedAt}>
+          <time dateTime={new Date(createdAt).toISOString()}>Dodano {addedText}</time>
+        </p>
+      ) : null}
+      </div>
       {showFavorite ? (
         <FavoriteButton
           listingUuid={listing?.id?.uuid}

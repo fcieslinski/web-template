@@ -288,3 +288,18 @@
     border-color: var(--colorGrey300);
   }
 }
+
+.summaryText {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.addedAt {
+  margin: 0;
+  padding: 0;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--colorGrey500, var(--colorGrey700));
+}

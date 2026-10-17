@@ -163,7 +163,16 @@ const TopbarComponent = props => {
 
     const topbarSearchParams = () => {
       if (isMainSearchTypeKeywords(config)) {
-        return { keywords: values?.keywords };
+        // Refume: the desktop search has a category select. When it was submitted,
+        // set the top-level category (empty = all) and clear any subcategory.
+        const categoryMaybe =
+          values && 'refumeCategory' in values
+            ? {
+                pub_categoryLevel1: values.refumeCategory || undefined,
+                pub_categoryLevel2: undefined,
+              }
+            : {};
+        return { keywords: values?.keywords, ...categoryMaybe };
       }
       // topbar search defaults to 'location' search
       const { search, selectedPlace } = values?.location || {};
@@ -228,7 +237,15 @@ const TopbarComponent = props => {
     ? 'sales'
     : 'orders';
 
-  const { mobilemenu, mobilesearch, keywords, address, origin, bounds } = parse(location.search, {
+  const {
+    mobilemenu,
+    mobilesearch,
+    keywords,
+    address,
+    origin,
+    bounds,
+    pub_categoryLevel1,
+  } = parse(location.search, {
     latlng: ['origin'],
     latlngBounds: ['bounds'],
   });
@@ -262,7 +279,8 @@ const TopbarComponent = props => {
 
   const topbarSearcInitialValues = () => {
     if (isMainSearchTypeKeywords(config)) {
-      return { keywords };
+      // Refume: preselect the category in the desktop search select
+      return { keywords, refumeCategory: pub_categoryLevel1 || '' };
     }
 
     // Only render current search if full place object is available in the URL params

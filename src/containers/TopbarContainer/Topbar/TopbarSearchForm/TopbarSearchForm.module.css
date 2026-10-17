@@ -219,13 +219,47 @@
 }
 
 /* ================ Refume: rounded grey search field on desktop ================ */
+/* One pill: [category select | magnifier | text input] */
+.categorySelect {
+  flex-shrink: 0;
+  height: 44px;
+  width: auto;
+  margin: 0;
+  padding: 0 32px 0 14px;
+  border: 0;
+  border-right: 1px solid var(--colorGrey100);
+  border-radius: 10px 0 0 10px;
+  background-color: var(--refumeSearchBg, #f1efec);
+  background-position: right 10px center;
+  color: var(--colorGrey900);
+  font-size: 14px;
+  font-weight: var(--fontWeightSemiBold);
+  cursor: pointer;
+
+  &:hover,
+  &:focus {
+    border-bottom: 0;
+    border-right: 1px solid var(--colorGrey100);
+    box-shadow: none;
+  }
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
 .desktopIcon {
   height: 44px;
-  width: 44px;
-  padding: 2px 0 0 14px;
+  width: 40px;
+  padding: 2px 0 0 12px;
   align-self: center;
   background-color: var(--refumeSearchBg, #f1efec);
-  border-radius: 10px 0 0 10px;
+  border-radius: 0;
 }
 
 .desktopInput {

@@ -12,10 +12,40 @@ import css from './TopbarSearchForm.module.css';
 
 const identity = v => v;
 
+// Refume: top-level categories for the select in the desktop search field.
+// Values match pub_categoryLevel1 ids set up in Sharetribe Console.
+const REFUME_SEARCH_CATEGORIES = [
+  { value: '', label: 'Wszystko' },
+  { value: 'damskie', label: 'Damskie' },
+  { value: 'meskie', label: 'Męskie' },
+  { value: 'unisex', label: 'Unisex' },
+];
+
+const RefumeCategorySelect = () => (
+  <Field
+    name="refumeCategory"
+    render={({ input }) => (
+      <>
+        <label htmlFor="refume-search-category" className={css.visuallyHidden}>
+          Kategoria
+        </label>
+        <select {...input} id="refume-search-category" className={css.categorySelect}>
+          {REFUME_SEARCH_CATEGORIES.map(c => (
+            <option key={c.value || 'all'} value={c.value}>
+              {c.label}
+            </option>
+          ))}
+        </select>
+      </>
+    )}
+  />
+);
+
 const KeywordSearchField = props => {
   const { keywordSearchWrapperClasses, iconClass, intl, isMobile = false, inputRef } = props;
   return (
     <div className={keywordSearchWrapperClasses}>
+      {isMobile ? null : <RefumeCategorySelect />}
       <button
         className={css.searchSubmit}
         aria-label={intl.formatMessage({ id: 'TopbarDesktop.screenreader.search' })}
@@ -132,7 +162,9 @@ const TopbarSearchForm = props => {
 
   const onKeywordSubmit = values => {
     if (isMainSearchTypeKeywords(appConfig)) {
-      onSubmit({ keywords: values.keywords });
+      // Refume: pass the category from the desktop select along with keywords
+      const categoryMaybe = props.isMobile ? {} : { refumeCategory: values.refumeCategory || '' };
+      onSubmit({ keywords: values.keywords, ...categoryMaybe });
       // blur search input to hide software keyboard
       searchInpuRef?.current?.blur();
     }

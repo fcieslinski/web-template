@@ -111,11 +111,17 @@ const CategoryFields = ({ categories, prefix, values, formApi }) => {
 };
 
 /** Custom fields from Console for the chosen listing type and category (brand, condition…). */
+// Console fields replaced by Refume's own notes/accords pickers
+const isReplacedField = fc =>
+  /nut|akord|accord|note/i.test(`${fc?.key || ''}`) ||
+  /nuty|akord/i.test(`${fc?.saveConfig?.label || fc?.label || ''}`);
+
 const ListingFields = ({ listingFields, listingType, categoryIds, intl }) =>
   listingFields
     .filter(fc => {
       const { schemaType, scope = 'public' } = fc || {};
       return (
+        !isReplacedField(fc) &&
         EXTENDED_DATA_SCHEMA_TYPES.includes(schemaType) &&
         ['public', 'private'].includes(scope) &&
         isFieldForListingType(listingType, fc) &&

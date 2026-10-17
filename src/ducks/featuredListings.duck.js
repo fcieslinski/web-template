@@ -67,6 +67,11 @@ const fetchFeaturedListingsPayloadCreator = async (arg, thunkAPI) => {
           'publicData.shippingEnabled',
           'publicData.priceVariationsEnabled',
           'publicData.priceVariants',
+          // Refume: data for the bottle badge and price per ml on listing cards
+          'publicData.marka',
+          'publicData.stan',
+          'publicData.pojemnosc_ml',
+          'publicData.pojemnosc_odlewki',
         ],
         'fields.image': [
           'variants.listing-card',

@@ -217,3 +217,27 @@
     stroke-width: 2px;
   }
 }
+
+/* ================ Refume: rounded grey search field on desktop ================ */
+.desktopIcon {
+  height: 44px;
+  width: 44px;
+  padding: 2px 0 0 14px;
+  align-self: center;
+  background-color: var(--colorGrey50);
+  border-radius: 10px 0 0 10px;
+}
+
+.desktopInput {
+  height: 44px;
+  margin-left: 0;
+  padding-left: 8px;
+  padding-right: 14px;
+  background-color: var(--colorGrey50);
+  border-radius: 0 10px 10px 0;
+
+  &:hover,
+  &:focus {
+    background-color: var(--colorGrey100);
+  }
+}

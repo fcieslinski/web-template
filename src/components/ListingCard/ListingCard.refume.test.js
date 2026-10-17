@@ -1,8 +1,7 @@
 import { getStanInfo, getMillilitres, formatPricePerMl } from './ListingCard.refume';
 
 const intl = {
-  formatNumber: (value, opts) =>
-    new Intl.NumberFormat('pl-PL', opts).format(value),
+  formatNumber: (value, opts) => new Intl.NumberFormat('pl-PL', opts).format(value),
 };
 
 describe('Refume listing card helpers', () => {

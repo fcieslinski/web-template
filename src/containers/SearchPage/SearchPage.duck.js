@@ -449,6 +449,11 @@ export const loadData = (params, search, config) => (dispatch, getState, sdk) =>
         'publicData.shippingEnabled',
         'publicData.priceVariationsEnabled',
         'publicData.priceVariants',
+        // Refume: data for the bottle badge and price per ml on listing cards
+        'publicData.marka',
+        'publicData.stan',
+        'publicData.pojemnosc_ml',
+        'publicData.pojemnosc_odlewki',
       ],
       'fields.user': ['profile.displayName', 'profile.abbreviatedName'],
       'fields.image': [

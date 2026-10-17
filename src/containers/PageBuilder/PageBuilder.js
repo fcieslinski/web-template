@@ -109,6 +109,7 @@ const PageBuilder = props => {
     options,
     currentPage,
     featuredListings,
+    mainContentBefore,
     ...pageProps
   } = props;
 
@@ -138,6 +139,8 @@ const PageBuilder = props => {
                 <TopbarContainer currentPage={currentPage} />
               </Topbar>
               <Main as="main" id="main-content" className={css.main}>
+                {/* Refume: custom content rendered above the Console sections */}
+                {mainContentBefore || null}
                 {sections.length === 0 && inProgress ? (
                   <LoadingSpinner />
                 ) : (

@@ -9,6 +9,7 @@ import { camelize } from '../../util/string';
 import { propTypes } from '../../util/types';
 
 import FallbackPage from './FallbackPage';
+import CatalogHome from './CatalogHome';
 import { ASSET_NAME } from './LandingPage.duck';
 import { fetchFeaturedListings } from '../../ducks/featuredListings.duck';
 import { getListingsById } from '../../ducks/marketplaceData.duck';
@@ -19,7 +20,7 @@ const PageBuilder = loadable(() =>
 );
 
 export const LandingPageComponent = props => {
-  const { pageAssetsData, inProgress, error } = props;
+  const { pageAssetsData, inProgress, error, latestListings, latestListingsInProgress } = props;
 
   return (
     <PageBuilder
@@ -28,6 +29,9 @@ export const LandingPageComponent = props => {
       error={error}
       fallbackPage={<FallbackPage error={error} />}
       featuredListings={getFeaturedListingsProps(camelize(ASSET_NAME), props)}
+      mainContentBefore={
+        <CatalogHome listings={latestListings} inProgress={latestListingsInProgress} />
+      }
     />
   );
 };
@@ -44,7 +48,19 @@ const mapStateToProps = state => {
 
   const getListingEntitiesById = listingIds => getListingsById(state, listingIds);
 
-  return { pageAssetsData, featuredListingData, getListingEntitiesById, inProgress, error };
+  // Refume: newest listings for the catalog grid
+  const { latestListingIds = [], latestListingsInProgress } = state.LandingPage || {};
+  const latestListings = getListingsById(state, latestListingIds);
+
+  return {
+    pageAssetsData,
+    featuredListingData,
+    getListingEntitiesById,
+    inProgress,
+    error,
+    latestListings,
+    latestListingsInProgress,
+  };
 };
 
 const mapDispatchToProps = dispatch => ({

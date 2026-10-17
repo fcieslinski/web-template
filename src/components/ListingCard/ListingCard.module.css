@@ -162,3 +162,46 @@
 .bottleLiquid {
   fill: var(--refumeAmber, #d9a44a);
 }
+
+/* Refume: seller row above the photo on catalog-style cards */
+.sellerAbove {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--colorGrey700);
+  min-width: 0;
+}
+
+.sellerInitial {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--marketplaceColor);
+  color: var(--colorWhite);
+  font-size: 11px;
+  font-weight: var(--fontWeightBold);
+}
+
+.sellerName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Refume: perfume brand under the listing title */
+.brand {
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--colorGrey700);
+}
+
+.brand.lightText {
+  color: var(--colorWhite);
+}

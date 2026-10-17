@@ -307,3 +307,16 @@
     }
   }
 }
+
+/* ================ Refume: catalog-style top bar ================ */
+/* Center the search pill vertically inside the top bar */
+.topbarSearchWithLeftPadding {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* No divider line next to the search pill */
+.searchLink {
+  border-left-width: 0;
+}

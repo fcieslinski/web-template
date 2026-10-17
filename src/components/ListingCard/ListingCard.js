@@ -95,6 +95,8 @@ const ListingCardImage = props => {
  * @param {string?} props.renderSizes for img/srcset
  * @param {Function?} props.setActiveListing
  * @param {boolean?} props.showAuthorInfo
+ * @param {boolean?} props.authorAbove Refume: show the seller above the photo instead of under the title
+ * @param {boolean?} props.showBrand Refume: show the perfume brand under the title (default true)
  * @returns {JSX.Element} listing card to be used in search result panel etc.
  */
 export const ListingCard = props => {
@@ -111,6 +113,8 @@ export const ListingCard = props => {
     setActiveListing,
     showAuthorInfo = true,
     lazyLoadImage = true,
+    authorAbove = false,
+    showBrand = true,
   } = props;
 
   const translations = getListingCardTranslations(listing, config, intl);
@@ -130,6 +134,10 @@ export const ListingCard = props => {
   const { title = '', publicData, price } = listing?.attributes || {};
   const slug = createSlug(title);
   const pricePerMl = formatPricePerMl(price, publicData, intl, config.currency);
+  // Refume: catalog-style cards show the seller above the photo and the brand under the title
+  const sellerName = listing?.author?.attributes?.profile?.displayName || '';
+  const brand = showBrand ? publicData?.marka : null;
+  const showAuthorAbove = authorAbove && showAuthorInfo && sellerName;
 
   const { listingType, cardStyle } = publicData || {};
   const validListingTypes = config.listing.listingTypes || [];
@@ -158,6 +166,14 @@ export const ListingCard = props => {
       params={{ id, slug }}
       ariaLabel={cardAriaLabel}
     >
+      {showAuthorAbove ? (
+        <div className={classNames(css.sellerAbove, { [css.lightText]: darkMode })}>
+          <span className={css.sellerInitial} aria-hidden="true">
+            {sellerName.charAt(0).toUpperCase()}
+          </span>
+          <span className={css.sellerName}>{sellerName}</span>
+        </div>
+      ) : null}
       {showListingImage ? (
         <ListingCardImage
           renderSizes={renderSizes}
@@ -193,7 +209,10 @@ export const ListingCard = props => {
               {titleFormatted}
             </div>
           )}
-          {showAuthorInfo ? (
+          {brand ? (
+            <div className={classNames(css.brand, { [css.lightText]: darkMode })}>{brand}</div>
+          ) : null}
+          {showAuthorInfo && !showAuthorAbove ? (
             <div className={classNames(css.authorInfo, { [css.lightText]: darkMode })}>
               {authorName}
             </div>

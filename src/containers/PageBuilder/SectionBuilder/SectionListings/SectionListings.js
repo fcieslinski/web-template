@@ -200,6 +200,7 @@ const ListingCarouselComponent = props => {
             darkMode={darkMode}
             renderSizes={getResponsiveImageSizes(numColumns)}
             lazyLoadImage={!isInsideContainer}
+            showBrand={false}
           />
         </li>
       ))}

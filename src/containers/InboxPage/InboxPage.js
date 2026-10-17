@@ -200,43 +200,38 @@ export const InboxItem = props => {
     [css.stateNoActionNeeded]: !actionNeeded,
   });
 
+  // Refume: same one-row layout as the "Zespół Refume" thread
   return (
-    <div className={classNames(css.item, { [css.itemActive]: props.isActive })}>
-      <div className={css.itemAvatar}>
-        <Avatar user={otherUser} />
-      </div>
-      <NamedLink
-        className={classNames(linkClasses, { [css.itemLinkActive]: props.isActive })}
-        name="InboxPage"
-        params={{ tab: isCustomer ? 'orders' : 'sales' }}
-        to={{ search: `?tx=${tx.id.uuid}` }}
-        aria-current={props.isActive ? 'true' : undefined}
-      >
-        <div className={css.rowNotificationDot}>{rowNotificationDot}</div>
-        <div className={css.itemUsername}>{otherUserDisplayName}</div>
-        <div className={css.itemTitle}>{listing?.attributes?.title}</div>
-        <div className={css.itemDetails}>
+    <NamedLink
+      className={classNames(css.conv, {
+        [css.convActive]: props.isActive,
+        [css.bannedUserLink]: isOtherUserBanned,
+      })}
+      name="InboxPage"
+      params={{ tab: isCustomer ? 'orders' : 'sales' }}
+      to={{ search: `?tx=${tx.id.uuid}` }}
+    >
+      <Avatar user={otherUser} className={css.convAvatar} disableProfileLink />
+      <span className={css.convText}>
+        <span className={css.convTop}>
+          <span className={css.convName}>{otherUserDisplayName}</span>
+          {rowNotificationDot ? <span className={css.convDot} aria-label="Nowe" /> : null}
+        </span>
+        <span className={css.convPreview}>{listing?.attributes?.title}</span>
+        <span className={classNames(stateClasses, css.convState)}>
+          <FormattedMessage
+            id={`InboxPage.${processName}.${processState}.status`}
+            values={{ transactionRole }}
+          />
           {isBooking ? (
-            <BookingTimeInfoMaybe transaction={tx} />
-          ) : isPurchase && hasPricingData && showStock ? (
-            <FormattedMessage id="InboxPage.quantity" values={{ quantity }} />
+            <>
+              {' · '}
+              <BookingTimeInfoMaybe transaction={tx} />
+            </>
           ) : null}
-        </div>
-        {availabilityType == AVAILABILITY_MULTIPLE_SEATS && unitLineItem?.seats ? (
-          <div className={css.itemSeats}>
-            <FormattedMessage id="InboxPage.seats" values={{ seats: unitLineItem.seats }} />
-          </div>
-        ) : null}
-        <div className={css.itemState}>
-          <div className={stateClasses}>
-            <FormattedMessage
-              id={`InboxPage.${processName}.${processState}.status`}
-              values={{ transactionRole }}
-            />
-          </div>
-        </div>
-      </NamedLink>
-    </div>
+        </span>
+      </span>
+    </NamedLink>
   );
 };
 

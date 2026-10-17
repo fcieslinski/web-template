@@ -516,3 +516,86 @@
   font-weight: var(--fontWeightBold);
   color: var(--colorGrey900);
 }
+
+/* ---------- Refume: conversation rows (same layout as "Zespół Refume") ---------- */
+.inboxList .listItem {
+  margin: 0;
+  padding: 0;
+  border-bottom: 1px solid var(--colorGrey100);
+
+  &:last-child {
+    border-bottom: 1px solid var(--colorGrey100);
+  }
+}
+
+.conv {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  color: var(--colorGrey900);
+  background-color: var(--colorWhite);
+
+  &:hover {
+    text-decoration: none;
+    background-color: var(--colorGrey50);
+  }
+}
+
+.convActive {
+  background-color: color-mix(in srgb, var(--marketplaceColor) 10%, white);
+
+  &:hover {
+    background-color: color-mix(in srgb, var(--marketplaceColor) 10%, white);
+  }
+}
+
+.convAvatar {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+}
+
+.convText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.convTop {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.convName {
+  font-weight: var(--fontWeightBold);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.convDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--colorFail);
+  flex-shrink: 0;
+}
+
+.convPreview {
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--colorGrey700);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.convState {
+  margin: 2px 0 0 0;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: var(--fontWeightSemiBold);
+}

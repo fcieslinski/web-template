@@ -313,6 +313,9 @@ const getListingTypeConfig = (config, listingType) => {
 const EditListingDetailsForm = props => (
   <FinalForm
     {...props}
+    // Refume: initial values contain arrays (perfume notes) that are rebuilt on every render.
+    // Compare by content, otherwise the form re-initialises and resets what the user picked.
+    initialValuesEqual={(a, b) => JSON.stringify(a) === JSON.stringify(b)}
     mutators={{ ...arrayMutators }}
     render={formRenderProps => {
       const {

@@ -25,6 +25,8 @@ import {
   CustomExtendedDataField,
 } from '../../../../components';
 // Import modules from this directory
+import PerfumeLookup from './PerfumeLookup';
+import NotesFields from './NotesFields';
 import css from './EditListingDetailsForm.module.css';
 
 const TITLE_MAX_LENGTH = 60;
@@ -421,6 +423,10 @@ const EditListingDetailsForm = props => (
           )}
 
           {showTitle && isCompatibleCurrency && (
+            <PerfumeLookup formApi={formApi} listingFieldsConfig={listingFieldsConfig} />
+          )}
+
+          {showTitle && isCompatibleCurrency && (
             <FieldTextInput
               id={`${formId}title`}
               name="title"
@@ -463,6 +469,8 @@ const EditListingDetailsForm = props => (
               intl={intl}
             />
           )}
+
+          {showListingFields && isCompatibleCurrency && <NotesFields formId={formId} />}
 
           {!isCompatibleCurrency && listingType && (
             <p className={css.error}>

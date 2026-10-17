@@ -61,6 +61,7 @@ import SellerCard from './RefumeListingExtras/SellerCard';
 import MoreListings from './RefumeListingExtras/MoreListings';
 import TrustBox from './RefumeListingExtras/TrustBox';
 import ListingSummary from './RefumeListingExtras/ListingSummary';
+import NotesSection from './RefumeListingExtras/NotesSection';
 import css from './ListingPage.module.css';
 
 const MIN_LENGTH_FOR_LONG_WORDS_IN_TITLE = 16;
@@ -288,6 +289,8 @@ export const ListingPageComponent = props => {
               categoryConfiguration={config.categoryConfiguration}
               intl={intl}
             />
+
+            <NotesSection publicData={publicData} />
 
             <SectionMapMaybe
               geolocation={geolocation}

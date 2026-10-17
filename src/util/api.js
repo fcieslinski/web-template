@@ -166,3 +166,7 @@ export const decideProof = body => {
 // Refume: price offers in the buyer–seller chat
 export const makePriceOffer = body => post('/api/oferty/zloz', body);
 export const respondToPriceOffer = body => post('/api/oferty/odpowiedz', body);
+
+// Refume: perfume lookup (Fragella) for the listing form
+export const searchPerfumes = q =>
+  request(`/api/perfumy?q=${encodeURIComponent(q)}`, { method: methods.GET });

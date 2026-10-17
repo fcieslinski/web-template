@@ -303,3 +303,80 @@
   line-height: 18px;
   color: var(--colorGrey500, var(--colorGrey700));
 }
+
+/* ---------- Notes pyramid ---------- */
+.notes {
+  margin: 0 24px 40px 24px;
+
+  @media (--viewportMedium) {
+    margin: 0 0 40px 0;
+  }
+}
+
+.notesTitle {
+  margin: 0 0 16px 0;
+  padding: 0;
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: var(--fontWeightBold);
+}
+
+.accords {
+  margin: 0 0 16px 0;
+  padding: 0;
+  font-size: 15px;
+  color: var(--colorGrey700);
+}
+
+.accordsLabel {
+  font-weight: var(--fontWeightSemiBold);
+  color: var(--colorGrey900);
+}
+
+.pyramid {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--colorGrey100);
+}
+
+.pyramidRow {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--colorGrey100);
+
+  @media (--viewportMedium) {
+    grid-template-columns: 200px 1fr;
+    gap: 16px;
+  }
+}
+
+.pyramidLabel {
+  display: flex;
+  flex-direction: column;
+  font-weight: var(--fontWeightSemiBold);
+}
+
+.pyramidHint {
+  font-size: 13px;
+  font-weight: var(--fontWeightRegular);
+  color: var(--colorGrey700);
+}
+
+.pyramidNotes {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-content: flex-start;
+}
+
+.note {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background-color: var(--colorGrey50);
+  font-size: 14px;
+  line-height: 20px;
+}

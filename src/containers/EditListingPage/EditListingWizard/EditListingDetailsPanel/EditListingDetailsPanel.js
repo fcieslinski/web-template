@@ -24,6 +24,15 @@ import { H3, ListingLink } from '../../../../components';
 import ErrorMessage from './ErrorMessage';
 import EditListingDetailsForm from './EditListingDetailsForm';
 import { canonicalBrand } from '../../../../util/refumeBrands';
+
+// Refume: notes are stored as publicData.nuty = { glowy, serca, bazy } (arrays of strings)
+const splitNotes = text =>
+  String(text || '')
+    .split(',')
+    .map(s => s.trim())
+    .filter(Boolean)
+    .slice(0, 30);
+const notesToText = list => (Array.isArray(list) ? list.join(', ') : '');
 import css from './EditListingDetailsPanel.module.css';
 
 /**
@@ -270,6 +279,11 @@ const getInitialValues = (
       nestedCategories,
       listingFields
     ),
+    refumeNutyGlowy: notesToText(publicData?.nuty?.glowy),
+    refumeNutySerca: notesToText(publicData?.nuty?.serca),
+    refumeNutyBazy: notesToText(publicData?.nuty?.bazy),
+    refumeAkordy: notesToText(publicData?.akordy),
+    refumeFragellaId: publicData?.fragellaId || '',
   };
 };
 
@@ -393,6 +407,11 @@ const EditListingDetailsPanel = props => {
               listingType,
               transactionProcessAlias,
               unitType,
+              refumeNutyGlowy,
+              refumeNutySerca,
+              refumeNutyBazy,
+              refumeAkordy,
+              refumeFragellaId,
               ...rest
             } = values;
 
@@ -430,6 +449,13 @@ const EditListingDetailsPanel = props => {
                 ...(publicListingFields.marka
                   ? { marka: canonicalBrand(publicListingFields.marka) }
                   : {}),
+                nuty: {
+                  glowy: splitNotes(refumeNutyGlowy),
+                  serca: splitNotes(refumeNutySerca),
+                  bazy: splitNotes(refumeNutyBazy),
+                },
+                akordy: splitNotes(refumeAkordy).slice(0, 6),
+                fragellaId: refumeFragellaId || null,
               },
               privateData: privateListingFields,
               ...setNoAvailabilityForUnbookableListings(transactionProcessAlias),

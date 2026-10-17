@@ -95,3 +95,7 @@
   margin: 8px 0 0 0;
   color: var(--colorFail);
 }
+
+.embedded {
+  margin: 0;
+}

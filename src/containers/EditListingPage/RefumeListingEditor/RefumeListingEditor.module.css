@@ -1,0 +1,246 @@
+@import '../../../styles/customMediaQueries.css';
+
+.root {
+  width: 100%;
+  max-width: 820px;
+  margin: 0 auto;
+  padding: 24px 16px 140px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+
+  @media (--viewportMedium) {
+    padding: 40px 24px 140px 24px;
+  }
+}
+
+.header {
+  margin-bottom: 4px;
+}
+
+.title {
+  margin: 0;
+  padding: 0;
+  font-family: var(--fontFamilySerif, inherit);
+  font-size: 32px;
+  line-height: 40px;
+  font-weight: var(--fontWeightBold);
+}
+
+.lead {
+  margin: 6px 0 0 0;
+  color: var(--colorGrey700);
+}
+
+.section {
+  padding: 20px;
+  border: 1px solid var(--colorGrey100);
+  border-radius: 14px;
+  background-color: var(--colorWhite);
+
+  @media (--viewportMedium) {
+    padding: 24px 28px;
+  }
+}
+
+.sectionHeader {
+  margin-bottom: 16px;
+}
+
+.sectionTitle {
+  margin: 0;
+  padding: 0;
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: var(--fontWeightBold);
+}
+
+.sectionHint {
+  margin: 4px 0 0 0;
+  padding: 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--colorGrey700);
+}
+
+.field {
+  margin-bottom: 20px;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0 16px;
+
+  @media (--viewportMedium) {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.fieldsGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0 16px;
+
+  @media (--viewportMedium) {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  /* long text fields take the full width */
+  & textarea {
+    min-height: 80px;
+  }
+}
+
+.twoCols {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+
+  @media (--viewportMedium) {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.notesSection > fieldset {
+  margin: 0;
+  padding: 0;
+  border: 0;
+
+  & > legend {
+    display: none;
+  }
+}
+
+.label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: var(--fontWeightSemiBold);
+}
+
+.typeGroup {
+  margin: 0 0 20px 0;
+  padding: 0;
+  border: 0;
+}
+
+.pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 20px;
+}
+
+.carriers {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.note {
+  margin: 0;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--colorGrey700);
+}
+
+/* Photos */
+.images {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+
+  @media (--viewportMedium) {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.thumb {
+  width: 100%;
+}
+
+.addImage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  aspect-ratio: 3 / 4;
+  border: 2px dashed var(--colorGrey200);
+  border-radius: 10px;
+  color: var(--colorGrey700);
+  font-weight: var(--fontWeightSemiBold);
+  cursor: pointer;
+  text-align: center;
+
+  &:hover,
+  &:focus-within {
+    border-color: var(--marketplaceColor);
+    color: var(--marketplaceColor);
+  }
+}
+
+.addImagePlus {
+  font-size: 32px;
+  line-height: 1;
+}
+
+.hiddenInput {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+.proofButton {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 10px 18px;
+  border: 1px solid var(--marketplaceColor);
+  border-radius: 8px;
+  color: var(--marketplaceColor);
+  font-weight: var(--fontWeightSemiBold);
+  cursor: pointer;
+
+  &:focus-within {
+    outline: 2px solid var(--marketplaceColor);
+    outline-offset: 2px;
+  }
+}
+
+.error {
+  margin: 8px 0 0 0;
+  color: var(--colorFail);
+  font-size: 14px;
+}
+
+/* Sticky publish bar */
+.submitBar {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  margin: 0 -16px;
+  padding: 12px 16px;
+  background-color: rgba(255, 255, 255, 0.96);
+  border-top: 1px solid var(--colorGrey100);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+
+  @media (--viewportMedium) {
+    margin: 0;
+    padding: 14px 0;
+    flex-direction: row-reverse;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.submit {
+  @media (--viewportMedium) {
+    width: 280px;
+  }
+}

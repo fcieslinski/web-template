@@ -47,7 +47,7 @@ const StatusMessage = ({ status, reason }) => {
  * @param {Object} props.listing own listing entity
  */
 const ProofOfPurchase = props => {
-  const { listing } = props;
+  const { listing, hideHeading = false } = props;
   const dispatch = useDispatch();
   const [uploadedProof, setUploadedProof] = useState(null);
   const [inProgress, setInProgress] = useState(false);
@@ -92,14 +92,21 @@ const ProofOfPurchase = props => {
   const inputId = `proof-of-purchase-${listingId.uuid}`;
 
   return (
-    <section className={css.root} aria-labelledby={`${inputId}-title`}>
-      <H4 as="h2" id={`${inputId}-title`} className={css.title}>
-        Dowód zakupu (opcjonalnie)
-      </H4>
-      <p className={css.description}>
-        Dodaj zdjęcie paragonu lub faktury. Zobaczy je tylko moderator, nie kupujący. Po
-        zatwierdzeniu ogłoszenie dostanie znacznik „Zweryfikowano dowodem zakupu”.
-      </p>
+    <section
+      className={hideHeading ? css.embedded : css.root}
+      aria-labelledby={hideHeading ? undefined : `${inputId}-title`}
+    >
+      {hideHeading ? null : (
+        <>
+          <H4 as="h2" id={`${inputId}-title`} className={css.title}>
+            Dowód zakupu (opcjonalnie)
+          </H4>
+          <p className={css.description}>
+            Dodaj zdjęcie paragonu lub faktury. Zobaczy je tylko moderator, nie kupujący. Po
+            zatwierdzeniu ogłoszenie dostanie znacznik „Zweryfikowano dowodem zakupu”.
+          </p>
+        </>
+      )}
 
       <StatusMessage status={status} reason={reason} />
 

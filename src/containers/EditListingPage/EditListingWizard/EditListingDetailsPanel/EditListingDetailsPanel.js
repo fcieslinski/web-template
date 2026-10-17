@@ -120,7 +120,7 @@ const hasSetListingType = publicData => {
  * @param {Object} listingFieldConfigs an extended data configurtions for listing fields.
  * @returns Array of picked extended data fields from submitted data.
  */
-const pickListingFieldsData = (
+export const pickListingFieldsData = (
   data,
   targetScope,
   targetListingType,
@@ -163,7 +163,7 @@ const pickListingFieldsData = (
  * @param {Object} listingFieldConfigs an extended data configurtions for listing fields.
  * @returns Array of picked extended data fields
  */
-const initialValuesForListingFields = (
+export const initialValuesForListingFields = (
   data,
   targetScope,
   targetListingType,
@@ -207,7 +207,7 @@ const initialValuesForListingFields = (
  * @param {string} processAlias selected for this listing
  * @returns availabilityPlan without any seats available for the listing
  */
-const setNoAvailabilityForUnbookableListings = processAlias => {
+export const setNoAvailabilityForUnbookableListings = processAlias => {
   return isBookingProcessAlias(processAlias)
     ? {}
     : {

@@ -52,6 +52,8 @@ import {
   clearUploadedFiles,
   downloadFile,
 } from './EditListingPage.duck';
+import RefumeListingEditor from './RefumeListingEditor/RefumeListingEditor';
+import { useConfiguration } from '../../context/configurationContext';
 import EditListingWizard from './EditListingWizard/EditListingWizard';
 import css from './EditListingPage.module.css';
 
@@ -147,6 +149,7 @@ const pickRenderableImages = (
  */
 export const EditListingPageComponent = props => {
   const intl = useIntl();
+  const config = useConfiguration();
   const {
     currentUser,
     createStripeAccountError,
@@ -294,55 +297,18 @@ export const EditListingPageComponent = props => {
           desktopClassName={css.desktopTopbar}
           mobileClassName={css.mobileTopbar}
         />
-        <EditListingWizard
-          id="EditListingWizard"
-          className={css.wizard}
-          params={params}
-          locationSearch={parse(location.search)}
-          disabled={disableForm}
-          errors={errors}
-          fetchInProgress={fetchInProgress}
-          newListingPublished={newListingPublished}
-          history={history}
-          images={images}
+        {/* Refume: one-page listing editor instead of the 4-step wizard */}
+        <RefumeListingEditor
           listing={currentListing}
-          weeklyExceptionQueries={page.weeklyExceptionQueries}
-          monthlyExceptionQueries={page.monthlyExceptionQueries}
-          allExceptions={page.allExceptions}
-          onFetchExceptions={onFetchExceptions}
-          onAddAvailabilityException={onAddAvailabilityException}
-          onDeleteAvailabilityException={onDeleteAvailabilityException}
-          onUpdateListing={onUpdateListing}
+          images={images}
+          config={config}
+          history={history}
+          locationSearch={parse(location.search)}
           onCreateListingDraft={onCreateListingDraft}
+          onUpdateListing={onUpdateListing}
           onPublishListingDraft={onPublishListingDraft}
-          onPayoutDetailsChange={onPayoutDetailsChange}
-          onPayoutDetailsSubmit={onPayoutDetailsSubmit}
-          onGetStripeConnectAccountLink={onGetStripeConnectAccountLink}
-          getAccountLinkInProgress={getAccountLinkInProgress}
           onImageUpload={onImageUpload}
-          onRemoveImage={onRemoveListingImage}
-          currentUser={currentUser}
-          onManageDisableScrolling={onManageDisableScrolling}
-          stripeOnboardingReturnURL={params.returnURLType}
-          updatedTab={page.updatedTab}
-          updateInProgress={page.updateInProgress || page.createListingDraftInProgress}
-          payoutDetailsSaveInProgress={page.payoutDetailsSaveInProgress}
-          payoutDetailsSaved={page.payoutDetailsSaved}
-          stripeAccountFetched={stripeAccountFetched}
-          stripeAccount={stripeAccount}
-          stripeAccountError={
-            createStripeAccountError || updateStripeAccountError || fetchStripeAccountError
-          }
-          stripeAccountLinkError={getAccountLinkError}
-          authScopes={authScopes}
-          titleId={titleId}
-          fileUploads={fileUploads}
-          fileUploadsDisabled={fileUploadsDisabled}
-          hasPendingFileUploads={hasPendingFileUploads}
-          allFilesUploadedAndVerified={allFilesUploadedAndVerified}
-          onUploadFile={onUploadFile}
-          onClearUploadedFiles={onClearUploadedFiles}
-          onDownloadFile={onDownloadFile}
+          onRemoveListingImage={onRemoveListingImage}
         />
       </Page>
     );

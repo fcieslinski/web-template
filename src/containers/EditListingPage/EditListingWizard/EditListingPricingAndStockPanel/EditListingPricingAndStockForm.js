@@ -150,7 +150,9 @@ export const EditListingPricingAndStockForm = props => (
       );
       // Note: outdated listings don't have listingType!
       // I.e. listings that are created with previous listing type setup.
-      const hasStockManagement = listingType?.stockType === STOCK_MULTIPLE_ITEMS;
+      // Refume: every listing is a single item, so the stock field is hidden.
+      // New listings get stock 1 automatically (see EditListingPricingAndStockPanel).
+      const hasStockManagement = false && listingType?.stockType === STOCK_MULTIPLE_ITEMS;
       const stockValidator = validators.numberAtLeast(
         intl.formatMessage({ id: 'EditListingPricingAndStockForm.stockIsRequired' }),
         0

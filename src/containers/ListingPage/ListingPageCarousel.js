@@ -293,7 +293,7 @@ export const ListingPageComponent = props => {
               listingId={currentListing.id}
               mapsConfig={config.maps}
             />
-            <SectionReviews reviews={reviews} fetchReviewsError={fetchReviewsError} />
+            {/* Refume: no per-listing reviews (mostly used items); seller rating is in SellerCard */}
             <SectionAuthorMaybe
               hideCard
               title={title}

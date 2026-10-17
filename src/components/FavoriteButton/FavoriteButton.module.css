@@ -1,0 +1,49 @@
+.icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.overlay {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+  color: var(--colorGrey900);
+  cursor: pointer;
+
+  &:hover {
+    color: var(--marketplaceColor);
+  }
+}
+
+.labelled {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 16px;
+  border: 1px solid var(--colorGrey200);
+  border-radius: 8px;
+  background-color: var(--colorWhite);
+  color: var(--colorGrey900);
+  font: inherit;
+  font-weight: var(--fontWeightSemiBold);
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--colorGrey700);
+  }
+}
+
+.active {
+  color: hsl(350 70% 48%);
+}

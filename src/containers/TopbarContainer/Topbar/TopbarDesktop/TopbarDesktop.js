@@ -173,6 +173,13 @@ const TopbarDesktop = props => {
   const giveSpaceForSearch = customLinks == null || customLinks?.length === 0;
   const classes = classNames(rootClassName || css.root, className);
 
+  // Refume: favourites
+  const favoritesLinkMaybe = authenticatedOnClientSide ? (
+    <NamedLink id="favorites-link" className={css.topbarLink} name="FavoritesPage">
+      <span className={css.topbarLinkLabel}>Ulubione</span>
+    </NamedLink>
+  ) : null;
+
   const inboxLinkMaybe = authenticatedOnClientSide ? (
     <InboxLink notificationCount={notificationCount} inboxTab={inboxTab} />
   ) : null;
@@ -228,6 +235,7 @@ const TopbarDesktop = props => {
         showCreateListingsLink={showCreateListingsLinkHydrationSafe}
       />
 
+      {favoritesLinkMaybe}
       {inboxLinkMaybe}
       {profileMenuMaybe}
       {signupLinkMaybe}

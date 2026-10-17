@@ -60,6 +60,7 @@ import MakeOfferButton from '../../components/RefumePriceOffer/MakeOfferButton';
 import SellerCard from './RefumeListingExtras/SellerCard';
 import MoreListings from './RefumeListingExtras/MoreListings';
 import TrustBox from './RefumeListingExtras/TrustBox';
+import ListingSummary from './RefumeListingExtras/ListingSummary';
 import css from './ListingPage.module.css';
 
 const MIN_LENGTH_FOR_LONG_WORDS_IN_TITLE = 16;
@@ -276,6 +277,7 @@ export const ListingPageComponent = props => {
                   <FormattedMessage id="ListingPage.orderTitle" values={{ title: richTitle }} />
                 </H3>
               )}
+              <ListingSummary listing={currentListing} config={config} />
             </div>
             {showDescription && <SectionText text={description} showAsIngress />}
 
@@ -334,6 +336,7 @@ export const ListingPageComponent = props => {
                 </H4>
               }
               sectionHeadingAs="h2"
+              refumeTitleExtra={<ListingSummary listing={currentListing} config={config} />}
               refumeOfferAction={
                 <MakeOfferButton
                   listing={currentListing}

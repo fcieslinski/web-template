@@ -230,3 +230,43 @@
   line-height: 19px;
   color: var(--colorGrey700);
 }
+
+/* ---------- Summary under the title ---------- */
+.summary {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 8px 0 16px 0;
+}
+
+.summaryList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.summaryChip,
+.summaryBrand {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 13px;
+  line-height: 18px;
+  background-color: var(--colorGrey50);
+  color: var(--colorGrey900);
+}
+
+.summaryBrand {
+  background-color: var(--colorGrey900);
+  color: var(--colorWhite);
+  font-weight: var(--fontWeightSemiBold);
+}
+
+.summaryFavorite {
+  width: auto;
+  align-self: flex-start;
+}

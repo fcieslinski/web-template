@@ -25,13 +25,12 @@ export const LISTING_CARD_FIELDS = [
   'metadata.weryfikacja',
 ];
 
-const cardQueryParams = listingImageConfig => {
+const cardQueryParams = (listingImageConfig, includeSoldOut) => {
   const { aspectWidth = 1, aspectHeight = 1, variantPrefix = 'listing-card' } =
     listingImageConfig || {};
   const aspectRatio = aspectHeight / aspectWidth;
   return {
-    minStock: 1,
-    stockMode: 'match-undefined',
+    ...(includeSoldOut ? {} : { minStock: 1, stockMode: 'match-undefined' }),
     include: ['images', 'author'],
     'fields.listing': LISTING_CARD_FIELDS,
     'fields.user': ['profile.displayName', 'profile.abbreviatedName'],
@@ -50,13 +49,24 @@ const cardQueryParams = listingImageConfig => {
 /**
  * @returns {Promise<Array<UUID>>} listing ids (current listing excluded)
  */
-export const fetchListingIds = ({ query, excludeId, limit, listingImageConfig }) => (
+export const fetchListingIds = ({
+  query,
+  excludeId,
+  limit,
+  listingImageConfig,
+  includeSoldOut = false,
+}) => (
   dispatch,
   getState,
   sdk
 ) =>
   sdk.listings
-    .query({ ...query, perPage: limit + 1, page: 1, ...cardQueryParams(listingImageConfig) })
+    .query({
+      ...query,
+      perPage: Math.min(limit + 1, 100),
+      page: 1,
+      ...cardQueryParams(listingImageConfig, includeSoldOut),
+    })
     .then(response => {
       dispatch(addMarketplaceEntities(response));
       return response.data.data

@@ -211,3 +211,21 @@
   align-self: flex-start;
   margin-top: 4px;
 }
+
+/* Refume: favourite heart on the card image */
+.cardWrapper {
+  position: relative;
+  min-width: 0;
+}
+
+.favorite {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 1;
+}
+
+/* The seller row above the image is ~32px tall */
+.favoriteBelowSeller {
+  top: 40px;
+}

@@ -298,3 +298,12 @@
   color: var(--colorGrey700);
   text-align: center;
 }
+
+/* Refume: listing summary under the title (desktop panel only; mobile shows it in the page heading) */
+.titleExtra {
+  display: none;
+
+  @media (--viewportLarge) {
+    display: block;
+  }
+}

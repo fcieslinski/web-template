@@ -308,6 +308,7 @@ const OrderPanel = props => {
     author,
     authorLink,
     refumeOfferAction,
+    refumeTitleExtra,
     onManageDisableScrolling,
     onFetchTimeSlots,
     monthlyTimeSlots,
@@ -476,6 +477,7 @@ const OrderPanel = props => {
             {subTitleText ? <div className={css.orderHelp}>{subTitleText}</div> : null}
           </div>
         )}
+        {refumeTitleExtra ? <div className={css.titleExtra}>{refumeTitleExtra}</div> : null}
         {!hidePrice && (
           <PriceMaybe
             price={price}

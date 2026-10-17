@@ -20,6 +20,7 @@ import {
 import { getListingCardTranslations } from './ListingCard.helpers';
 import { BottleLevelBadge, formatPricePerMl } from './ListingCard.refume';
 import VerifiedProofBadge from '../VerifiedProofBadge/VerifiedProofBadge';
+import FavoriteButton from '../FavoriteButton/FavoriteButton';
 import { CardPriceWithBuyerFee } from '../RefumePrice/PriceWithBuyerFee';
 
 import css from './ListingCard.module.css';
@@ -162,6 +163,8 @@ export const ListingCard = props => {
     : null;
 
   return (
+    // Refume: wrapper so the favourite button sits on the card without being inside the link
+    <div className={css.cardWrapper}>
     <NamedLink
       className={classes}
       name="ListingPage"
@@ -230,6 +233,14 @@ export const ListingCard = props => {
         </div>
       </div>
     </NamedLink>
+    {showListingImage ? (
+      <FavoriteButton
+        listingUuid={id}
+        title={titlePlain}
+        className={classNames(css.favorite, { [css.favoriteBelowSeller]: showAuthorAbove })}
+      />
+    ) : null}
+    </div>
   );
 };
 

@@ -4,18 +4,49 @@
  *
  * GET /api/perfumy?q=sauvage
  *
- * Env: FRAGELLA_API_KEY (secret, server-only). Results are cached in memory for 24 h to save
- * the monthly quota. Only logged-in users can search.
+ * Env: FRAGELLA_API_KEY (secret, server-only). Results are cached for 30 days in
+ * server/data/fragella-cache.json (git-ignored) to save the monthly quota. Only logged-in users can search.
  */
 const { getSdk, handleError } = require('../api-util/sdk');
 const { searchCatalog, normalizeCatalogText } = require('../api-util/refumePerfumeCatalog');
 
 const ENOUGH_RESULTS = 3;
 
+const fs = require('fs');
+const path = require('path');
+
 const BASE_URL = 'https://api.fragella.com/api/v1';
-const CACHE_TTL_MS = 24 * 3600 * 1000;
-const CACHE_MAX = 2000;
+// Search results are remembered for 30 days (also across server restarts), then asked again.
+const CACHE_TTL_MS = 30 * 24 * 3600 * 1000;
+const CACHE_MAX = 5000;
+const CACHE_FILE = path.join(__dirname, '..', 'data', 'fragella-cache.json');
 const cache = new Map();
+
+const loadCache = () => {
+  try {
+    const entries = JSON.parse(fs.readFileSync(CACHE_FILE, 'utf8'));
+    const now = Date.now();
+    entries.forEach(([key, value]) => {
+      if (value && now - value.at < CACHE_TTL_MS) cache.set(key, value);
+    });
+  } catch (e) {
+    // no cache file yet
+  }
+};
+loadCache();
+
+let saveTimer = null;
+const saveCacheSoon = () => {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    try {
+      fs.mkdirSync(path.dirname(CACHE_FILE), { recursive: true });
+      fs.writeFileSync(CACHE_FILE, JSON.stringify(Array.from(cache.entries())));
+    } catch (e) {
+      console.error('[refume-perfumes] cache save failed:', e.message);
+    }
+  }, 2000);
+};
 
 const httpError = (status, message) =>
   Object.assign(new Error(message), { status, statusText: message, data: {} });
@@ -54,7 +85,7 @@ const searchFragella = async query => {
   if (hit && Date.now() - hit.at < CACHE_TTL_MS) {
     return hit.data;
   }
-  const url = `${BASE_URL}/fragrances?search=${encodeURIComponent(query)}&limit=8`;
+  const url = `${BASE_URL}/fragrances?search=${encodeURIComponent(query)}&limit=10`;
   const res = await fetch(url, { headers: { 'x-api-key': process.env.FRAGELLA_API_KEY } });
   if (res.status === 404) {
     return [];
@@ -69,6 +100,7 @@ const searchFragella = async query => {
     cache.delete(cache.keys().next().value);
   }
   cache.set(key, { at: Date.now(), data });
+  saveCacheSoon();
   return data;
 };
 

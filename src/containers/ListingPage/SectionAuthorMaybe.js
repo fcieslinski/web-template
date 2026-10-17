@@ -27,6 +27,7 @@ const SectionAuthorMaybe = props => {
     onSubmitInquiry,
     currentUser,
     onManageDisableScrolling,
+    hideCard = false, // Refume: the seller card lives in the right column
   } = props;
 
   if (!listing.author) {
@@ -40,17 +41,21 @@ const SectionAuthorMaybe = props => {
   const showContact = !(isInquiryProcess || (isNegotiationProcess && unitType === OFFER));
 
   return (
-    <section id="author" className={css.sectionAuthor}>
-      <Heading as="h2" rootClassName={css.sectionHeadingWithExtraMargin}>
-        <FormattedMessage id="ListingPage.aboutProviderTitle" />
-      </Heading>
-      <UserCard
-        user={listing.author}
-        currentUser={currentUser}
-        onContactUser={onContactUser}
-        showContact={showContact}
-        contactLinkId={CONTACT_USER_LINK}
-      />
+    <section id="author" className={hideCard ? null : css.sectionAuthor}>
+      {hideCard ? null : (
+        <>
+          <Heading as="h2" rootClassName={css.sectionHeadingWithExtraMargin}>
+            <FormattedMessage id="ListingPage.aboutProviderTitle" />
+          </Heading>
+          <UserCard
+            user={listing.author}
+            currentUser={currentUser}
+            onContactUser={onContactUser}
+            showContact={showContact}
+            contactLinkId={CONTACT_USER_LINK}
+          />
+        </>
+      )}
       <Modal
         id="ListingPage.inquiry"
         contentClassName={css.inquiryModalContent}

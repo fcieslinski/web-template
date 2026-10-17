@@ -294,9 +294,9 @@
   @media (--viewportMedium) {
   }
   @media (--viewportLarge) {
-    /* contentContainer's full width - (orderColumn + paddings + margin) */
-    max-width: calc(100% - 360px);
-    flex-basis: calc(100% - 360px);
+    /* Refume: wider right column (380px + 48px margin) */
+    max-width: calc(100% - 428px);
+    flex-basis: calc(100% - 428px);
     flex-shrink: 0;
     flex-grow: 1;
   }
@@ -308,7 +308,7 @@
   @media (--viewportLarge) {
     display: block;
     margin-left: 48px;
-    flex-basis: 312px;
+    flex-basis: 380px;
     flex-shrink: 0;
   }
 }
@@ -380,11 +380,7 @@
   @media (--viewportLarge) {
     display: block;
   }
-  /* Note: panel height might be too much on small viewport - hence min-height */
-  @media (--viewportLarge) and (min-height: 950px) {
-    position: sticky;
-    top: 108px;
-  }
+  /* Refume: not sticky, because the seller card sits right below the panel */
   &.imagesEnabled {
     @media (--viewportLarge) {
       margin-top: 24px;

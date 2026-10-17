@@ -57,6 +57,8 @@ import CustomListingFields from './CustomListingFields';
 import ListingPageAccessWrapper from './ListingPageAccessWrapper';
 
 import MakeOfferButton from '../../components/RefumePriceOffer/MakeOfferButton';
+import SellerCard from './RefumeListingExtras/SellerCard';
+import MoreListings from './RefumeListingExtras/MoreListings';
 import css from './ListingPage.module.css';
 
 const MIN_LENGTH_FOR_LONG_WORDS_IN_TITLE = 16;
@@ -292,6 +294,7 @@ export const ListingPageComponent = props => {
             />
             <SectionReviews reviews={reviews} fetchReviewsError={fetchReviewsError} />
             <SectionAuthorMaybe
+              hideCard
               title={title}
               listing={currentListing}
               authorDisplayName={authorDisplayName}
@@ -348,8 +351,17 @@ export const ListingPageComponent = props => {
               marketplaceName={config.marketplaceName}
               showListingImage={showListingImage}
             />
+            <SellerCard
+              listing={currentListing}
+              isOwnListing={isOwnListing}
+              onContactUser={onContactUser}
+            />
           </div>
         </div>
+        <MoreListings
+          listing={currentListing}
+          listingImageConfig={config.layout.listingImage}
+        />
       </LayoutSingleColumn>
     </Page>
   );

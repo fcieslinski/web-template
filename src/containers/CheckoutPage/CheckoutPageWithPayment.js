@@ -47,6 +47,9 @@ import DetailsSideCard from './DetailsSideCard';
 import MobileListingImage from './MobileListingImage';
 import MobileOrderBreakdown from './MobileOrderBreakdown';
 
+import RefumeDeliveryPicker, { getDeliveryOptions, isDeliveryChosen } from './RefumeDeliveryPicker';
+import deliveryCss from './RefumeDeliveryPicker.module.css';
+import { storeData } from './CheckoutPageSessionHelpers';
 import css from './CheckoutPage.module.css';
 
 // Stripe PaymentIntent statuses, where user actions are already completed
@@ -643,6 +646,27 @@ export const CheckoutPageWithPayment = props => {
     );
   }
 
+  // Refume: the buyer picks the carrier / pickup point here (not on the listing page).
+  // Changing the carrier re-prices the order through a new speculative transaction.
+  const deliveryOptions =
+    isPurchase && !hasTransactionPassedPendingPayment(existingTransaction, process)
+      ? getDeliveryOptions(listing?.attributes?.publicData)
+      : [];
+  const deliveryChosen = isDeliveryChosen(orderData, deliveryOptions);
+  const handleDeliveryChange = (changes, { reprice }) => {
+    const newPageData = { ...pageData, orderData: { ...orderData, ...changes } };
+    storeData(newPageData.orderData, listing, transaction, props.sessionStorageKey);
+    props.setPageData(newPageData);
+    if (reprice) {
+      const orderParams = getOrderParams(newPageData, {}, {}, config);
+      fetchSpeculatedTransactionIfNeeded(
+        orderParams,
+        newPageData,
+        props.fetchSpeculatedTransaction
+      );
+    }
+  };
+
   return (
     <Page title={title} scrollingDisabled={scrollingDisabled}>
       <TopbarSimplified />
@@ -675,7 +699,19 @@ export const CheckoutPageWithPayment = props => {
             {errorMessages.retrievePaymentIntentErrorMessage}
             {errorMessages.paymentExpiredMessage}
 
-            {showPaymentForm ? (
+            <RefumeDeliveryPicker
+              options={deliveryOptions}
+              orderData={orderData}
+              onChange={handleDeliveryChange}
+            />
+
+            {showPaymentForm && !deliveryChosen ? (
+              <p className={deliveryCss.hint}>
+                Wybierz sposób dostawy, żeby przejść do płatności.
+              </p>
+            ) : null}
+
+            {showPaymentForm && deliveryChosen ? (
               <StripePaymentForm
                 className={css.paymentForm}
                 onSubmit={values =>

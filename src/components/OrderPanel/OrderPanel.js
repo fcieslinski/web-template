@@ -552,12 +552,12 @@ const OrderPanel = props => {
             formId="OrderPanelProductOrderForm"
             currentStock={currentStock}
             allowOrdersOfMultipleItems={allowOrdersOfMultipleItems}
-            pickupEnabled={pickupEnabled && displayPickup}
-            shippingEnabled={
-              shippingEnabled && displayShipping && shippingCarrierOptions.length > 0
-            }
-            shippingCarrierOptions={shippingCarrierOptions}
-            displayDeliveryMethod={displayPickup || displayShipping}
+            // Refume: delivery (carrier, pickup point or personal pickup) is chosen on the
+            // checkout page, not here.
+            pickupEnabled={false}
+            shippingEnabled={false}
+            shippingCarrierOptions={[]}
+            displayDeliveryMethod={false}
             onContactUser={onContactUser}
             {...sharedProps}
           />
@@ -594,6 +594,15 @@ const OrderPanel = props => {
         ) : !isKnownProcess ? (
           <p className={css.errorSidebar}>
             <FormattedMessage id="OrderPanel.unknownTransactionProcess" />
+          </p>
+        ) : null}
+        {showProductOrderForm && shippingEnabled && displayShipping && shippingCarrierOptions.length > 0 ? (
+          <p className={css.deliveryHint}>
+            Dostawa od{' '}
+            {(Math.min(...shippingCarrierOptions.map(c => c.priceInSubunits)) / 100)
+              .toFixed(2)
+              .replace('.', ',')}{' '}
+            zł. Przewoźnika wybierzesz przy zamówieniu.
           </p>
         ) : null}
         {showProductOrderForm ? refumeOfferAction : null}

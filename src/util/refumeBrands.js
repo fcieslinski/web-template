@@ -78,6 +78,14 @@ export const BRANDS = Array.from(new Set(PERFUME_BRANDS)).sort((a, b) =>
 // Common short names and old names → brand
 const ALIASES = {
   ysl: 'Yves Saint Laurent',
+  'christian dior': 'Dior',
+  'chanel paris': 'Chanel',
+  'giorgio armani beauty': 'Giorgio Armani',
+  'creed paris': 'Creed',
+  'lattafa perfumes': 'Lattafa',
+  'armaf perfumes': 'Armaf',
+  'afnan perfumes': 'Afnan',
+  'rasasi perfumes': 'Rasasi',
   'saint laurent': 'Yves Saint Laurent',
   'd&g': 'Dolce & Gabbana',
   dg: 'Dolce & Gabbana',

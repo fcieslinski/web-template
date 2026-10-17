@@ -8,6 +8,9 @@
  * the monthly quota. Only logged-in users can search.
  */
 const { getSdk, handleError } = require('../api-util/sdk');
+const { searchCatalog, normalizeCatalogText } = require('../api-util/refumePerfumeCatalog');
+
+const ENOUGH_RESULTS = 3;
 
 const BASE_URL = 'https://api.fragella.com/api/v1';
 const CACHE_TTL_MS = 24 * 3600 * 1000;
@@ -69,19 +72,81 @@ const searchFragella = async query => {
   return data;
 };
 
+// Perfumes already listed on Refume (notes chosen by sellers) — our own data
+const searchListings = async (sdk, query) => {
+  const response = await sdk.listings.query({
+    keywords: query,
+    perPage: 24,
+    'fields.listing': [
+      'title',
+      'publicData.marka',
+      'publicData.nuty',
+      'publicData.akordy',
+      'publicData.fragellaId',
+    ],
+  });
+  const seen = new Set();
+  const out = [];
+  (response.data.data || []).forEach(l => {
+    const { title, publicData = {} } = l.attributes;
+    const nuty = publicData.nuty || {};
+    const hasNotes = ['glowy', 'serca', 'bazy'].some(k => (nuty[k] || []).length);
+    if (!hasNotes) return;
+    const key = publicData.fragellaId || normalizeCatalogText(title);
+    if (seen.has(key)) return;
+    seen.add(key);
+    out.push({
+      id: `listing-${key}`,
+      name: title,
+      brand: publicData.marka || '',
+      year: '',
+      gender: '',
+      concentration: '',
+      image: '',
+      accordsPl: Array.isArray(publicData.akordy) ? publicData.akordy : [],
+      noteIds: { top: nuty.glowy || [], middle: nuty.serca || [], base: nuty.bazy || [] },
+      source: 'listings',
+    });
+  });
+  return out.slice(0, 5);
+};
+
+const dedupe = list => {
+  const seen = new Set();
+  return list.filter(p => {
+    const k = normalizeCatalogText(`${p.brand} ${p.name}`);
+    if (seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  });
+};
+
+/**
+ * Order: local catalog → perfumes from Refume listings → Fragella (only when the first two
+ * give fewer than ENOUGH_RESULTS), so popular perfumes never use the Fragella quota.
+ */
 const searchPerfumes = (req, res) => {
   const query = String(req.query?.q || '').trim().slice(0, 80);
   Promise.resolve()
     .then(async () => {
-      if (!process.env.FRAGELLA_API_KEY) {
-        throw httpError(503, 'Perfume lookup is not configured.');
-      }
       if (query.length < 3) {
         return res.status(200).json({ data: [] });
       }
-      await getSdk(req, res).currentUser.show(); // 401 for anonymous users
-      const data = await searchFragella(query);
-      res.status(200).json({ data });
+      const sdk = getSdk(req, res);
+      await sdk.currentUser.show(); // 401 for anonymous users
+
+      const local = searchCatalog(query, 8);
+      const fromListings = await searchListings(sdk, query).catch(() => []);
+      let results = dedupe([...local, ...fromListings]);
+
+      if (results.length < ENOUGH_RESULTS && process.env.FRAGELLA_API_KEY) {
+        const remote = await searchFragella(query).catch(e => {
+          console.error('[refume-perfumes] Fragella failed:', e.message);
+          return [];
+        });
+        results = dedupe([...results, ...remote.map(r => ({ ...r, source: 'fragella' }))]);
+      }
+      res.status(200).json({ data: results.slice(0, 8) });
     })
     .catch(e => handleError(res, e));
 };

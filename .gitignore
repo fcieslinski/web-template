@@ -14,3 +14,6 @@ build
 .env
 npm-debug.log
 yarn-error.log
+
+# Refume: local perfume catalog (imported data, keep it out of git)
+/server/data/

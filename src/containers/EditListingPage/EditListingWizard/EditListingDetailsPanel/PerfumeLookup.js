@@ -58,24 +58,30 @@ const PerfumeLookup = props => {
   const [chosen, setChosen] = useState(null);
   const [active, setActive] = useState(-1);
   const timer = useRef(null);
+  const memo = useRef(new Map()); // same text typed again → no new request
 
   useEffect(() => {
     clearTimeout(timer.current);
     const q = query.trim();
-    if (q.length < 3 || (chosen && q === chosen.label)) {
+    if (q.length < 4 || (chosen && q === chosen.label)) {
       setResults([]);
       return;
     }
     timer.current = setTimeout(() => {
+      if (memo.current.has(q.toLowerCase())) {
+        setResults(memo.current.get(q.toLowerCase()));
+        return;
+      }
       setStatus('loading');
       searchPerfumes(q)
         .then(res => {
+          memo.current.set(q.toLowerCase(), res?.data || []);
           setResults(res?.data || []);
           setActive(-1);
           setStatus('idle');
         })
         .catch(e => setStatus(e?.status === 503 ? 'unavailable' : 'error'));
-    }, 350);
+    }, 500);
     return () => clearTimeout(timer.current);
   }, [query]);
 
@@ -101,16 +107,21 @@ const PerfumeLookup = props => {
       const genderMatch = genderWords ? findEnumOption(listingFieldsConfig, genderWords) : null;
       if (genderMatch) formApi.change(genderMatch.name, genderMatch.value);
 
-      // Notes are translated to the Polish dictionary; ones it doesn't know are skipped
-      const { top, middle, base, general } = perfume.notes;
-      const hasPyramid = top.length || middle.length || base.length;
-      formApi.change('refumeNutyGlowy', matchNotes(hasPyramid ? top : general));
-      formApi.change('refumeNutySerca', hasPyramid ? matchNotes(middle) : []);
-      formApi.change('refumeNutyBazy', hasPyramid ? matchNotes(base) : []);
-      formApi.change(
-        'refumeAkordy',
-        perfume.accords.map(translateAccord).filter(Boolean)
-      );
+      if (perfume.noteIds) {
+        // Local catalog / Refume listings: notes are already Refume note ids
+        formApi.change('refumeNutyGlowy', perfume.noteIds.top || []);
+        formApi.change('refumeNutySerca', perfume.noteIds.middle || []);
+        formApi.change('refumeNutyBazy', perfume.noteIds.base || []);
+        formApi.change('refumeAkordy', perfume.accordsPl || []);
+      } else {
+        // Fragella: translate to the Polish dictionary; unknown notes are skipped
+        const { top, middle, base, general } = perfume.notes;
+        const hasPyramid = top.length || middle.length || base.length;
+        formApi.change('refumeNutyGlowy', matchNotes(hasPyramid ? top : general));
+        formApi.change('refumeNutySerca', hasPyramid ? matchNotes(middle) : []);
+        formApi.change('refumeNutyBazy', hasPyramid ? matchNotes(base) : []);
+        formApi.change('refumeAkordy', (perfume.accords || []).map(translateAccord).filter(Boolean));
+      }
       formApi.change('refumeFragellaId', perfume.id);
     });
     const label = `${brand} ${perfume.name}`;

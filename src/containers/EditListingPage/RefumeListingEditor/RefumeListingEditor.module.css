@@ -404,3 +404,118 @@
   font-size: 14px;
   text-align: center;
 }
+
+/* ---------- Tiles (instead of radio dots / checkboxes) ---------- */
+.tiles {
+  display: grid;
+  gap: 10px;
+}
+
+.tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-height: 96px;
+  padding: 12px 8px;
+  border: 1.5px solid var(--colorGrey200);
+  border-radius: 12px;
+  background-color: var(--colorWhite);
+  color: var(--colorGrey900);
+  font: inherit;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease;
+
+  &:hover {
+    border-color: var(--colorGrey700);
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--marketplaceColor);
+    outline-offset: 2px;
+  }
+}
+
+.tileSelected {
+  border-color: var(--marketplaceColor);
+  box-shadow: 0 0 0 1px var(--marketplaceColor);
+  background-color: color-mix(in srgb, var(--marketplaceColor) 6%, white);
+
+  &:hover {
+    border-color: var(--marketplaceColor);
+  }
+}
+
+.tileBig {
+  font-size: 28px;
+  line-height: 32px;
+  font-weight: var(--fontWeightBold);
+}
+
+.tileLabel {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: var(--fontWeightSemiBold);
+}
+
+.tileMeta {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--colorGrey700);
+}
+
+.tilesHeading {
+  margin: 18px 0 8px 0;
+  font-size: 14px;
+  font-weight: var(--fontWeightSemiBold);
+}
+
+.tilesList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tileRow {
+  composes: tile;
+  flex-direction: row;
+  justify-content: flex-start;
+  gap: 12px;
+  min-height: 52px;
+  padding: 10px 14px;
+  text-align: left;
+}
+
+.tileCheck {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  border: 1.5px solid var(--colorGrey300);
+  font-size: 13px;
+  font-weight: var(--fontWeightBold);
+  color: var(--colorWhite);
+}
+
+.tileSelected .tileCheck {
+  border-color: var(--marketplaceColor);
+  background-color: var(--marketplaceColor);
+}
+
+.tileRow .tileLabel {
+  flex: 1;
+}
+
+.tileRowMeta {
+  font-weight: var(--fontWeightSemiBold);
+  white-space: nowrap;
+}

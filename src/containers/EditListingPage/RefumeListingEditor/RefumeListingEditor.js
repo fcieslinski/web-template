@@ -1,5 +1,5 @@
 import React, { useMemo, useRef, useState } from 'react';
-import { Form as FinalForm } from 'react-final-form';
+import { Form as FinalForm, Field } from 'react-final-form';
 import arrayMutators from 'final-form-arrays';
 import { useDispatch } from 'react-redux';
 import classNames from 'classnames';
@@ -104,6 +104,71 @@ const Step = props => {
     </section>
   );
 };
+
+/** Refume: single-choice tiles (instead of radio dots). */
+const TileRadioField = ({ name, options, columns = 3, ariaLabel }) => (
+  <Field name={name}>
+    {({ input }) => (
+      <div
+        className={css.tiles}
+        style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}
+        role="radiogroup"
+        aria-label={ariaLabel}
+      >
+        {options.map(o => {
+          const selected = input.value === o.value;
+          return (
+            <button
+              key={o.value}
+              type="button"
+              role="radio"
+              aria-checked={selected}
+              className={classNames(css.tile, { [css.tileSelected]: selected })}
+              onClick={() => input.onChange(o.value)}
+            >
+              {o.big ? <span className={css.tileBig}>{o.big}</span> : null}
+              <span className={css.tileLabel}>{o.label}</span>
+              {o.meta ? <span className={css.tileMeta}>{o.meta}</span> : null}
+            </button>
+          );
+        })}
+      </div>
+    )}
+  </Field>
+);
+
+/** Refume: multi-choice tiles (instead of checkboxes). */
+const TileCheckboxField = ({ name, options, ariaLabel }) => (
+  <Field name={name}>
+    {({ input }) => {
+      const value = Array.isArray(input.value) ? input.value : [];
+      const toggle = v =>
+        input.onChange(value.includes(v) ? value.filter(x => x !== v) : [...value, v]);
+      return (
+        <div className={css.tilesList} role="group" aria-label={ariaLabel}>
+          {options.map(o => {
+            const selected = value.includes(o.value);
+            return (
+              <button
+                key={o.value}
+                type="button"
+                aria-pressed={selected}
+                className={classNames(css.tileRow, { [css.tileSelected]: selected })}
+                onClick={() => toggle(o.value)}
+              >
+                <span className={css.tileCheck} aria-hidden="true">
+                  {selected ? '✓' : ''}
+                </span>
+                <span className={css.tileLabel}>{o.label}</span>
+                {o.meta ? <span className={css.tileRowMeta}>{o.meta}</span> : null}
+              </button>
+            );
+          })}
+        </div>
+      );
+    }}
+  </Field>
+);
 
 const Section = ({ title, hint, children, className }) => (
   <section className={classNames(css.section, className)}>
@@ -552,17 +617,12 @@ const RefumeListingEditor = props => {
               {!hasFixedType && listingTypes.length > 1 ? (
                 <fieldset className={css.typeGroup}>
                   <legend className={css.label}>Rodzaj ogłoszenia</legend>
-                  <div className={css.pills}>
-                    {listingTypes.map(t => (
-                      <FieldRadioButton
-                        key={t.listingType}
-                        id={`${FORM_ID}.listingType.${t.listingType}`}
-                        name="listingType"
-                        value={t.listingType}
-                        label={t.label || t.listingType}
-                      />
-                    ))}
-                  </div>
+                  <TileRadioField
+                    name="listingType"
+                    ariaLabel="Rodzaj ogłoszenia"
+                    columns={Math.min(listingTypes.length, 3)}
+                    options={listingTypes.map(t => ({ value: t.listingType, label: t.label || t.listingType }))}
+                  />
                 </fieldset>
               ) : null}
 
@@ -668,29 +728,34 @@ const RefumeListingEditor = props => {
                 <div>
                   <h3 className={css.subTitle}>Wysyłka</h3>
                   <p className={css.sectionHint}>Gabaryt paczki i przewoźnicy, których obsługujesz.</p>
-                  <div className={css.pills}>
-                    {REFUME_PARCEL_SIZES.map(size => (
-                      <FieldRadioButton
-                        key={size.key}
-                        id={`${FORM_ID}.gabaryt.${size.key}`}
-                        name="gabaryt"
-                        value={size.key}
-                        label={size.label}
-                      />
-                    ))}
-                  </div>
+                  <TileRadioField
+                    name="gabaryt"
+                    ariaLabel="Gabaryt paczki"
+                    options={REFUME_PARCEL_SIZES.map(size => {
+                      const prices = getCarriersForSize(size.key).map(c => c.priceInSubunits);
+                      const min = prices.length ? Math.min(...prices) : null;
+                      const [, desc] = size.label.split('–').map(x => x.trim());
+                      return {
+                        value: size.key,
+                        big: size.key,
+                        label: desc || size.label,
+                        meta: min != null ? `od ${(min / 100).toFixed(2).replace('.', ',')} zł` : null,
+                      };
+                    })}
+                  />
                   {values.gabaryt ? (
-                    <div className={css.carriers}>
-                      {carriersForSize.map(c => (
-                        <FieldCheckbox
-                          key={c.key}
-                          id={`${FORM_ID}.shippingCarriers.${c.key}`}
-                          name="shippingCarriers"
-                          value={c.key}
-                          label={formatCarrierOption(c, intl, currency)}
-                        />
-                      ))}
-                    </div>
+                    <>
+                      <p className={css.tilesHeading}>Przewoźnicy, których obsługujesz</p>
+                      <TileCheckboxField
+                        name="shippingCarriers"
+                        ariaLabel="Przewoźnicy"
+                        options={carriersForSize.map(c => ({
+                          value: c.key,
+                          label: c.label,
+                          meta: `${(c.priceInSubunits / 100).toFixed(2).replace('.', ',')} zł`,
+                        }))}
+                      />
+                    </>
                   ) : null}
                   {submitFailed && shippingError ? <p className={css.error}>{shippingError}</p> : null}
                 </div>

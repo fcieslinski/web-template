@@ -102,3 +102,15 @@
     margin: 48px 0 0 0;
   }
 }
+
+/* Refume: conversation embedded in the inbox */
+.embedded {
+  width: 100%;
+  min-width: 0;
+}
+
+.embeddedRoot {
+  padding: 0 !important;
+  margin: 0 !important;
+  max-width: none !important;
+}

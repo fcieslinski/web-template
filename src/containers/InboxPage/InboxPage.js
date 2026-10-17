@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useLocation, useHistory } from 'react-router-dom';
 import { compose } from 'redux';
-import { connect } from 'react-redux';
+import { connect, useDispatch } from 'react-redux';
 import classNames from 'classnames';
 
 import { useConfiguration } from '../../context/configurationContext';
@@ -47,11 +47,14 @@ import {
   TimeRange,
   UserDisplayName,
   LayoutSideNavigation,
+  LayoutSingleColumn,
 } from '../../components';
 
 import TopbarContainer from '../../containers/TopbarContainer/TopbarContainer';
 import FooterContainer from '../../containers/FooterContainer/FooterContainer';
 import NotFoundPage from '../../containers/NotFoundPage/NotFoundPage';
+import TransactionPage from '../TransactionPage/TransactionPage';
+import { loadData as loadTransactionData } from '../TransactionPage/TransactionPage.duck';
 import InboxSearchForm from './InboxSearchForm/InboxSearchForm';
 
 import { stateDataShape, getStateData } from './InboxPage.stateData';
@@ -195,14 +198,16 @@ export const InboxItem = props => {
   });
 
   return (
-    <div className={css.item}>
+    <div className={classNames(css.item, { [css.itemActive]: props.isActive })}>
       <div className={css.itemAvatar}>
         <Avatar user={otherUser} />
       </div>
       <NamedLink
-        className={linkClasses}
-        name={isCustomer ? 'OrderDetailsPage' : 'SaleDetailsPage'}
-        params={{ id: tx.id.uuid }}
+        className={classNames(linkClasses, { [css.itemLinkActive]: props.isActive })}
+        name="InboxPage"
+        params={{ tab: isCustomer ? 'orders' : 'sales' }}
+        to={{ search: `?tx=${tx.id.uuid}` }}
+        aria-current={props.isActive ? 'true' : undefined}
       >
         <div className={css.rowNotificationDot}>{rowNotificationDot}</div>
         <div className={css.itemUsername}>{otherUserDisplayName}</div>
@@ -284,6 +289,7 @@ export const InboxPageComponent = props => {
   const salesTitle = intl.formatMessage({ id: 'InboxPage.salesTitle' });
   const title = isOrders ? ordersTitle : salesTitle;
   const search = parse(location.search);
+  const selectedTxId = typeof search.tx === 'string' ? search.tx : null;
 
   const pickType = lt => conf => conf.listingType === lt;
   const findListingTypeConfig = publicData => {
@@ -314,6 +320,7 @@ export const InboxPageComponent = props => {
     return stateData ? (
       <li key={tx.id.uuid} className={css.listItem}>
         <InboxItem
+          isActive={tx.id.uuid === selectedTxId}
           transactionRole={transactionRole}
           tx={tx}
           intl={intl}
@@ -375,73 +382,127 @@ export const InboxPageComponent = props => {
       ]
     : [];
 
-  const tabs = [...ordersTabMaybe, ...salesTabMaybe];
+  const switchTab = (key, label, count, selected) => (
+    <NamedLink
+      key={key}
+      name="InboxPage"
+      params={{ tab: key }}
+      className={classNames(css.switchButton, { [css.switchButtonActive]: selected })}
+      aria-current={selected ? 'page' : undefined}
+    >
+      {label}
+      {count > 0 ? <NotificationBadge count={count} /> : null}
+    </NamedLink>
+  );
+
+  const transactionRole = isOrders ? TX_TRANSITION_ACTOR_CUSTOMER : TX_TRANSITION_ACTOR_PROVIDER;
 
   return (
     <Page title={title} scrollingDisabled={scrollingDisabled}>
-      <LayoutSideNavigation
-        sideNavClassName={css.navigation}
+      <LayoutSingleColumn
         topbar={
           <TopbarContainer
             mobileRootClassName={css.mobileTopbar}
             desktopClassName={css.desktopTopbar}
           />
         }
-        sideNav={
-          <>
-            <H2 as="h1" className={css.title}>
-              <FormattedMessage id="InboxPage.title" />
-            </H2>
-            <TabNav
-              rootClassName={css.tabs}
-              tabRootClassName={css.tab}
-              tabs={tabs}
-              ariaLabel={intl.formatMessage({ id: 'InboxPage.screenreader.sidenav' })}
-            />{' '}
-          </>
-        }
         footer={<FooterContainer />}
       >
-        <InboxSearchForm
-          onSubmit={() => {}}
-          onSelect={handleSortSelect(tab, routeConfiguration, history)}
-          intl={intl}
-          tab={tab}
-          routeConfiguration={routeConfiguration}
-          history={history}
-        />
-        {fetchOrdersOrSalesError ? (
-          <p className={css.error}>
-            <FormattedMessage id="InboxPage.fetchFailed" />
-          </p>
-        ) : null}
-        <ul className={css.itemList}>
-          {!fetchInProgress ? (
-            transactions.map(toTxItem)
-          ) : (
-            <li className={css.listItemsLoading}>
-              <IconSpinner />
-            </li>
-          )}
-          {hasNoResults ? (
-            <li key="noResults" className={css.noResults}>
-              <FormattedMessage
-                id={isOrders ? 'InboxPage.noOrdersFound' : 'InboxPage.noSalesFound'}
+        <div className={classNames(css.inbox, { [css.inboxChatOpen]: !!selectedTxId })}>
+          <aside className={css.inboxList} aria-label="Rozmowy">
+            <div className={css.inboxListHeader}>
+              <H2 as="h1" className={css.inboxTitle}>
+                Wiadomości
+              </H2>
+              <nav className={css.switch} aria-label="Sprzedaję lub kupuję">
+                {switchTab('sales', 'Sprzedaję', providerNotificationCount, !isOrders)}
+                {switchTab('orders', 'Kupuję', customerNotificationCount, isOrders)}
+              </nav>
+              <InboxSearchForm
+                onSubmit={() => {}}
+                onSelect={handleSortSelect(tab, routeConfiguration, history)}
+                intl={intl}
+                tab={tab}
+                routeConfiguration={routeConfiguration}
+                history={history}
               />
-            </li>
-          ) : null}
-        </ul>
-        {hasTransactions && pagination && pagination.totalPages > 1 ? (
-          <PaginationLinks
-            className={css.pagination}
-            pageName="InboxPage"
-            pagePathParams={params}
-            pageSearchParams={search}
-            pagination={pagination}
-          />
-        ) : null}
-      </LayoutSideNavigation>
+            </div>
+            {fetchOrdersOrSalesError ? (
+              <p className={css.error}>
+                <FormattedMessage id="InboxPage.fetchFailed" />
+              </p>
+            ) : null}
+            <ul className={css.itemList}>
+              {/* Keep the list visible while it refreshes (opening a chat reloads it) */}
+              {!fetchInProgress || transactions.length ? (
+                transactions.map(toTxItem)
+              ) : (
+                <li className={css.listItemsLoading}>
+                  <IconSpinner />
+                </li>
+              )}
+              {hasNoResults ? (
+                <li key="noResults" className={css.noResults}>
+                  {isOrders
+                    ? 'Nie masz jeszcze rozmów jako kupujący.'
+                    : 'Nie masz jeszcze rozmów jako sprzedający.'}
+                </li>
+              ) : null}
+            </ul>
+            {hasTransactions && pagination && pagination.totalPages > 1 ? (
+              <PaginationLinks
+                className={css.pagination}
+                pageName="InboxPage"
+                pagePathParams={params}
+                pageSearchParams={search}
+                pagination={pagination}
+              />
+            ) : null}
+          </aside>
+
+          <section className={css.inboxChat} aria-label="Rozmowa">
+            {selectedTxId ? (
+              <>
+                <NamedLink name="InboxPage" params={{ tab }} className={css.backLink}>
+                  ← Wszystkie rozmowy
+                </NamedLink>
+                <EmbeddedConversation
+                  key={selectedTxId}
+                  txId={selectedTxId}
+                  transactionRole={transactionRole}
+                  config={config}
+                  history={history}
+                  location={location}
+                />
+              </>
+            ) : (
+              <div className={css.chatPlaceholder}>
+                <p className={css.chatPlaceholderTitle}>Wybierz rozmowę</p>
+                <p>Kliknij rozmowę po lewej, żeby ją otworzyć.</p>
+              </div>
+            )}
+          </section>
+        </div>
+      </LayoutSingleColumn>
     </Page>
+  );
+};
+
+/** Refume: loads a conversation and shows it inside the inbox. */
+const EmbeddedConversation = props => {
+  const { txId, transactionRole, config, history, location } = props;
+  const dispatch = useDispatch();
+  useEffect(() => {
+    dispatch(loadTransactionData({ id: txId, transactionRole }, '', config));
+  }, [txId, transactionRole]);
+  return (
+    <TransactionPage
+      embedded
+      params={{ id: txId }}
+      transactionRole={transactionRole}
+      history={history}
+      location={location}
+    />
   );
 };
 

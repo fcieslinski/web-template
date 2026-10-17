@@ -1062,16 +1062,10 @@ export const TransactionPageComponent = props => {
       )
     : null;
 
-  return (
-    <Page
-      title={intl.formatMessage(
-        { id: 'TransactionPage.schemaTitle' },
-        { title: listingTitle, h1: pageHeading }
-      )}
-      scrollingDisabled={scrollingDisabled}
-    >
-      <LayoutSingleColumn topbar={<TopbarContainer />} footer={<FooterContainer />}>
-        <div className={css.root}>{panel}</div>
+  // Refume: the inbox shows the conversation next to the list (embedded, without page chrome)
+  const content = (
+    <>
+        <div className={classNames(css.root, { [css.embeddedRoot]: props.embedded })}>{panel}</div>
         <ReviewModal
           id="ReviewOrderModal"
           isOpen={isReviewModalOpen}
@@ -1167,6 +1161,21 @@ export const TransactionPageComponent = props => {
             currencyConfig={currencyConfig}
           />
         ) : null}
+    </>
+  );
+
+  return props.embedded ? (
+    <div className={css.embedded}>{content}</div>
+  ) : (
+    <Page
+      title={intl.formatMessage(
+        { id: 'TransactionPage.schemaTitle' },
+        { title: listingTitle, h1: pageHeading }
+      )}
+      scrollingDisabled={scrollingDisabled}
+    >
+      <LayoutSingleColumn topbar={<TopbarContainer />} footer={<FooterContainer />}>
+        {content}
       </LayoutSingleColumn>
     </Page>
   );

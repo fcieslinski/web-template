@@ -380,3 +380,139 @@
     color: var(--colorGrey300);
   }
 }
+
+/* ---------- Refume: list on the left, conversation on the right ---------- */
+.inbox {
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr;
+  min-height: calc(100vh - 160px);
+
+  @media (--viewportLarge) {
+    grid-template-columns: 380px minmax(0, 1fr);
+    border-left: 1px solid var(--colorGrey100);
+    border-right: 1px solid var(--colorGrey100);
+  }
+}
+
+.inboxList {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  border-right: 1px solid var(--colorGrey100);
+  background-color: var(--colorWhite);
+}
+
+.inboxListHeader {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 20px 16px 8px 16px;
+  background-color: var(--colorWhite);
+  border-bottom: 1px solid var(--colorGrey100);
+}
+
+.inboxTitle {
+  margin: 0 0 14px 0;
+  padding: 0;
+  font-size: 24px;
+  line-height: 32px;
+}
+
+.switch {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  padding: 4px;
+  margin-bottom: 8px;
+  border-radius: 999px;
+  background-color: var(--colorGrey50);
+}
+
+.switchButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 40px;
+  border-radius: 999px;
+  color: var(--colorGrey700);
+  font-weight: var(--fontWeightSemiBold);
+
+  &:hover {
+    text-decoration: none;
+    color: var(--colorGrey900);
+  }
+}
+
+.switchButtonActive {
+  background-color: var(--colorWhite);
+  color: var(--colorGrey900);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.itemActive {
+  background-color: var(--colorGrey50);
+}
+
+.itemLinkActive {
+  text-decoration: none;
+}
+
+.inboxChat {
+  display: none;
+  min-width: 0;
+  padding: 16px;
+  background-color: var(--colorWhite);
+
+  @media (--viewportLarge) {
+    display: block;
+    padding: 24px 32px;
+  }
+}
+
+.backLink {
+  display: inline-block;
+  margin-bottom: 12px;
+  font-weight: var(--fontWeightSemiBold);
+
+  @media (--viewportLarge) {
+    display: none;
+  }
+}
+
+/* On phones: when a conversation is open, show it instead of the list */
+.inboxChatOpen .inboxList {
+  display: none;
+
+  @media (--viewportLarge) {
+    display: flex;
+  }
+}
+
+.inboxChatOpen .inboxChat {
+  display: block;
+}
+
+.chatPlaceholder {
+  height: 100%;
+  min-height: 320px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: var(--colorGrey700);
+
+  & p {
+    margin: 0;
+  }
+}
+
+.chatPlaceholderTitle {
+  font-size: 20px;
+  font-weight: var(--fontWeightBold);
+  color: var(--colorGrey900);
+}

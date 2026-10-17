@@ -5,6 +5,7 @@
 
 .root {
   width: 100%;
+  background-color: var(--colorWhite);
   --refumeCatalogMaxWidth: 1280px;
 }
 

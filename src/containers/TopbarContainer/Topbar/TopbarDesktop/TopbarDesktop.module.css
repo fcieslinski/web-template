@@ -309,11 +309,12 @@
 }
 
 /* ================ Refume: catalog-style top bar ================ */
-/* Center the search pill vertically inside the top bar */
+/* Keep the search icon and field on one row, centered vertically in the top bar.
+   (This class is also the keyword search wrapper, so it must stay a row.) */
 .topbarSearchWithLeftPadding {
   display: flex;
-  flex-direction: column;
-  justify-content: center;
+  flex-direction: row;
+  align-items: center;
 }
 
 /* No divider line next to the search pill */

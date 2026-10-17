@@ -224,7 +224,7 @@
   width: 44px;
   padding: 2px 0 0 14px;
   align-self: center;
-  background-color: var(--colorGrey50);
+  background-color: var(--refumeSearchBg, #f1efec);
   border-radius: 10px 0 0 10px;
 }
 
@@ -233,11 +233,11 @@
   margin-left: 0;
   padding-left: 8px;
   padding-right: 14px;
-  background-color: var(--colorGrey50);
+  background-color: var(--refumeSearchBg, #f1efec);
   border-radius: 0 10px 10px 0;
 
   &:hover,
   &:focus {
-    background-color: var(--colorGrey100);
+    background-color: var(--refumeSearchBg, #f1efec);
   }
 }

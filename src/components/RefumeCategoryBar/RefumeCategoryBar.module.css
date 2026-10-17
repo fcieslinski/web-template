@@ -11,7 +11,7 @@
   margin: 0 auto;
   padding: 0 24px;
   list-style: none;
-  max-width: var(--contentMaxWidthPages, 1280px);
+  max-width: 1280px;
 
   /* Scroll sideways on narrow screens instead of wrapping */
   overflow-x: auto;

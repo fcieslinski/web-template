@@ -185,3 +185,48 @@
     grid-template-columns: repeat(6, minmax(0, 1fr));
   }
 }
+
+/* ---------- Trust box ---------- */
+.trustBox {
+  composes: sellerCard;
+  background-color: hsl(145 40% 97%);
+  border-color: hsl(145 35% 88%);
+}
+
+.trustList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.trustItem {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.trustIcon {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  color: hsl(145 55% 28%);
+}
+
+.trustTitle {
+  margin: 0;
+  padding: 0;
+  font-size: 15px;
+  line-height: 20px;
+  font-weight: var(--fontWeightSemiBold);
+}
+
+.trustText {
+  margin: 2px 0 0 0;
+  padding: 0;
+  font-size: 13px;
+  line-height: 19px;
+  color: var(--colorGrey700);
+}

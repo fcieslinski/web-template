@@ -59,6 +59,7 @@ import ListingPageAccessWrapper from './ListingPageAccessWrapper';
 import MakeOfferButton from '../../components/RefumePriceOffer/MakeOfferButton';
 import SellerCard from './RefumeListingExtras/SellerCard';
 import MoreListings from './RefumeListingExtras/MoreListings';
+import TrustBox from './RefumeListingExtras/TrustBox';
 import css from './ListingPage.module.css';
 
 const MIN_LENGTH_FOR_LONG_WORDS_IN_TITLE = 16;
@@ -356,6 +357,7 @@ export const ListingPageComponent = props => {
               isOwnListing={isOwnListing}
               onContactUser={onContactUser}
             />
+            <TrustBox />
           </div>
         </div>
         <MoreListings

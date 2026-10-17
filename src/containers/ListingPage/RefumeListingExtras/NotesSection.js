@@ -23,9 +23,16 @@ const NotesSection = ({ publicData }) => {
         Nuty zapachowe
       </h2>
       {accords.length ? (
-        <p className={css.accords}>
-          <span className={css.accordsLabel}>Główne akordy:</span> {accords.join(', ')}
-        </p>
+        <div className={css.accords}>
+          <span className={css.accordsLabel}>Główne akordy</span>
+          <span className={css.pyramidNotes}>
+            {accords.map(a => (
+              <span key={a} className={css.accordChip}>
+                {a}
+              </span>
+            ))}
+          </span>
+        </div>
       ) : null}
       <dl className={css.pyramid}>
         {rows.map(([key, label, hint]) => (

@@ -380,3 +380,19 @@
   font-size: 14px;
   line-height: 20px;
 }
+
+.accords {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.accordChip {
+  padding: 5px 12px;
+  border-radius: 999px;
+  background-color: var(--colorGrey900);
+  color: var(--colorWhite);
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: var(--fontWeightSemiBold);
+}

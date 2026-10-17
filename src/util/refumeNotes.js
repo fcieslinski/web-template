@@ -396,3 +396,20 @@ const ACCORDS = new Map(
 
 /** Fragella accord ("warm spicy") → Polish ("ciepły przyprawowy"); unknown ones are skipped. */
 export const translateAccord = accord => ACCORDS.get(String(accord || '').toLowerCase().trim()) || null;
+
+/** Polish main accords, for the "Główne akordy" picker. */
+export const ACCORD_LABELS = Array.from(new Set(Array.from(ACCORDS.values())));
+
+export const suggestAccords = (query, exclude = [], limit = 8) => {
+  const q = normalize(query);
+  if (!q) return [];
+  const starts = [];
+  const contains = [];
+  ACCORD_LABELS.forEach(label => {
+    if (exclude.includes(label)) return;
+    const n = normalize(label);
+    if (n.startsWith(q) || n.split(' ').some(w => w.startsWith(q))) starts.push(label);
+    else if (q.length >= 3 && n.includes(q)) contains.push(label);
+  });
+  return [...starts, ...contains].slice(0, limit).map(label => ({ id: label, pl: label }));
+};

@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { isFieldForListingType } from '../../../util/fieldHelpers';
+import { NamedLink } from '../../../components';
 import FavoriteButton from '../../../components/FavoriteButton/FavoriteButton';
 
 import css from './RefumeListingExtras.module.css';
@@ -68,20 +69,35 @@ export const getSummaryItems = (listing, config) => {
 const ListingSummary = props => {
   const { listing, config, showFavorite = true } = props;
   const items = getSummaryItems(listing, config);
+  const brand = items.find(i => i.strong);
+  const rest = items.filter(i => !i.strong);
+
   return (
     <div className={css.summary}>
-      {items.length ? (
-        <ul className={css.summaryList} aria-label="Najważniejsze cechy">
-          {items.map(item => (
-            <li key={item.key} className={item.strong ? css.summaryBrand : css.summaryChip}>
-              {item.label}
-            </li>
-          ))}
-        </ul>
-      ) : null}
+      <p className={css.summaryLine}>
+        {brand ? (
+          <NamedLink
+            name="SearchPage"
+            to={{ search: `?keywords=${encodeURIComponent(brand.label)}` }}
+            className={css.summaryBrand}
+            title={`Więcej perfum marki ${brand.label}`}
+          >
+            {brand.label}
+          </NamedLink>
+        ) : null}
+        {rest.map((item, i) => (
+          <React.Fragment key={item.key}>
+            {brand || i > 0 ? (
+              <span className={css.summaryDot} aria-hidden="true">
+                ·
+              </span>
+            ) : null}
+            <span className={css.summaryItem}>{item.label}</span>
+          </React.Fragment>
+        ))}
+      </p>
       {showFavorite ? (
         <FavoriteButton
-          variant="button"
           listingUuid={listing?.id?.uuid}
           title={listing?.attributes?.title}
           className={css.summaryFavorite}

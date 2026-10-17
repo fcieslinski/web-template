@@ -47,3 +47,9 @@
 .active {
   color: hsl(350 70% 48%);
 }
+
+/* Keep the active colour even when a parent passes its own colour */
+.overlay.active,
+.labelled.active {
+  color: hsl(350 70% 48%);
+}

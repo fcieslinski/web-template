@@ -234,39 +234,57 @@
 /* ---------- Summary under the title ---------- */
 .summary {
   display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin: 8px 0 16px 0;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 6px 0 18px 0;
 }
 
-.summaryList {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
+.summaryLine {
   margin: 0;
   padding: 0;
-  list-style: none;
-}
-
-.summaryChip,
-.summaryBrand {
-  display: inline-flex;
-  align-items: center;
-  padding: 4px 10px;
-  border-radius: 999px;
-  font-size: 13px;
-  line-height: 18px;
-  background-color: var(--colorGrey50);
-  color: var(--colorGrey900);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 8px;
+  row-gap: 2px;
+  font-size: 15px;
+  line-height: 22px;
+  color: var(--colorGrey700);
 }
 
 .summaryBrand {
-  background-color: var(--colorGrey900);
-  color: var(--colorWhite);
   font-weight: var(--fontWeightSemiBold);
+  color: var(--marketplaceColor);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+
+  &:hover {
+    color: var(--marketplaceColorDark, var(--marketplaceColor));
+  }
 }
 
+.summaryDot {
+  color: var(--colorGrey300);
+}
+
+.summaryItem {
+  white-space: nowrap;
+}
+
+/* Heart next to the summary, quiet until hovered */
 .summaryFavorite {
-  width: auto;
-  align-self: flex-start;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  margin-top: -6px;
+  background-color: var(--colorWhite);
+  border: 1px solid var(--colorGrey100);
+  box-shadow: none;
+  color: var(--colorGrey700);
+
+  &:hover {
+    border-color: var(--colorGrey300);
+  }
 }

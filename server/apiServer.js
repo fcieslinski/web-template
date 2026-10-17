@@ -23,7 +23,15 @@ const app = express();
 // running in a different port than the main app.
 app.use(
   cors({
-    origin: process.env.REACT_APP_MARKETPLACE_ROOT_URL,
+    // Refume: in local development also allow the site opened from another computer on the
+    // same network (http://192.168.x.x:3000 etc.). This dev API server isn't used in production.
+    origin: (origin, callback) => {
+      const isLocalNetwork = /^http:\/\/(localhost|127\.0\.0\.1|192\.168\.\d{1,3}\.\d{1,3}|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3})(:\d+)?$/.test(
+        origin || ''
+      );
+      const allowed = !origin || origin === process.env.REACT_APP_MARKETPLACE_ROOT_URL || isLocalNetwork;
+      callback(null, allowed);
+    },
     credentials: true,
   })
 );

@@ -12,7 +12,10 @@ export const apiBaseUrl = marketplaceRootURL => {
 
   // In development, the dev API server is running in a different port
   if (useDevApiServer) {
-    return `http://localhost:${port}`;
+    // Refume: use the same host the page was opened from, so the site also works from other
+    // computers on the local network (e.g. http://192.168.1.20:3000), not only on localhost
+    const host = typeof window !== 'undefined' ? window.location.hostname : 'localhost';
+    return `http://${host}:${port}`;
   }
 
   // Otherwise, use the given marketplaceRootURL parameter or the same domain and port as the frontend

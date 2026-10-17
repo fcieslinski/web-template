@@ -4,6 +4,7 @@ import classNames from 'classnames';
 import getCountryCodes from '../../../translations/countryCodes';
 import { FormattedMessage } from '../../../util/reactIntl';
 import { Heading } from '../../../components';
+import { getShippingCarrier } from '../../../util/refumeShipping';
 
 import AddressLinkMaybe from './AddressLinkMaybe';
 
@@ -48,11 +49,27 @@ const DeliveryInfoMaybe = props => {
     const countryInfo = countryCodes.find(c => c.code === countryCode);
     const country = countryInfo?.name;
 
+    // Refume: the shipping option and parcel locker / pickup point the buyer chose
+    const carrier = getShippingCarrier(protectedData?.shippingCarrier);
+    const pointCode = protectedData?.shippingPointCode;
+    const carrierInfoMaybe = carrier ? (
+      <p className={css.shippingInfoContent}>
+        <strong>{carrier.label}</strong>
+        {carrier.needsPickupPoint && pointCode ? (
+          <>
+            <br />
+            {carrier.pickupPointLabel}: {pointCode}
+          </>
+        ) : null}
+      </p>
+    ) : null;
+
     return (
       <div className={classes}>
         <Heading as="h3" rootClassName={css.sectionHeading}>
           <FormattedMessage id="TransactionPanel.shippingInfoHeading" />
         </Heading>
+        {carrierInfoMaybe}
         <div className={css.shippingInfoContent}>
           {name}
           <br />

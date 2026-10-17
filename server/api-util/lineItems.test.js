@@ -390,9 +390,11 @@ describe('transactionLineItems', () => {
         },
       };
 
+      // Refume: shipping price comes from the chosen carrier, not from listing publicData
       const orderData = {
         stockReservationQuantity: 3,
         deliveryMethod: 'shipping',
+        shippingCarrier: 'dpd',
         currency: 'EUR',
       };
 
@@ -416,7 +418,7 @@ describe('transactionLineItems', () => {
       // Check shipping line item
       expect(result[1]).toEqual({
         code: 'line-item/shipping-fee',
-        unitPrice: new Money(900, 'EUR'), // €5.00 + (2 * €2.00) = €9.00
+        unitPrice: new Money(1499, 'EUR'), // Refume: Kurier DPD, one fee per order
         quantity: 1,
         includeFor: ['customer', 'provider'],
       });
@@ -439,6 +441,7 @@ describe('transactionLineItems', () => {
       const orderData = {
         stockReservationQuantity: 1,
         deliveryMethod: 'shipping',
+        shippingCarrier: 'dpd-pickup',
         currency: 'EUR',
       };
 
@@ -454,10 +457,25 @@ describe('transactionLineItems', () => {
       // Check shipping line item for single item
       expect(result[1]).toEqual({
         code: 'line-item/shipping-fee',
-        unitPrice: new Money(500, 'EUR'), // €5.00 for first item only
+        unitPrice: new Money(999, 'EUR'), // Refume: DPD Pickup
         quantity: 1,
         includeFor: ['customer', 'provider'],
       });
+    });
+
+    it('Refume: rejects shipping without a known carrier', () => {
+      const listing = {
+        ...mockListing,
+        attributes: {
+          ...mockListing.attributes,
+          publicData: { ...mockListing.attributes.publicData, unitType: 'item' },
+        },
+      };
+      const orderData = { stockReservationQuantity: 1, deliveryMethod: 'shipping' };
+
+      expect(() =>
+        transactionLineItems(listing, orderData, mockProviderCommission, mockCustomerCommission)
+      ).toThrow('Unknown shipping carrier');
     });
   });
 

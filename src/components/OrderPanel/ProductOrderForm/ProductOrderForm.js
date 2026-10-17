@@ -5,6 +5,12 @@ import { FormattedMessage, useIntl } from '../../../util/reactIntl';
 import { propTypes } from '../../../util/types';
 import { numberAtLeast, required } from '../../../util/validators';
 import { PURCHASE_PROCESS_NAME } from '../../../transactions/transaction';
+import {
+  REFUME_SHIPPING_CARRIERS,
+  DEFAULT_SHIPPING_CARRIER,
+  getShippingCarrier,
+  formatCarrierOption,
+} from '../../../util/refumeShipping';
 
 import {
   Form,
@@ -30,6 +36,7 @@ const MAX_QUANTITY_FOR_DROPDOWN = 100;
 const handleFetchLineItems = ({
   quantity,
   deliveryMethod,
+  shippingCarrier,
   displayDeliveryMethod,
   listingId,
   isOwnListing,
@@ -38,15 +45,19 @@ const handleFetchLineItems = ({
 }) => {
   const stockReservationQuantity = Number.parseInt(quantity, 10);
   const deliveryMethodMaybe = deliveryMethod ? { deliveryMethod } : {};
+  // Refume: shipping is priced by the carrier the buyer picks
+  const isShipping = deliveryMethod === 'shipping';
+  const shippingCarrierMaybe = isShipping && shippingCarrier ? { shippingCarrier } : {};
   const isBrowser = typeof window !== 'undefined';
   if (
     isBrowser &&
     stockReservationQuantity &&
     (!displayDeliveryMethod || deliveryMethod) &&
+    (!isShipping || shippingCarrier) &&
     !fetchLineItemsInProgress
   ) {
     onFetchTransactionLineItems({
-      orderData: { stockReservationQuantity, ...deliveryMethodMaybe },
+      orderData: { stockReservationQuantity, ...deliveryMethodMaybe, ...shippingCarrierMaybe },
       listingId,
       isOwnListing,
     });
@@ -110,6 +121,49 @@ const DeliveryMethodMaybe = props => {
   );
 };
 
+/**
+ * Refume: the buyer picks one of the marketplace's fixed shipping options and,
+ * for parcel lockers / pickup points, enters the point code.
+ */
+const ShippingCarrierFields = props => {
+  const { formId, intl, shippingCarrier, currency } = props;
+  const selected = getShippingCarrier(shippingCarrier);
+  const pointRequiredMsg = selected?.pickupPointLabel
+    ? `Podaj: ${selected.pickupPointLabel.toLowerCase()}`
+    : '';
+
+  return (
+    <>
+      <FieldSelect
+        id={`${formId}.shippingCarrier`}
+        className={css.deliveryField}
+        name="shippingCarrier"
+        label="Sposób dostawy"
+        validate={required('Wybierz sposób dostawy')}
+      >
+        {REFUME_SHIPPING_CARRIERS.map(carrier => (
+          <option key={carrier.key} value={carrier.key}>
+            {formatCarrierOption(carrier, intl, currency)}
+          </option>
+        ))}
+      </FieldSelect>
+      {selected?.needsPickupPoint ? (
+        <FieldTextInput
+          // key resets the field's validation when switching between carriers
+          key={selected.key}
+          id={`${formId}.shippingPointCode`}
+          className={css.deliveryField}
+          name="shippingPointCode"
+          type="text"
+          label={selected.pickupPointLabel}
+          placeholder={selected.pickupPointPlaceholder}
+          validate={required(pointRequiredMsg)}
+        />
+      ) : null}
+    </>
+  );
+};
+
 const renderForm = formRenderProps => {
   const [mounted, setMounted] = useState(false);
   const {
@@ -143,11 +197,12 @@ const renderForm = formRenderProps => {
     setMounted(true);
 
     // Side-effect: fetch line-items after mounting if possible
-    const { quantity, deliveryMethod } = values;
+    const { quantity, deliveryMethod, shippingCarrier } = values;
     if (quantity && !formRenderProps.hasMultipleDeliveryMethods) {
       handleFetchLineItems({
         quantity,
         deliveryMethod,
+        shippingCarrier,
         displayDeliveryMethod,
         listingId,
         isOwnListing,
@@ -159,11 +214,12 @@ const renderForm = formRenderProps => {
 
   // If form values change, update line-items for the order breakdown
   const handleOnChange = formValues => {
-    const { quantity, deliveryMethod } = formValues.values;
+    const { quantity, deliveryMethod, shippingCarrier } = formValues.values;
     if (mounted) {
       handleFetchLineItems({
         quantity,
         deliveryMethod,
+        shippingCarrier,
         listingId,
         isOwnListing,
         fetchLineItemsInProgress,
@@ -175,7 +231,9 @@ const renderForm = formRenderProps => {
   // In case quantity and deliveryMethod are missing focus on that select-input.
   // Otherwise continue with the default handleSubmit function.
   const handleFormSubmit = e => {
-    const { quantity, deliveryMethod } = values || {};
+    const { quantity, deliveryMethod, shippingCarrier, shippingPointCode } = values || {};
+    const carrier = getShippingCarrier(shippingCarrier);
+    const isShipping = deliveryMethod === 'shipping';
     if (!quantity || quantity < 1) {
       e.preventDefault();
       // Blur event will show validator message
@@ -186,6 +244,16 @@ const renderForm = formRenderProps => {
       // Blur event will show validator message
       formApi.blur('deliveryMethod');
       formApi.focus('deliveryMethod');
+    } else if (isShipping && !carrier) {
+      // Refume: a shipping option must be picked
+      e.preventDefault();
+      formApi.blur('shippingCarrier');
+      formApi.focus('shippingCarrier');
+    } else if (isShipping && carrier.needsPickupPoint && !shippingPointCode?.trim()) {
+      // Refume: parcel locker / pickup point code is needed
+      e.preventDefault();
+      formApi.blur('shippingPointCode');
+      formApi.focus('shippingPointCode');
     } else {
       handleSubmit(e);
     }
@@ -261,6 +329,15 @@ const renderForm = formRenderProps => {
         intl={intl}
         sectionHeadingAs={sectionHeadingAs}
       />
+
+      {hasStock && values?.deliveryMethod === 'shipping' ? (
+        <ShippingCarrierFields
+          formId={formId}
+          intl={intl}
+          shippingCarrier={values?.shippingCarrier}
+          currency={price?.currency}
+        />
+      ) : null}
 
       {showBreakdown ? (
         <div className={css.breakdownWrapper}>
@@ -362,7 +439,12 @@ const ProductOrderForm = props => {
       ? { deliveryMethod: 'none' }
       : {};
   const hasMultipleDeliveryMethods = pickupEnabled && shippingEnabled;
-  const initialValues = { ...quantityMaybe, ...deliveryMethodMaybe };
+  // Refume: preselect the first shipping option
+  const initialValues = {
+    ...quantityMaybe,
+    ...deliveryMethodMaybe,
+    shippingCarrier: DEFAULT_SHIPPING_CARRIER,
+  };
 
   return (
     <FinalForm

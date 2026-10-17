@@ -11,7 +11,7 @@ const { screen, userEvent } = testingLibrary;
 const noop = () => null;
 
 describe('EditListingDeliveryForm', () => {
-  it('Check that shipping fees can be given and submit button activates', async () => {
+  it('Refume: enabling shipping shows the fixed carrier options and activates submit', async () => {
     const user = userEvent.setup();
     const saveActionMsg = 'Save location';
     render(
@@ -39,13 +39,12 @@ describe('EditListingDeliveryForm', () => {
     // Test that save button is disabled at first
     expect(screen.getByRole('button', { name: saveActionMsg })).toBeDisabled();
 
-    // Add shipping price
+    // Enable shipping: no price fields, the marketplace's fixed carrier options are listed
     await user.click(screen.getByLabelText(/EditListingDeliveryForm.shippingLabel/i));
-
-    const shippingOneItemLabel = 'EditListingDeliveryForm.shippingOneItemLabel';
-    const shippingAdditionalItemsLabel = 'EditListingDeliveryForm.shippingAdditionalItemsLabel';
-    await user.type(screen.getByRole('textbox', { name: shippingOneItemLabel }), '10');
-    await user.type(screen.getByRole('textbox', { name: shippingAdditionalItemsLabel }), '5');
+    expect(screen.queryByText('EditListingDeliveryForm.shippingOneItemLabel')).not.toBeInTheDocument();
+    expect(screen.getByText(/InPost Paczkomat/)).toBeInTheDocument();
+    expect(screen.getByText(/Kurier DPD/)).toBeInTheDocument();
+    expect(screen.getByText(/DPD Pickup/)).toBeInTheDocument();
 
     // Test that save button is enabled
     expect(screen.getByRole('button', { name: saveActionMsg })).toBeEnabled();

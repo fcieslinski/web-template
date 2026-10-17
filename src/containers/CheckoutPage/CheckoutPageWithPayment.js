@@ -123,6 +123,12 @@ const getOrderParams = (
   const seatsMaybe = seats ? { seats } : {};
   const deliveryMethod = pageData.orderData?.deliveryMethod;
   const deliveryMethodMaybe = deliveryMethod ? { deliveryMethod } : {};
+  // Refume: chosen carrier (prices the shipping fee on the server) and parcel locker / point code
+  const { shippingCarrier, shippingPointCode } = pageData.orderData || {};
+  const isShipping = deliveryMethod === 'shipping';
+  const shippingCarrierMaybe = isShipping && shippingCarrier ? { shippingCarrier } : {};
+  const shippingPointCodeMaybe =
+    isShipping && shippingPointCode ? { shippingPointCode: shippingPointCode.trim() } : {};
   const { listingType, unitType, priceVariants } = pageData?.listing?.attributes?.publicData || {};
 
   // price variant data for fixed duration bookings
@@ -137,6 +143,8 @@ const getOrderParams = (
     protectedData: {
       ...getTransactionTypeData(listingType, unitType, config),
       ...deliveryMethodMaybe,
+      ...shippingCarrierMaybe,
+      ...shippingPointCodeMaybe,
       ...shippingDetails,
       ...priceVariantMaybe,
       ...transactionFieldProtectedData,
@@ -156,6 +164,7 @@ const getOrderParams = (
   const orderParams = {
     listingId: pageData?.listing?.id,
     ...deliveryMethodMaybe,
+    ...shippingCarrierMaybe,
     ...quantityMaybe,
     ...seatsMaybe,
     ...bookingDatesMaybe(pageData.orderData?.bookingDates),

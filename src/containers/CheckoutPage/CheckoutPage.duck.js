@@ -25,6 +25,7 @@ const initiateOrderPayloadCreator = (
 
   const {
     deliveryMethod,
+    shippingCarrier,
     quantity,
     bookingDates,
     expectedPayinTotal,
@@ -34,8 +35,10 @@ const initiateOrderPayloadCreator = (
   const bookingParamsMaybe = bookingDates || {};
 
   // Parameters only for client app's server
+  // (Refume: shippingCarrier sets the shipping fee on the server)
   const orderData = {
     ...(deliveryMethod ? { deliveryMethod } : {}),
+    ...(shippingCarrier ? { shippingCarrier } : {}),
     ...(expectedPayinTotal ? { expectedPayinTotal } : {}),
   };
 
@@ -304,6 +307,7 @@ const speculateTransactionPayloadCreator = (
 
   const {
     deliveryMethod,
+    shippingCarrier,
     priceVariantName,
     quantity,
     bookingDates,
@@ -313,8 +317,10 @@ const speculateTransactionPayloadCreator = (
   const bookingParamsMaybe = bookingDates || {};
 
   // Parameters only for client app's server
+  // (Refume: shippingCarrier sets the shipping fee on the server)
   const orderData = {
     ...(deliveryMethod ? { deliveryMethod } : {}),
+    ...(shippingCarrier ? { shippingCarrier } : {}),
     ...(priceVariantName ? { priceVariantName } : {}),
   };
 

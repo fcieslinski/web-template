@@ -88,3 +88,16 @@
     margin-top: 100px;
   }
 }
+
+/* Refume: fixed shipping options shown to the seller instead of price fields */
+.refumeShippingInfo {
+  margin: 0 0 8px 0;
+  color: var(--colorGrey700);
+}
+
+.refumeShippingList {
+  margin: 0 0 24px 0;
+  padding-left: 20px;
+  list-style: disc;
+  color: var(--colorGrey700);
+}

@@ -3,7 +3,6 @@ import { Form as FinalForm } from 'react-final-form';
 import classNames from 'classnames';
 
 // Import configs and util modules
-import appSettings from '../../../../config/settings';
 import { FormattedMessage, useIntl } from '../../../../util/reactIntl';
 import { propTypes } from '../../../../util/types';
 import { displayDeliveryPickup, displayDeliveryShipping } from '../../../../util/configHelpers';
@@ -11,15 +10,14 @@ import {
   autocompleteSearchRequired,
   autocompletePlaceSelected,
   composeValidators,
-  required,
 } from '../../../../util/validators';
+import { REFUME_SHIPPING_CARRIERS, formatCarrierOption } from '../../../../util/refumeShipping';
 
 // Import shared components
 import {
   Form,
   FieldLocationAutocompleteInput,
   Button,
-  FieldCurrencyInput,
   FieldTextInput,
   FieldCheckbox,
 } from '../../../../components';
@@ -67,7 +65,6 @@ export const EditListingDeliveryForm = props => (
         invalid,
         listingTypeConfig,
         marketplaceCurrency,
-        allowOrdersOfMultipleItems = false,
         saveActionMsg,
         updated,
         updateInProgress,
@@ -128,7 +125,6 @@ export const EditListingDeliveryForm = props => (
         [css.disabled]: !shippingEnabled,
         [css.hidden]: !displayShipping,
       });
-      const currencyConfig = appSettings.getCurrencyFormatting(marketplaceCurrency);
 
       return (
         <Form className={classes} onSubmit={handleSubmit}>
@@ -211,78 +207,17 @@ export const EditListingDeliveryForm = props => (
             value="shipping"
           />
 
+          {/* Refume: sellers don't set shipping prices. The buyer picks one of the
+              marketplace's fixed options at checkout (see src/util/refumeShipping.js). */}
           <div className={shippingClasses}>
-            <FieldCurrencyInput
-              id={
-                formId
-                  ? `${formId}.shippingPriceInSubunitsOneItem`
-                  : 'shippingPriceInSubunitsOneItem'
-              }
-              name="shippingPriceInSubunitsOneItem"
-              className={css.input}
-              label={intl.formatMessage({
-                id: 'EditListingDeliveryForm.shippingOneItemLabel',
-              })}
-              placeholder={intl.formatMessage({
-                id: 'EditListingDeliveryForm.shippingOneItemPlaceholder',
-              })}
-              currencyConfig={currencyConfig}
-              disabled={!shippingEnabled}
-              validate={
-                shippingEnabled
-                  ? required(
-                      intl.formatMessage({
-                        id: 'EditListingDeliveryForm.shippingOneItemRequired',
-                      })
-                    )
-                  : null
-              }
-              hideErrorMessage={!shippingEnabled}
-              // Whatever parameters are being used to calculate
-              // the validation function need to be combined in such
-              // a way that, when they change, this key prop
-              // changes, thus reregistering this field (and its
-              // validation function) with Final Form.
-              // See example: https://codesandbox.io/s/changing-field-level-validators-zc8ei
-              key={shippingEnabled ? 'oneItemValidation' : 'noOneItemValidation'}
-            />
-
-            {allowOrdersOfMultipleItems ? (
-              <FieldCurrencyInput
-                id={
-                  formId
-                    ? `${formId}.shippingPriceInSubunitsAdditionalItems`
-                    : 'shippingPriceInSubunitsAdditionalItems'
-                }
-                name="shippingPriceInSubunitsAdditionalItems"
-                className={css.input}
-                label={intl.formatMessage({
-                  id: 'EditListingDeliveryForm.shippingAdditionalItemsLabel',
-                })}
-                placeholder={intl.formatMessage({
-                  id: 'EditListingDeliveryForm.shippingAdditionalItemsPlaceholder',
-                })}
-                currencyConfig={currencyConfig}
-                disabled={!shippingEnabled}
-                validate={
-                  shippingEnabled
-                    ? required(
-                        intl.formatMessage({
-                          id: 'EditListingDeliveryForm.shippingAdditionalItemsRequired',
-                        })
-                      )
-                    : null
-                }
-                hideErrorMessage={!shippingEnabled}
-                // Whatever parameters are being used to calculate
-                // the validation function need to be combined in such
-                // a way that, when they change, this key prop
-                // changes, thus reregistering this field (and its
-                // validation function) with Final Form.
-                // See example: https://codesandbox.io/s/changing-field-level-validators-zc8ei
-                key={shippingEnabled ? 'additionalItemsValidation' : 'noAdditionalItemsValidation'}
-              />
-            ) : null}
+            <p className={css.refumeShippingInfo}>
+              Kupujący wybierze sposób dostawy przy zamówieniu i za nią zapłaci:
+            </p>
+            <ul className={css.refumeShippingList}>
+              {REFUME_SHIPPING_CARRIERS.map(carrier => (
+                <li key={carrier.key}>{formatCarrierOption(carrier, intl, marketplaceCurrency)}</li>
+              ))}
+            </ul>
           </div>
 
           <Button

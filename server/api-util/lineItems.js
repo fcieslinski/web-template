@@ -1,12 +1,12 @@
 const {
   calculateQuantityFromDates,
   calculateQuantityFromHours,
-  calculateShippingFee,
   getProviderCommissionMaybe,
   getCustomerCommissionMaybe,
 } = require('./lineItemHelpers');
 const { types } = require('sharetribe-flex-sdk');
 const { Money } = types;
+const { getCarrierShippingFee } = require('./refumeShipping');
 
 /**
  * Get quantity and add extra line-items that are related to delivery method
@@ -21,18 +21,12 @@ const getItemQuantityAndLineItems = (orderData, publicData, currency) => {
   const deliveryMethod = orderData && orderData.deliveryMethod;
   const isShipping = deliveryMethod === 'shipping';
   const isPickup = deliveryMethod === 'pickup';
-  const { shippingPriceInSubunitsOneItem, shippingPriceInSubunitsAdditionalItems } =
-    publicData || {};
 
-  // Calculate shipping fee if applicable
-  const shippingFee = isShipping
-    ? calculateShippingFee(
-        shippingPriceInSubunitsOneItem,
-        shippingPriceInSubunitsAdditionalItems,
-        currency,
-        quantity
-      )
-    : null;
+  // Refume: the shipping fee comes from the marketplace's fixed carrier prices
+  // (InPost / DPD / DPD Pickup) chosen by the buyer, not from seller-set prices
+  // (publicData.shippingPriceInSubunits*, which the template's calculateShippingFee used).
+  const shippingCarrier = orderData && orderData.shippingCarrier;
+  const shippingFee = isShipping ? getCarrierShippingFee(shippingCarrier, currency) : null;
 
   // Add line-item for given delivery method.
   // Note: by default, pickup considered as free and, therefore, we don't add pickup fee line-item

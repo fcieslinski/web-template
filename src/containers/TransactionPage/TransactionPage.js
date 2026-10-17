@@ -90,6 +90,8 @@ import {
   fetchMessages,
 } from './TransactionPage.duck';
 import OffersPanel from '../../components/RefumePriceOffer/OffersPanel';
+import { getLastOffer, isAcceptedOfferValid } from '../../util/refumeOffers';
+import { types as sdkTypes } from '../../util/sdkLoader';
 import css from './TransactionPage.module.css';
 
 const MAX_MOBILE_SCREEN_WIDTH = 1023;
@@ -323,6 +325,24 @@ const useUploadNavigationBlock = (isBlockNavigation, history, message) => {
  * @param {Array<propTypes.transition>} props.nextTransitions - The next transitions
  * @returns {JSX.Element}
  */
+// Refume: after a price offer is accepted, the buyer's order panel shows the agreed price.
+// The real price is still set on the server (server/api-util/refumeOffers.js).
+const withNegotiatedPrice = (listing, transaction, role) => {
+  const offer = getLastOffer(transaction?.attributes?.metadata);
+  const price = listing?.attributes?.price;
+  const isInquiry = transaction?.attributes?.lastTransition === 'transition/inquire';
+  if (role !== CUSTOMER || !isInquiry || !price || !isAcceptedOfferValid(offer)) {
+    return listing;
+  }
+  if (offer.currency !== price.currency) {
+    return listing;
+  }
+  return {
+    ...listing,
+    attributes: { ...listing.attributes, price: new sdkTypes.Money(offer.amount, price.currency) },
+  };
+};
+
 export const TransactionPageComponent = props => {
   const [isDisputeModalOpen, setDisputeModalOpen] = useState(false);
   const [disputeSubmitted, setDisputeSubmitted] = useState(false);
@@ -980,7 +1000,7 @@ export const TransactionPageComponent = props => {
             [css.orderPanelNextToTitle]: stateData.showDetailCardHeadings,
           })}
           titleClassName={css.orderTitle}
-          listing={listing}
+          listing={withNegotiatedPrice(listing, transaction, transactionRole)}
           isOwnListing={isOwnSale}
           lineItemUnitType={lineItemUnitType}
           title={listingTitle}

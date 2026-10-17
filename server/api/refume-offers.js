@@ -148,7 +148,7 @@ const respondToOffer = (req, res) => {
       }
       const [userRes, txRes] = await Promise.all([
         sdk.currentUser.show(),
-        sdk.transactions.show({ id: transactionId, include: ['listing'] }),
+        sdk.transactions.show({ id: transactionId, include: ['listing', 'customer', 'provider'] }),
       ]);
       const me = userRes.data.data;
       const transaction = txRes.data.data;

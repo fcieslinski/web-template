@@ -22,7 +22,9 @@ const STATUS_LABEL = {
 };
 
 const errorText = e =>
-  e?.status === 409
+  e?.status === 403
+    ? 'Nie możesz odpowiedzieć na tę propozycję.'
+    : e?.status === 409
     ? 'Ta propozycja jest już nieaktualna. Odśwież stronę.'
     : e?.status === 400
     ? 'Ta kwota nie jest możliwa.'

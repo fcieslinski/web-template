@@ -18,6 +18,7 @@ import {
 } from '../../components';
 
 import { getListingCardTranslations } from './ListingCard.helpers';
+import { BottleLevelBadge, formatPricePerMl } from './ListingCard.refume';
 
 import css from './ListingCard.module.css';
 
@@ -77,6 +78,7 @@ const ListingCardImage = props => {
         variants={variants}
         sizes={renderSizes}
       />
+      <BottleLevelBadge publicData={listing?.attributes?.publicData} id={listing?.id?.uuid} />
     </AspectRatioWrapper>
   );
 };
@@ -125,8 +127,9 @@ export const ListingCard = props => {
   const classes = classNames(rootClassName || css.root, className);
 
   const id = listing?.id?.uuid;
-  const { title = '', publicData } = listing?.attributes || {};
+  const { title = '', publicData, price } = listing?.attributes || {};
   const slug = createSlug(title);
+  const pricePerMl = formatPricePerMl(price, publicData, intl, config.currency);
 
   const { listingType, cardStyle } = publicData || {};
   const validListingTypes = config.listing.listingTypes || [];
@@ -181,6 +184,7 @@ export const ListingCard = props => {
         {showPrice ? (
           <div className={css.price} title={priceTooltip}>
             {priceMessage}
+            {pricePerMl ? <span className={css.pricePerMl}>{pricePerMl}</span> : null}
           </div>
         ) : null}
         <div className={css.mainInfo}>

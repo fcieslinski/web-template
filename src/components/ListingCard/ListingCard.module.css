@@ -127,3 +127,38 @@
   word-break: break-word;
   hyphens: auto;
 }
+
+/* Refume: price per millilitre, shown on the same line as the price */
+.pricePerMl {
+  margin-left: 8px;
+  color: var(--colorGrey500);
+  font-weight: var(--fontWeightMedium);
+  white-space: nowrap;
+}
+
+/* Refume: bottle fill-level badge over the card image */
+.bottleBadge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px 4px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--colorGrey900, #1a1620);
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: var(--fontWeightBold);
+  pointer-events: none;
+}
+
+.bottleIcon {
+  flex-shrink: 0;
+}
+
+.bottleLiquid {
+  fill: var(--refumeAmber, #d9a44a);
+}

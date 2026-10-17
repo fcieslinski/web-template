@@ -83,8 +83,16 @@
   --colorStatusFinalState: var(--colorGrey600);
 
   /* ================ Font ================ */
-  --fontFamily: -apple-system, BlinkMacSystemFont, 'Inter', Helvetica, Arial, sans-serif,
+  /* Refume: Manrope for body text, Instrument Serif for headings */
+  --fontFamily: 'Manrope', -apple-system, BlinkMacSystemFont, 'Inter', Helvetica, Arial, sans-serif,
     'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+  --fontFamilyDisplay: 'Instrument Serif', Georgia, 'Times New Roman', serif;
+
+  /* Refume brand accents (main brand color itself comes from Console) */
+  --refumeInk: #1a1620;
+  --refumeAmber: #d9a44a;
+  --refumePlumSoft: #f3e9ef;
+  --refumeCream: #faf8f5;
 
   --fontWeightRegular: 400;
   --fontWeightMedium: 500;
@@ -1564,5 +1572,25 @@ textarea {
 
   @media (--viewportMedium) {
     margin-top: 32px;
+  }
+}
+
+/* ================ Refume: display headings ================ */
+/* Large headings use the elegant serif from the Refume design. Instrument Serif
+   has a single weight, so bold is turned off to avoid faux-bold rendering. */
+h1,
+h2,
+.h1,
+.h2 {
+  font-family: var(--fontFamilyDisplay);
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+
+h1,
+.h1 {
+  @media (--viewportMedium) {
+    font-size: 72px;
+    line-height: 72px;
   }
 }

@@ -63,6 +63,46 @@ const typeInfo = conf =>
       }
     : {};
 
+/**
+ * One step of the listing form. "open" shows the fields, "done" a short summary with "Zmień",
+ * "locked" only the title (not reached yet), "static" = always open (editing a published listing).
+ */
+const Step = props => {
+  const { id, number, title, hint, state, summary, onEdit, children, footer, optional } = props;
+  const isOpen = state === 'open' || state === 'static';
+  return (
+    <section
+      id={id}
+      className={classNames(css.section, css.step, {
+        [css.stepLocked]: state === 'locked',
+        [css.stepDone]: state === 'done',
+      })}
+      aria-current={state === 'open' ? 'step' : undefined}
+    >
+      <div className={css.stepHeader}>
+        <span className={css.stepNumber} aria-hidden="true">
+          {state === 'done' ? '✓' : number}
+        </span>
+        <div className={css.stepHeading}>
+          <h2 className={css.sectionTitle}>
+            {title}
+            {optional ? <span className={css.optional}> (opcjonalnie)</span> : null}
+          </h2>
+          {state === 'done' && summary ? <p className={css.stepSummary}>{summary}</p> : null}
+          {isOpen && hint ? <p className={css.sectionHint}>{hint}</p> : null}
+        </div>
+        {state === 'done' ? (
+          <button type="button" className={css.editStep} onClick={onEdit}>
+            Zmień
+          </button>
+        ) : null}
+      </div>
+      {isOpen ? <div className={css.stepBody}>{children}</div> : null}
+      {state === 'open' && footer ? <div className={css.stepFooter}>{footer}</div> : null}
+    </section>
+  );
+};
+
 const Section = ({ title, hint, children, className }) => (
   <section className={classNames(css.section, className)}>
     <div className={css.sectionHeader}>
@@ -116,20 +156,24 @@ const isReplacedField = fc =>
   /nut|akord|accord|note/i.test(`${fc?.key || ''}`) ||
   /nuty|akord/i.test(`${fc?.saveConfig?.label || fc?.label || ''}`);
 
+const visibleListingFields = (listingFields, listingType, categoryIds) =>
+  listingFields.filter(fc => {
+    const { schemaType, scope = 'public' } = fc || {};
+    return (
+      !isReplacedField(fc) &&
+      EXTENDED_DATA_SCHEMA_TYPES.includes(schemaType) &&
+      ['public', 'private'].includes(scope) &&
+      isFieldForListingType(listingType, fc) &&
+      isFieldForCategory(categoryIds, fc)
+    );
+  });
+
+const fieldName = fc => `${fc.scope === 'private' ? 'priv' : 'pub'}_${fc.key}`;
+
 const ListingFields = ({ listingFields, listingType, categoryIds, intl }) =>
-  listingFields
-    .filter(fc => {
-      const { schemaType, scope = 'public' } = fc || {};
-      return (
-        !isReplacedField(fc) &&
-        EXTENDED_DATA_SCHEMA_TYPES.includes(schemaType) &&
-        ['public', 'private'].includes(scope) &&
-        isFieldForListingType(listingType, fc) &&
-        isFieldForCategory(categoryIds, fc)
-      );
-    })
+  visibleListingFields(listingFields, listingType, categoryIds)
     .map(fc => {
-      const name = `${fc.scope === 'private' ? 'priv' : 'pub'}_${fc.key}`;
+      const name = fieldName(fc);
       return (
         <CustomExtendedDataField
           key={name}
@@ -164,6 +208,10 @@ const RefumeListingEditor = props => {
   const [submitError, setSubmitError] = useState(null);
   const [proofFile, setProofFile] = useState(null);
   const [imageError, setImageError] = useState(null);
+  // Steps: 0 photos, 1 what you sell, 2 details, 3 notes, 4 price & shipping
+  const [step, setStep] = useState(0);
+  const [reached, setReached] = useState(0);
+  const [stepError, setStepError] = useState(null);
 
   const listingTypes = config.listing.listingTypes || [];
   const listingFields = config.listing.listingFields || [];
@@ -368,16 +416,104 @@ const RefumeListingEditor = props => {
           ? 'Zaznacz przynajmniej jednego przewoźnika.'
           : null;
 
+        const currentListingType = hasFixedType ? publicData.listingType : values.listingType;
+        const detailFields = visibleListingFields(listingFields, currentListingType, categoryIds);
+        const detailFieldNames = detailFields.map(fieldName);
+        const detailsSummary = detailFields
+          .map(fc => {
+            const v = values[fieldName(fc)];
+            if (v == null || v === '') return null;
+            const opt = (fc.enumOptions || []).find(o => `${o.option}` === `${v}`);
+            return opt ? opt.label : Array.isArray(v) ? null : String(v);
+          })
+          .filter(Boolean)
+          .slice(0, 4)
+          .join(' · ');
+        const notesCount = ['refumeNutyGlowy', 'refumeNutySerca', 'refumeNutyBazy'].reduce(
+          (n, k) => n + (values[k] || []).length,
+          0
+        );
+        const notesSummary =
+          [
+            (values.refumeAkordy || []).join(', '),
+            notesCount ? `${notesCount} nut` : null,
+          ]
+            .filter(Boolean)
+            .join(' · ') || 'Pominięto';
+
+        // Editing a published listing: everything open. New listing: one step at a time.
+        const progressive = !isPublished;
+        const stepState = i =>
+          !progressive ? 'static' : i === step ? 'open' : i <= reached ? 'done' : 'locked';
+        const openStep = i => {
+          setStepError(null);
+          setStep(i);
+        };
+        const goNext = (i, names, check) => {
+          form.batch(() =>
+            names.forEach(n => {
+              form.focus(n);
+              form.blur(n);
+            })
+          );
+          const errors = form.getState().errors || {};
+          const hasFieldErrors = names.some(n => errors[n]);
+          const customError = check ? check() : null;
+          if (hasFieldErrors || customError) {
+            setStepError({ step: i, message: customError || 'Uzupełnij zaznaczone pola.' });
+            return;
+          }
+          setStepError(null);
+          const next = i + 1;
+          setStep(next);
+          setReached(r => Math.max(r, next));
+          if (typeof window !== 'undefined') {
+            setTimeout(() => {
+              const el = document.getElementById(`step-${next}`);
+              if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 50);
+          }
+        };
+        const nextButton = (i, names, check, label = 'Dalej') => (
+          <>
+            {stepError?.step === i ? (
+              <p className={css.error} role="alert">
+                {stepError.message}
+              </p>
+            ) : null}
+            <button type="button" className={css.nextButton} onClick={() => goNext(i, names, check)}>
+              {label}
+            </button>
+          </>
+        );
+        const allStepsReached = !progressive || reached >= 4;
+
         return (
           <form className={css.root} onSubmit={handleSubmit}>
             <header className={css.header}>
               <h1 className={css.title}>{isPublished ? 'Edytuj ogłoszenie' : 'Dodaj ogłoszenie'}</h1>
-              <p className={css.lead}>Wszystko na jednej stronie. Zajmie Ci to około 2 minut.</p>
+              <p className={css.lead}>
+                {isPublished
+                  ? 'Zmień, co chcesz, i zapisz.'
+                  : '5 krótkich kroków. Zajmie Ci to około 2 minut.'}
+              </p>
             </header>
 
-            <Section
+            <Step
+              id="step-0"
+              number={1}
               title="Zdjęcia"
               hint="Dodaj do 12 zdjęć. Pierwsze będzie zdjęciem głównym. Pokaż flakon, poziom zapachu i kod batch."
+              state={stepState(0)}
+              summary={`${images.length} ${images.length === 1 ? 'zdjęcie' : images.length < 5 ? 'zdjęcia' : 'zdjęć'}`}
+              onEdit={() => openStep(0)}
+              footer={nextButton(0, [], () =>
+                !images.length
+                  ? 'Dodaj przynajmniej jedno zdjęcie.'
+                  : uploadingImages
+                  ? 'Poczekaj, aż zdjęcia się wyślą.'
+                  : null
+              )}
             >
               <div className={css.images}>
                 {images.map((image, i) => (
@@ -416,9 +552,25 @@ const RefumeListingEditor = props => {
                 ) : null}
               </div>
               {imageError ? <p className={css.error}>{imageError}</p> : null}
-            </Section>
+            </Step>
 
-            <Section title="Co sprzedajesz?">
+            <Step
+              id="step-1"
+              number={2}
+              title="Co sprzedajesz?"
+              hint="Wpisz nazwę perfum, a uzupełnimy resztę za Ciebie."
+              state={stepState(1)}
+              summary={values.title}
+              onEdit={() => openStep(1)}
+              footer={nextButton(1, [
+                'listingType',
+                `${categoryKey}1`,
+                `${categoryKey}2`,
+                `${categoryKey}3`,
+                'title',
+                'description',
+              ])}
+            >
               {!hasFixedType && listingTypes.length > 1 ? (
                 <fieldset className={css.typeGroup}>
                   <legend className={css.label}>Rodzaj ogłoszenia</legend>
@@ -436,6 +588,8 @@ const RefumeListingEditor = props => {
                 </fieldset>
               ) : null}
 
+              <PerfumeLookup formApi={form} listingFieldsConfig={listingFields} />
+
               {categories.length ? (
                 <CategoryFields
                   categories={categories}
@@ -444,8 +598,6 @@ const RefumeListingEditor = props => {
                   formApi={form}
                 />
               ) : null}
-
-              <PerfumeLookup formApi={form} listingFieldsConfig={listingFields} />
 
               <FieldTextInput
                 id={`${FORM_ID}.title`}
@@ -469,88 +621,124 @@ const RefumeListingEditor = props => {
                 placeholder="Stan flakonu, ile zostało, skąd pochodzi, czy jest pudełko…"
                 validate={validators.required('Dodaj krótki opis.')}
               />
-            </Section>
+            </Step>
 
-            <Section title="Szczegóły">
+            <Step
+              id="step-2"
+              number={3}
+              title="Szczegóły"
+              hint="Marka, stan, pojemność i inne informacje, po których kupujący filtrują oferty."
+              state={stepState(2)}
+              summary={detailsSummary}
+              onEdit={() => openStep(2)}
+              footer={nextButton(2, detailFieldNames)}
+            >
               <div className={css.fieldsGrid}>
                 <ListingFields
                   listingFields={listingFields}
-                  listingType={hasFixedType ? publicData.listingType : values.listingType}
+                  listingType={currentListingType}
                   categoryIds={categoryIds}
                   intl={intl}
                 />
               </div>
-            </Section>
+            </Step>
 
-            <Section title="Nuty zapachowe" className={css.notesSection}>
-              <NotesFields formId={FORM_ID} />
-            </Section>
+            <Step
+              id="step-3"
+              number={4}
+              title="Nuty zapachowe"
+              optional
+              hint="Pomagają kupującym znaleźć zapach. Jeśli wybrałeś perfumy z bazy, są już uzupełnione."
+              state={stepState(3)}
+              summary={notesSummary}
+              onEdit={() => openStep(3)}
+              footer={nextButton(3, [], null, 'Dalej')}
+            >
+              <div className={css.notesSection}>
+                <NotesFields formId={FORM_ID} />
+              </div>
+            </Step>
 
-            <div className={css.twoCols}>
-              <Section title="Cena">
-                <FieldCurrencyInput
-                  id={`${FORM_ID}.price`}
-                  name="price"
-                  className={css.field}
-                  label="Cena (zł)"
-                  placeholder="0,00"
-                  currencyConfig={appSettings.getCurrencyFormatting(currency)}
-                  validate={priceValidators}
-                />
-                <p className={css.note}>
-                  Dostaniesz pełną kwotę. Kupujący dopłaca Ochronę Kupującego i dostawę.
-                </p>
-              </Section>
-
-              <Section title="Wysyłka" hint="Wybierz gabaryt paczki i przewoźników, których obsługujesz.">
-                <div className={css.pills}>
-                  {REFUME_PARCEL_SIZES.map(size => (
-                    <FieldRadioButton
-                      key={size.key}
-                      id={`${FORM_ID}.gabaryt.${size.key}`}
-                      name="gabaryt"
-                      value={size.key}
-                      label={size.label}
-                    />
-                  ))}
+            <Step
+              id="step-4"
+              number={5}
+              title="Cena i wysyłka"
+              state={stepState(4)}
+              onEdit={() => openStep(4)}
+            >
+              <div className={css.twoCols}>
+                <div>
+                  <h3 className={css.subTitle}>Cena</h3>
+                  <FieldCurrencyInput
+                    id={`${FORM_ID}.price`}
+                    name="price"
+                    className={css.field}
+                    label="Cena (zł)"
+                    placeholder="0,00"
+                    currencyConfig={appSettings.getCurrencyFormatting(currency)}
+                    validate={priceValidators}
+                  />
+                  <p className={css.note}>
+                    Dostaniesz pełną kwotę. Kupujący dopłaca Ochronę Kupującego i dostawę.
+                  </p>
                 </div>
-                {values.gabaryt ? (
-                  <div className={css.carriers}>
-                    {carriersForSize.map(c => (
-                      <FieldCheckbox
-                        key={c.key}
-                        id={`${FORM_ID}.shippingCarriers.${c.key}`}
-                        name="shippingCarriers"
-                        value={c.key}
-                        label={formatCarrierOption(c, intl, currency)}
+                <div>
+                  <h3 className={css.subTitle}>Wysyłka</h3>
+                  <p className={css.sectionHint}>Gabaryt paczki i przewoźnicy, których obsługujesz.</p>
+                  <div className={css.pills}>
+                    {REFUME_PARCEL_SIZES.map(size => (
+                      <FieldRadioButton
+                        key={size.key}
+                        id={`${FORM_ID}.gabaryt.${size.key}`}
+                        name="gabaryt"
+                        value={size.key}
+                        label={size.label}
                       />
                     ))}
                   </div>
-                ) : null}
-                {submitFailed && shippingError ? <p className={css.error}>{shippingError}</p> : null}
-              </Section>
-            </div>
+                  {values.gabaryt ? (
+                    <div className={css.carriers}>
+                      {carriersForSize.map(c => (
+                        <FieldCheckbox
+                          key={c.key}
+                          id={`${FORM_ID}.shippingCarriers.${c.key}`}
+                          name="shippingCarriers"
+                          value={c.key}
+                          label={formatCarrierOption(c, intl, currency)}
+                        />
+                      ))}
+                    </div>
+                  ) : null}
+                  {submitFailed && shippingError ? <p className={css.error}>{shippingError}</p> : null}
+                </div>
+              </div>
 
-            <Section
-              title="Dowód zakupu (opcjonalnie)"
-              hint="Paragon lub faktura. Zobaczy je tylko moderator. Po zatwierdzeniu oferta dostanie znacznik „Zweryfikowano dowodem zakupu”."
-            >
-              {isExisting ? (
-                <ProofOfPurchase listing={listing} hideHeading />
-              ) : (
-                <label className={css.proofButton} htmlFor={`${FORM_ID}.proof`}>
-                  {proofFile ? `Wybrano: ${proofFile.name}` : 'Dodaj zdjęcie dowodu zakupu'}
-                  <input
-                    id={`${FORM_ID}.proof`}
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp"
-                    className={css.hiddenInput}
-                    onChange={e => setProofFile(e.target.files?.[0] || null)}
-                  />
-                </label>
-              )}
-            </Section>
+              <div className={css.proofBlock}>
+                <h3 className={css.subTitle}>
+                  Dowód zakupu <span className={css.optional}>(opcjonalnie)</span>
+                </h3>
+                <p className={css.sectionHint}>
+                  Paragon lub faktura. Zobaczy je tylko moderator. Po zatwierdzeniu oferta dostanie
+                  znacznik „Zweryfikowano dowodem zakupu”.
+                </p>
+                {isExisting ? (
+                  <ProofOfPurchase listing={listing} hideHeading />
+                ) : (
+                  <label className={css.proofButton} htmlFor={`${FORM_ID}.proof`}>
+                    {proofFile ? `Wybrano: ${proofFile.name}` : 'Dodaj zdjęcie dowodu zakupu'}
+                    <input
+                      id={`${FORM_ID}.proof`}
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      className={css.hiddenInput}
+                      onChange={e => setProofFile(e.target.files?.[0] || null)}
+                    />
+                  </label>
+                )}
+              </div>
+            </Step>
 
+            {allStepsReached ? (
             <div className={css.submitBar}>
               {submitError ? (
                 <p className={css.error} role="alert">
@@ -570,6 +758,7 @@ const RefumeListingEditor = props => {
                 {isPublished ? 'Zapisz zmiany' : 'Opublikuj ogłoszenie'}
               </PrimaryButton>
             </div>
+            ) : null}
           </form>
         );
       }}

@@ -25,14 +25,13 @@ import ErrorMessage from './ErrorMessage';
 import EditListingDetailsForm from './EditListingDetailsForm';
 import { canonicalBrand } from '../../../../util/refumeBrands';
 
-// Refume: notes are stored as publicData.nuty = { glowy, serca, bazy } (arrays of strings)
-const splitNotes = text =>
-  String(text || '')
-    .split(',')
-    .map(s => s.trim())
+// Refume: notes are stored as note ids from src/util/refumeNotes.js:
+// publicData.nuty = { glowy, serca, bazy }; publicData.akordy = Polish accord names
+const toList = (value, max) =>
+  (Array.isArray(value) ? value : [])
+    .map(v => String(v).trim())
     .filter(Boolean)
-    .slice(0, 30);
-const notesToText = list => (Array.isArray(list) ? list.join(', ') : '');
+    .slice(0, max);
 import css from './EditListingDetailsPanel.module.css';
 
 /**
@@ -279,10 +278,10 @@ const getInitialValues = (
       nestedCategories,
       listingFields
     ),
-    refumeNutyGlowy: notesToText(publicData?.nuty?.glowy),
-    refumeNutySerca: notesToText(publicData?.nuty?.serca),
-    refumeNutyBazy: notesToText(publicData?.nuty?.bazy),
-    refumeAkordy: notesToText(publicData?.akordy),
+    refumeNutyGlowy: toList(publicData?.nuty?.glowy, 20),
+    refumeNutySerca: toList(publicData?.nuty?.serca, 20),
+    refumeNutyBazy: toList(publicData?.nuty?.bazy, 20),
+    refumeAkordy: toList(publicData?.akordy, 6),
     refumeFragellaId: publicData?.fragellaId || '',
   };
 };
@@ -450,11 +449,11 @@ const EditListingDetailsPanel = props => {
                   ? { marka: canonicalBrand(publicListingFields.marka) }
                   : {}),
                 nuty: {
-                  glowy: splitNotes(refumeNutyGlowy),
-                  serca: splitNotes(refumeNutySerca),
-                  bazy: splitNotes(refumeNutyBazy),
+                  glowy: toList(refumeNutyGlowy, 20),
+                  serca: toList(refumeNutySerca, 20),
+                  bazy: toList(refumeNutyBazy, 20),
                 },
-                akordy: splitNotes(refumeAkordy).slice(0, 6),
+                akordy: toList(refumeAkordy, 6),
                 fragellaId: refumeFragellaId || null,
               },
               privateData: privateListingFields,

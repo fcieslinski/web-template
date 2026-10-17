@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { noteLabel } from '../../../util/refumeNotes';
 import css from './RefumeListingExtras.module.css';
 
 const ROWS = [
@@ -36,7 +37,7 @@ const NotesSection = ({ publicData }) => {
             <dd className={css.pyramidNotes}>
               {nuty[key].map(n => (
                 <span key={n} className={css.note}>
-                  {n}
+                  {noteLabel(n) || n}
                 </span>
               ))}
             </dd>

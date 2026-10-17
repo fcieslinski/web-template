@@ -3,6 +3,7 @@ import classNames from 'classnames';
 
 import { searchPerfumes } from '../../../../util/api';
 import { canonicalBrand } from '../../../../util/refumeBrands';
+import { matchNotes, translateAccord } from '../../../../util/refumeNotes';
 
 import css from './PerfumeLookup.module.css';
 
@@ -100,12 +101,16 @@ const PerfumeLookup = props => {
       const genderMatch = genderWords ? findEnumOption(listingFieldsConfig, genderWords) : null;
       if (genderMatch) formApi.change(genderMatch.name, genderMatch.value);
 
+      // Notes are translated to the Polish dictionary; ones it doesn't know are skipped
       const { top, middle, base, general } = perfume.notes;
       const hasPyramid = top.length || middle.length || base.length;
-      formApi.change('refumeNutyGlowy', (hasPyramid ? top : general).join(', '));
-      formApi.change('refumeNutySerca', hasPyramid ? middle.join(', ') : '');
-      formApi.change('refumeNutyBazy', hasPyramid ? base.join(', ') : '');
-      formApi.change('refumeAkordy', perfume.accords.join(', '));
+      formApi.change('refumeNutyGlowy', matchNotes(hasPyramid ? top : general));
+      formApi.change('refumeNutySerca', hasPyramid ? matchNotes(middle) : []);
+      formApi.change('refumeNutyBazy', hasPyramid ? matchNotes(base) : []);
+      formApi.change(
+        'refumeAkordy',
+        perfume.accords.map(translateAccord).filter(Boolean)
+      );
       formApi.change('refumeFragellaId', perfume.id);
     });
     const label = `${brand} ${perfume.name}`;

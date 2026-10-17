@@ -23,6 +23,7 @@ import { H3, ListingLink } from '../../../../components';
 // Import modules from this directory
 import ErrorMessage from './ErrorMessage';
 import EditListingDetailsForm from './EditListingDetailsForm';
+import { canonicalBrand } from '../../../../util/refumeBrands';
 import css from './EditListingDetailsPanel.module.css';
 
 /**
@@ -425,6 +426,10 @@ const EditListingDetailsPanel = props => {
                 unitType,
                 ...cleanedNestedCategories,
                 ...publicListingFields,
+                // Refume: save brands in one spelling ("dior" → "Dior")
+                ...(publicListingFields.marka
+                  ? { marka: canonicalBrand(publicListingFields.marka) }
+                  : {}),
               },
               privateData: privateListingFields,
               ...setNoAvailabilityForUnbookableListings(transactionProcessAlias),

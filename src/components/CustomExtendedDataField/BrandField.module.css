@@ -1,0 +1,80 @@
+.root {
+  margin-bottom: 24px;
+}
+
+.label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: var(--fontWeightSemiBold);
+}
+
+.inputWrapper {
+  position: relative;
+}
+
+.input {
+  width: 100%;
+}
+
+.inputError {
+  border-color: var(--colorFail);
+}
+
+.list {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 20;
+  margin: 0;
+  padding: 6px 0;
+  list-style: none;
+  max-height: 280px;
+  overflow-y: auto;
+  border: 1px solid var(--colorGrey100);
+  border-radius: 10px;
+  background-color: var(--colorWhite);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.1);
+}
+
+.option {
+  padding: 10px 14px;
+  cursor: pointer;
+
+  &:hover {
+    background-color: var(--colorGrey50);
+  }
+}
+
+.optionActive {
+  background-color: var(--colorGrey50);
+}
+
+.typo {
+  margin: 8px 0 0 0;
+  font-size: 14px;
+  color: var(--colorGrey700);
+}
+
+.typoButton {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--marketplaceColor);
+  font: inherit;
+  font-weight: var(--fontWeightSemiBold);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.error {
+  margin: 6px 0 0 0;
+  font-size: 14px;
+  color: var(--colorFail);
+}
+
+.help {
+  margin: 6px 0 0 0;
+  font-size: 14px;
+  color: var(--colorGrey700);
+}

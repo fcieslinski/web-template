@@ -20,6 +20,7 @@ import {
 // Import shared components
 import { FieldCheckboxGroup, FieldSelect, FieldTextInput, FieldBoolean } from '../../components';
 // Import modules from this directory
+import BrandField from './BrandField';
 import css from './CustomExtendedDataField.module.css';
 
 const createFilterOptions = options => options.map(o => ({ key: `${o.option}`, label: o.label }));
@@ -265,6 +266,22 @@ const CustomExtendedDataField = props => {
   const renderFieldComponent = (FieldComponent, props) => (
     <FieldComponent {...props} defaultRequiredMessage={defaultRequiredMessage} intl={intl} />
   );
+
+  // Refume: the brand field gets suggestions from the brand list
+  const isBrandField =
+    props.fieldConfig?.key === 'marka' &&
+    [SCHEMA_TYPE_TEXT, SCHEMA_TYPE_SHORT_TEXT].includes(schemaType);
+  if (isBrandField) {
+    const label = props.fieldConfig?.saveConfig?.label || props.fieldConfig?.label || 'Marka';
+    return (
+      <BrandField
+        {...props}
+        label={label}
+        placeholder={props.fieldConfig?.saveConfig?.placeholderMessage}
+        defaultRequiredMessage={defaultRequiredMessage}
+      />
+    );
+  }
 
   return schemaType === SCHEMA_TYPE_ENUM && enumOptions
     ? renderFieldComponent(CustomFieldEnum, props)

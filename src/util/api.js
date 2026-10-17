@@ -173,3 +173,7 @@ export const respondToPriceOffer = body => post('/api/oferty/odpowiedz', body);
 // Refume: perfume lookup (Fragella) for the listing form
 export const searchPerfumes = q =>
   request(`/api/perfumy?q=${encodeURIComponent(q)}`, { method: methods.GET });
+
+// Refume: "Poszukiwane" (perfumes people are waiting for)
+export const fetchScentRequests = () => request('/api/poszukiwane', { method: methods.GET });
+export const notifyScentRequests = body => post('/api/poszukiwane/powiadom', body);

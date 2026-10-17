@@ -21,6 +21,7 @@ import { useRouteConfiguration } from '../../../context/routeConfigurationContex
 import { canonicalBrand } from '../../../util/refumeBrands';
 import { REFUME_PARCEL_SIZES, getCarriersForSize, formatCarrierOption } from '../../../util/refumeShipping';
 import { uploadProofOfPurchase } from '../../../ducks/refumeProof.duck';
+import { notifyScentRequests } from '../../../util/api';
 import {
   FieldTextInput,
   FieldSelect,
@@ -440,6 +441,8 @@ const RefumeListingEditor = props => {
       if (!isPublished) {
         // The page redirects to the new listing once it's published
         await onPublishListingDraft(listingId);
+        // Let people waiting for this perfume know ("Poszukiwane")
+        notifyScentRequests({ listingId }).catch(() => null);
       } else {
         goToListing(listingId, data.title);
       }

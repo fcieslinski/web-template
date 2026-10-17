@@ -73,4 +73,22 @@ ${lines.map(l => `<p>${escapeHtml(l)}</p>`).join('\n')}
   return { subject, text, html };
 };
 
-module.exports = { sendEmail, isEmailConfigured, proofDecisionEmail, escapeHtml };
+/** Email to someone waiting for a perfume that was just listed. */
+const scentRequestEmail = ({ name, requestLabel, listingTitle, price, listingUrl }) => {
+  const greeting = name ? `Cześć ${name},` : 'Cześć,';
+  const subject = `Pojawiło się: ${requestLabel}`;
+  const lines = [
+    greeting,
+    `ktoś właśnie wystawił perfumy, na które czekasz: „${listingTitle}”${price ? ` za ${price}` : ''}.`,
+    'Zajrzyj szybko, zanim ktoś Cię wyprzedzi.',
+  ];
+  const text = [...lines, '', `Zobacz ofertę: ${listingUrl}`, '', 'Zespół Refume'].join('\n');
+  const html = `<div style="font-family:Arial,sans-serif;font-size:15px;line-height:1.5;color:#1d1a24">
+${lines.map(l => `<p>${escapeHtml(l)}</p>`).join('\n')}
+<p><a href="${escapeHtml(listingUrl)}" style="display:inline-block;padding:10px 18px;background:#1d1a24;color:#fff;border-radius:8px;text-decoration:none">Zobacz ofertę</a></p>
+<p style="color:#6b6670;font-size:13px">Dostajesz tę wiadomość, bo kliknąłeś „Powiadom mnie” w zakładce Poszukiwane. Możesz to wyłączyć w tej zakładce.</p>
+<p>Zespół Refume</p></div>`;
+  return { subject, text, html };
+};
+
+module.exports = { sendEmail, isEmailConfigured, proofDecisionEmail, scentRequestEmail, escapeHtml };

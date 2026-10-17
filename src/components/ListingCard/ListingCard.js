@@ -20,6 +20,7 @@ import {
 import { getListingCardTranslations } from './ListingCard.helpers';
 import { BottleLevelBadge, formatPricePerMl } from './ListingCard.refume';
 import VerifiedProofBadge from '../VerifiedProofBadge/VerifiedProofBadge';
+import { CardPriceWithBuyerFee } from '../RefumePrice/PriceWithBuyerFee';
 
 import css from './ListingCard.module.css';
 
@@ -201,6 +202,9 @@ export const ListingCard = props => {
         {showPrice ? (
           <div className={css.price} title={priceTooltip}>
             {priceMessage}
+            {publicData?.unitType === 'item' ? (
+              <CardPriceWithBuyerFee price={price} intl={intl} />
+            ) : null}
             {pricePerMl ? <span className={css.pricePerMl}>{pricePerMl}</span> : null}
           </div>
         ) : null}

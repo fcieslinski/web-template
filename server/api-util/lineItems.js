@@ -4,6 +4,7 @@ const {
   getProviderCommissionMaybe,
   getCustomerCommissionMaybe,
 } = require('./lineItemHelpers');
+const { REFUME_BUYER_COMMISSION } = require('./refumeFee');
 const { types } = require('sharetribe-flex-sdk');
 const { Money } = types;
 const { getCarrierShippingFee } = require('./refumeShipping');
@@ -247,7 +248,8 @@ exports.transactionLineItems = (listing, orderData, providerCommission, customer
     order,
     ...extraLineItems,
     ...getProviderCommissionMaybe(providerCommission, order, currency),
-    ...getCustomerCommissionMaybe(customerCommission, order, currency),
+    // Refume: fixed buyer protection fee instead of Console's customer commission
+    ...getCustomerCommissionMaybe(REFUME_BUYER_COMMISSION, order, currency),
   ];
 
   return lineItems;

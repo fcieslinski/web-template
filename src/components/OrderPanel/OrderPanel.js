@@ -39,6 +39,8 @@ import {
 
 import { ModalInMobile, PrimaryButton, AvatarSmall, H1, H2 } from '../../components';
 import VerifiedProofBadge from '../VerifiedProofBadge/VerifiedProofBadge';
+import PriceWithBuyerFee from '../RefumePrice/PriceWithBuyerFee';
+import { priceWithBuyerFee } from '../../util/refumeFee';
 import PriceVariantPicker from './PriceVariantPicker/PriceVariantPicker';
 import SubmitFinePrint from './SubmitFinePrint/SubmitFinePrint';
 
@@ -164,7 +166,9 @@ const PriceMaybe = props => {
   }
 
   // Get formatted price or currency code if the currency does not match with marketplace currency
-  const { formattedPrice, priceTitle } = priceData(price, marketplaceCurrency, intl);
+  // Refume: the mobile CTA bar shows the price with the buyer protection fee
+  const ctaPrice = unitType === 'item' ? priceWithBuyerFee(price) || price : price;
+  const { formattedPrice, priceTitle } = priceData(ctaPrice, marketplaceCurrency, intl);
   const priceValue = (
     <span className={css.priceValue}>{formatMoneyIfSupportedCurrency(price, intl)}</span>
   );
@@ -188,6 +192,9 @@ const PriceMaybe = props => {
         <FormattedMessage id="OrderPanel.perUnit" values={{ unitType }} />
       </div>
     </div>
+  ) : unitType === 'item' ? (
+    // Refume: item price + bold price with the buyer protection fee (Vinted style)
+    <PriceWithBuyerFee price={price} intl={intl} />
   ) : (
     <div className={css.priceContainer}>
       <p className={css.price}>

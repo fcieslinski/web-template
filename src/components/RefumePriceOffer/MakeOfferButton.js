@@ -101,8 +101,9 @@ const MakeOfferButton = props => {
             <span className={css.suffix}>zł</span>
           </div>
           <p className={css.hint}>
-            Minimum {formatPln(Math.ceil(price.amount * MIN_OFFER_SHARE))}. Sprzedawca może
-            przyjąć, odrzucić albo zaproponować inną cenę.
+            Minimum {formatPln(Math.ceil(price.amount * MIN_OFFER_SHARE))}. Do ceny doliczymy
+            Ochronę Kupującego i dostawę. Sprzedawca może przyjąć, odrzucić albo zaproponować
+            inną cenę.
           </p>
           {error ? (
             <p className={css.error} role="alert">

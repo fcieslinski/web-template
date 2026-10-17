@@ -114,7 +114,7 @@ export const ListingCard = props => {
     listing,
     renderSizes,
     setActiveListing,
-    showAuthorInfo = true,
+    showAuthorInfo = false, // Refume: product tiles only, no seller name
     lazyLoadImage = true,
     authorAbove = false,
     showBrand = true,

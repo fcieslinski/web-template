@@ -108,8 +108,6 @@ const CatalogHome = props => {
                   key={listing.id.uuid}
                   listing={listing}
                   renderSizes={renderSizes}
-                  showAuthorInfo
-                  authorAbove
                 />
               ))}
             </div>

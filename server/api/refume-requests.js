@@ -17,6 +17,7 @@ const {
   updateListing,
 } = require('../api-util/refumeIntegrationApi');
 const { sendEmail, scentRequestEmail } = require('../api-util/refumeEmail');
+const { addNotification } = require('../api-util/refumeNotifications');
 
 const KEY = 'refumePoszukiwane';
 const CACHE_MS = 60 * 1000;
@@ -154,11 +155,26 @@ const notifyForListing = (req, res) => {
             console.log('[refume-requests]  skip: the seller is waiting for it themselves');
             continue;
           }
-          if (!w.email || sent.has(w.id)) continue;
+          if (sent.has(w.id)) continue;
           sent.add(w.id);
+          const requestLabel = [request.brand, request.name].filter(Boolean).join(' ');
+          // In-app message from "Zespół Refume" (inbox)
+          await addNotification(w.id, {
+            type: 'poszukiwane',
+            dedupeKey: `poszukiwane:${listingUuid}`,
+            title: `Pojawiło się: ${requestLabel}`,
+            body: `Ktoś właśnie wystawił perfumy, na które czekasz: „${listing.attributes.title}”${
+              listing.attributes.price ? ` za ${formatPrice(listing.attributes.price)}` : ''
+            }.`,
+            listingId: listingUuid,
+            image: request.image || null,
+          })
+            .then(() => console.log(`[refume-requests]  inbox message to user ${w.id}: saved`))
+            .catch(e => console.error(`[refume-requests]  inbox message failed:`, e.message));
+          if (!w.email) continue;
           const content = scentRequestEmail({
             name: w.firstName,
-            requestLabel: [request.brand, request.name].filter(Boolean).join(' '),
+            requestLabel,
             listingTitle: listing.attributes.title,
             price: formatPrice(listing.attributes.price),
             listingUrl,

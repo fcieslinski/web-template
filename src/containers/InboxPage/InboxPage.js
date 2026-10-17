@@ -55,6 +55,9 @@ import FooterContainer from '../../containers/FooterContainer/FooterContainer';
 import NotFoundPage from '../../containers/NotFoundPage/NotFoundPage';
 import TransactionPage from '../TransactionPage/TransactionPage';
 import { loadData as loadTransactionData } from '../TransactionPage/TransactionPage.duck';
+import RefumeNotificationsPanel, {
+  RefumeTeamInboxItem,
+} from './RefumeNotifications/RefumeNotifications';
 import InboxSearchForm from './InboxSearchForm/InboxSearchForm';
 
 import { stateDataShape, getStateData } from './InboxPage.stateData';
@@ -433,6 +436,8 @@ export const InboxPageComponent = props => {
               </p>
             ) : null}
             <ul className={css.itemList}>
+              {/* Refume: messages from "Zespół Refume", pinned on top */}
+              <RefumeTeamInboxItem tab={tab} isActive={selectedTxId === 'refume'} />
               {/* Keep the list visible while it refreshes (opening a chat reloads it) */}
               {!fetchInProgress || transactions.length ? (
                 transactions.map(toTxItem)
@@ -461,7 +466,14 @@ export const InboxPageComponent = props => {
           </aside>
 
           <section className={css.inboxChat} aria-label="Rozmowa">
-            {selectedTxId ? (
+            {selectedTxId === 'refume' ? (
+              <>
+                <NamedLink name="InboxPage" params={{ tab }} className={css.backLink}>
+                  ← Wszystkie rozmowy
+                </NamedLink>
+                <RefumeNotificationsPanel />
+              </>
+            ) : selectedTxId ? (
               <>
                 <NamedLink name="InboxPage" params={{ tab }} className={css.backLink}>
                   ← Wszystkie rozmowy

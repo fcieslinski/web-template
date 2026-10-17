@@ -7,6 +7,7 @@ import loadable from '@loadable/component';
 import { sendVerificationEmail, hasCurrentUserErrors } from '../../ducks/user.duck';
 import { logout, authenticationInProgress } from '../../ducks/auth.duck';
 import { manageDisableScrolling } from '../../ducks/ui.duck';
+import { getUnreadCount } from '../../ducks/refumeNotifications';
 
 const Topbar = loadable(() => import(/* webpackChunkName: "Topbar" */ './Topbar/Topbar'));
 
@@ -50,7 +51,11 @@ const mapStateToProps = state => {
     currentUser,
     currentUserHasListings,
     currentUserHasOrders,
-    notificationCount: currentUserSaleNotificationCount + currentUserOrderNotificationCount,
+    // Refume: + unread messages from "Zespół Refume"
+    notificationCount:
+      currentUserSaleNotificationCount +
+      currentUserOrderNotificationCount +
+      getUnreadCount(currentUser),
     isAuthenticated,
     isLoggedInAs,
     authScopes,

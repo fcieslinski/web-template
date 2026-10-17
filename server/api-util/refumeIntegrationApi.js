@@ -82,6 +82,8 @@ module.exports = {
   showListing: query => integrationRequest('GET', '/listings/show', { query }),
   updateListing: body => integrationRequest('POST', '/listings/update', { body }),
   queryUsers: query => integrationRequest('GET', '/users/query', { query }),
+  showUser: query => integrationRequest('GET', '/users/show', { query }),
+  updateUserProfile: body => integrationRequest('POST', '/users/update_profile', { body }),
   showTransaction: query => integrationRequest('GET', '/transactions/show', { query }),
   updateTransactionMetadata: body =>
     integrationRequest('POST', '/transactions/update_metadata', { body }),

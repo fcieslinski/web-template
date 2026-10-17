@@ -66,6 +66,7 @@ const loadAll = async () => {
         };
         if (r.createdAt && (!g.createdAt || r.createdAt < g.createdAt)) g.createdAt = r.createdAt;
         if (!g.perfumeId && r.perfumeId) g.perfumeId = r.perfumeId;
+        if (!g.image && typeof r.image === 'string' && r.image.startsWith('https://')) g.image = r.image;
         if (g.watchers.some(w => w.id === u.id)) return; // same person twice
         g.watchers.push({
           id: u.id,

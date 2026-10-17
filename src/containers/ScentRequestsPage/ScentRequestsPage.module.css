@@ -288,3 +288,53 @@
   height: 18px;
   flex-shrink: 0;
 }
+
+/* Card with the perfume picture */
+.cardTop {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.cardImage {
+  flex-shrink: 0;
+  width: 84px;
+  height: 104px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background-color: var(--colorGrey50);
+  color: var(--marketplaceColor);
+  overflow: hidden;
+
+  & img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    padding: 6px;
+  }
+}
+
+.bottle {
+  width: 40px;
+  height: 54px;
+}
+
+.cardText {
+  min-width: 0;
+}
+
+.cardBrand {
+  margin: 0 0 2px 0;
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--colorGrey700);
+}
+
+.cardText .cardMeta {
+  margin: 4px 0 0 0;
+}

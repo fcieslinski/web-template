@@ -43,6 +43,14 @@ const BellIcon = ({ filled }) => (
   </svg>
 );
 
+const BottleIcon = () => (
+  <svg viewBox="0 0 48 64" className={css.bottle} aria-hidden="true" focusable="false">
+    <rect x="18" y="2" width="12" height="8" rx="2" fill="currentColor" opacity="0.5" />
+    <rect x="21" y="10" width="6" height="6" fill="currentColor" opacity="0.4" />
+    <rect x="6" y="16" width="36" height="44" rx="8" fill="currentColor" opacity="0.25" />
+  </svg>
+);
+
 /** "Szukam perfum" — pick from the perfume database or type brand + name by hand. */
 const AddRequest = ({ onAdd, onClose }) => {
   const [query, setQuery] = useState('');
@@ -100,6 +108,7 @@ const AddRequest = ({ onAdd, onClose }) => {
                     name: p.name,
                     brand: canonicalBrand(p.brand),
                     perfumeId: p.source === 'fragella' || p.source === 'refume' ? p.id : undefined,
+                    image: p.image || undefined,
                   })
                 }
               >
@@ -267,11 +276,23 @@ const ScentRequestsPage = () => {
             <ul className={css.grid}>
               {list.map(r => (
                 <li key={r.key} className={css.card}>
-                  <h2 className={css.cardTitle}>{fullName(r.brand, r.name)}</h2>
-                  <p className={css.cardMeta}>
-                    Poszukiwane od {formatDate(r.createdAt)} ·{' '}
-                    {r.count === 1 ? '1 osoba czeka' : `${r.count} osób czeka`}
-                  </p>
+                  <div className={css.cardTop}>
+                    <div className={css.cardImage}>
+                      {r.image ? (
+                        <img src={r.image} alt="" loading="lazy" />
+                      ) : (
+                        <BottleIcon />
+                      )}
+                    </div>
+                    <div className={css.cardText}>
+                      {r.brand ? <p className={css.cardBrand}>{r.brand}</p> : null}
+                      <h2 className={css.cardTitle}>{fullName(r.brand, r.name)}</h2>
+                      <p className={css.cardMeta}>
+                        Od {formatDate(r.createdAt)} ·{' '}
+                        {r.count === 1 ? '1 osoba czeka' : `${r.count} osób czeka`}
+                      </p>
+                    </div>
+                  </div>
                   <div className={css.cardActions}>
                     <NamedLink name="NewListingPage" className={css.sellButton}>
                       + Mam, wystawiam

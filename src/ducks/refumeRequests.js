@@ -64,6 +64,7 @@ export const toggleRequest = request => (dispatch, getState, sdk) => {
           name: String(request.name).trim().slice(0, 80),
           brand: String(request.brand || '').trim().slice(0, 60),
           ...(request.perfumeId ? { perfumeId: request.perfumeId } : {}),
+          ...(request.image && /^https:\/\//.test(request.image) ? { image: request.image } : {}),
           createdAt: new Date().toISOString(),
         },
         ...before,

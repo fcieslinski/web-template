@@ -10,6 +10,7 @@ import { H3, ListingLink } from '../../../../components';
 
 // Import modules from this directory
 import EditListingPhotosForm from './EditListingPhotosForm';
+import ProofOfPurchase from './ProofOfPurchase';
 import css from './EditListingPhotosPanel.module.css';
 
 const getInitialValues = params => {
@@ -108,6 +109,9 @@ const EditListingPhotosPanel = props => {
         filesTabParams={filesTabParams}
         filesRequired={filesRequired}
       />
+
+      {/* Refume: optional proof of purchase, visible only to the seller and moderators */}
+      <ProofOfPurchase listing={listing} />
     </main>
   );
 };

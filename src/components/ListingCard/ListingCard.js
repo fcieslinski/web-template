@@ -19,6 +19,7 @@ import {
 
 import { getListingCardTranslations } from './ListingCard.helpers';
 import { BottleLevelBadge, formatPricePerMl } from './ListingCard.refume';
+import VerifiedProofBadge from '../VerifiedProofBadge/VerifiedProofBadge';
 
 import css from './ListingCard.module.css';
 
@@ -212,6 +213,11 @@ export const ListingCard = props => {
           {brand ? (
             <div className={classNames(css.brand, { [css.lightText]: darkMode })}>{brand}</div>
           ) : null}
+          <VerifiedProofBadge
+            metadata={listing?.attributes?.metadata}
+            compact
+            className={css.verifiedBadge}
+          />
           {showAuthorInfo && !showAuthorAbove ? (
             <div className={classNames(css.authorInfo, { [css.lightText]: darkMode })}>
               {authorName}

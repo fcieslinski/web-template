@@ -205,3 +205,9 @@
 .brand.lightText {
   color: var(--colorWhite);
 }
+
+/* Refume: proof-of-purchase badge under the brand */
+.verifiedBadge {
+  align-self: flex-start;
+  margin-top: 4px;
+}

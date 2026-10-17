@@ -1,0 +1,97 @@
+@import '../../../../styles/customMediaQueries.css';
+
+.root {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--colorGrey100);
+}
+
+.title {
+  margin: 0 0 8px 0;
+}
+
+.description {
+  margin: 0 0 16px 0;
+  color: var(--colorGrey700);
+}
+
+.status {
+  margin: 0 0 16px 0;
+  padding: 12px 16px;
+  border-radius: var(--borderRadiusMedium, 8px);
+
+  & p {
+    margin: 0;
+  }
+}
+
+.statusPending {
+  background-color: var(--colorGrey50);
+  color: var(--colorGrey900);
+}
+
+.statusVerified {
+  background-color: hsl(145 50% 94%);
+  color: hsl(145 60% 22%);
+}
+
+.statusRejected {
+  background-color: hsl(0 80% 96%);
+  color: hsl(0 60% 30%);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.statusTitle {
+  font-weight: var(--fontWeightSemiBold);
+}
+
+.reason {
+  white-space: pre-line;
+}
+
+.uploadRow {
+  display: flex;
+}
+
+.uploadButton {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 10px 18px;
+  border: 1px solid var(--marketplaceColor);
+  border-radius: 8px;
+  color: var(--marketplaceColor);
+  font-weight: var(--fontWeightSemiBold);
+  cursor: pointer;
+
+  &:hover {
+    background-color: var(--marketplaceColor);
+    color: var(--colorWhite);
+  }
+
+  &[aria-disabled='true'] {
+    opacity: 0.6;
+    pointer-events: none;
+  }
+}
+
+/* Visually hidden but focusable via its label */
+.fileInput {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+.uploadRow:focus-within .uploadButton {
+  outline: 2px solid var(--marketplaceColor);
+  outline-offset: 2px;
+}
+
+.error {
+  margin: 8px 0 0 0;
+  color: var(--colorFail);
+}

@@ -454,6 +454,7 @@ export const loadData = (params, search, config) => (dispatch, getState, sdk) =>
         'publicData.stan',
         'publicData.pojemnosc_ml',
         'publicData.pojemnosc_odlewki',
+        'metadata.weryfikacja',
       ],
       'fields.user': ['profile.displayName', 'profile.abbreviatedName'],
       'fields.image': [

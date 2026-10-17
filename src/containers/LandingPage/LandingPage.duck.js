@@ -47,6 +47,7 @@ export const fetchLatestListings = createAsyncThunk(
           'publicData.stan',
           'publicData.pojemnosc_ml',
           'publicData.pojemnosc_odlewki',
+          'metadata.weryfikacja',
         ],
         'fields.user': ['profile.displayName', 'profile.abbreviatedName'],
         'fields.image': [

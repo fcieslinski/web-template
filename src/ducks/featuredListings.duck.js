@@ -72,6 +72,7 @@ const fetchFeaturedListingsPayloadCreator = async (arg, thunkAPI) => {
           'publicData.stan',
           'publicData.pojemnosc_ml',
           'publicData.pojemnosc_odlewki',
+          'metadata.weryfikacja',
         ],
         'fields.image': [
           'variants.listing-card',

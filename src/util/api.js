@@ -151,3 +151,14 @@ export const createUserWithIdp = body => {
 export const deleteUserAccount = body => {
   return post('/api/delete-account', body);
 };
+
+// Refume: moderation of proof-of-purchase photos (moderators only).
+// See server/api/refume-moderation.js
+export const fetchPendingProofs = () => {
+  return request('/api/moderacja/dowody', { method: methods.GET });
+};
+
+// body: { listingId, decision: 'approve' | 'reject', reason? }
+export const decideProof = body => {
+  return post('/api/moderacja/decyzja', body);
+};

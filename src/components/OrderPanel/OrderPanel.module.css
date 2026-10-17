@@ -279,3 +279,12 @@
     padding: 0;
   }
 }
+
+/* Refume: proof-of-purchase badge */
+.verifiedBadge {
+  margin: 8px 0 16px 0;
+
+  @media (--viewportMedium) {
+    margin: 0 0 16px 0;
+  }
+}

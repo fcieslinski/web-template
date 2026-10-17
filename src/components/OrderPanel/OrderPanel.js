@@ -38,6 +38,7 @@ import {
 } from '../../transactions/transaction';
 
 import { ModalInMobile, PrimaryButton, AvatarSmall, H1, H2 } from '../../components';
+import VerifiedProofBadge from '../VerifiedProofBadge/VerifiedProofBadge';
 import PriceVariantPicker from './PriceVariantPicker/PriceVariantPicker';
 import SubmitFinePrint from './SubmitFinePrint/SubmitFinePrint';
 
@@ -488,6 +489,11 @@ const OrderPanel = props => {
             </span>
           </div>
         )}
+
+        <VerifiedProofBadge
+          metadata={listing?.attributes?.metadata}
+          className={css.verifiedBadge}
+        />
 
         {showPriceMissing ? (
           <PriceMissing />

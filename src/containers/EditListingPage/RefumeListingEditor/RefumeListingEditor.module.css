@@ -372,3 +372,35 @@
   padding-top: 20px;
   border-top: 1px solid var(--colorGrey100);
 }
+
+/* Sections slide in when they appear */
+.reveal {
+  animation: refumeReveal 0.35s ease-out both;
+}
+
+@keyframes refumeReveal {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    animation: none;
+  }
+}
+
+.nextHint {
+  margin: 0;
+  padding: 14px 18px;
+  border: 1px dashed var(--colorGrey200);
+  border-radius: 12px;
+  color: var(--colorGrey700);
+  font-size: 14px;
+  text-align: center;
+}

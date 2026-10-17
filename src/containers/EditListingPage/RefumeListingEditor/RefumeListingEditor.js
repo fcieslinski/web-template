@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { Form as FinalForm } from 'react-final-form';
 import arrayMutators from 'final-form-arrays';
 import { useDispatch } from 'react-redux';
@@ -68,21 +68,23 @@ const typeInfo = conf =>
  * "locked" only the title (not reached yet), "static" = always open (editing a published listing).
  */
 const Step = props => {
-  const { id, number, title, hint, state, summary, onEdit, children, footer, optional } = props;
+  const { id, number, title, hint, state, summary, onEdit, children, footer, optional, className } = props;
   const isOpen = state === 'open' || state === 'static';
   return (
     <section
       id={id}
-      className={classNames(css.section, css.step, {
+      className={classNames(css.section, css.step, className, {
         [css.stepLocked]: state === 'locked',
         [css.stepDone]: state === 'done',
       })}
       aria-current={state === 'open' ? 'step' : undefined}
     >
       <div className={css.stepHeader}>
-        <span className={css.stepNumber} aria-hidden="true">
-          {state === 'done' ? '✓' : number}
-        </span>
+        {number ? (
+          <span className={css.stepNumber} aria-hidden="true">
+            {state === 'done' ? '✓' : number}
+          </span>
+        ) : null}
         <div className={css.stepHeading}>
           <h2 className={css.sectionTitle}>
             {title}
@@ -209,9 +211,8 @@ const RefumeListingEditor = props => {
   const [proofFile, setProofFile] = useState(null);
   const [imageError, setImageError] = useState(null);
   // Steps: 0 photos, 1 what you sell, 2 details, 3 notes, 4 price & shipping
-  const [step, setStep] = useState(0);
-  const [reached, setReached] = useState(0);
-  const [stepError, setStepError] = useState(null);
+  // Sections appear one after another as the seller fills in the previous ones
+  const revealedRef = useRef(0);
 
   const listingTypes = config.listing.listingTypes || [];
   const listingFields = config.listing.listingFields || [];
@@ -403,7 +404,7 @@ const RefumeListingEditor = props => {
           ? { shippingCarriers: 'Zaznacz przynajmniej jednego przewoźnika.' }
           : {};
       }}
-      render={({ handleSubmit, values, form, submitting, hasValidationErrors, submitFailed }) => {
+      render={({ handleSubmit, values, form, submitting, hasValidationErrors, submitFailed, errors = {} }) => {
         const nested = pickCategoryFields(values, categoryKey, 1, categories);
         const categoryIds = Object.values(nested);
         const carriersForSize = getCarriersForSize(values.gabaryt);
@@ -441,52 +442,31 @@ const RefumeListingEditor = props => {
             .filter(Boolean)
             .join(' · ') || 'Pominięto';
 
-        // Editing a published listing: everything open. New listing: one step at a time.
-        const progressive = !isPublished;
-        const stepState = i =>
-          !progressive ? 'static' : i === step ? 'open' : i <= reached ? 'done' : 'locked';
-        const openStep = i => {
-          setStepError(null);
-          setStep(i);
-        };
-        const goNext = (i, names, check) => {
-          form.batch(() =>
-            names.forEach(n => {
-              form.focus(n);
-              form.blur(n);
-            })
-          );
-          const errors = form.getState().errors || {};
-          const hasFieldErrors = names.some(n => errors[n]);
-          const customError = check ? check() : null;
-          if (hasFieldErrors || customError) {
-            setStepError({ step: i, message: customError || 'Uzupełnij zaznaczone pola.' });
-            return;
-          }
-          setStepError(null);
-          const next = i + 1;
-          setStep(next);
-          setReached(r => Math.max(r, next));
-          if (typeof window !== 'undefined') {
-            setTimeout(() => {
-              const el = document.getElementById(`step-${next}`);
-              if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }, 50);
-          }
-        };
-        const nextButton = (i, names, check, label = 'Dalej') => (
-          <>
-            {stepError?.step === i ? (
-              <p className={css.error} role="alert">
-                {stepError.message}
-              </p>
-            ) : null}
-            <button type="button" className={css.nextButton} onClick={() => goNext(i, names, check)}>
-              {label}
-            </button>
-          </>
-        );
-        const allStepsReached = !progressive || reached >= 4;
+        // Editing a published listing: everything visible. New listing: the next section
+        // appears once the previous one is filled in (sections never disappear again).
+        const registered = form.getRegisteredFields();
+        const basicsNames = ['title', 'description', `${categoryKey}1`, `${categoryKey}2`, `${categoryKey}3`];
+        const basicsOk =
+          !!values.title?.trim() && !!values.description?.trim() && basicsNames.every(n => !errors[n]);
+        const detailsReady =
+          detailFieldNames.every(n => registered.includes(n)) &&
+          detailFieldNames.every(n => !errors[n]);
+        let revealed = 1;
+        if (basicsOk) revealed = 2;
+        if (revealed >= 2 && detailsReady) revealed = 4;
+        if (isPublished) revealed = 4;
+        revealedRef.current = Math.max(revealedRef.current, revealed);
+        const shown = i => i <= revealedRef.current;
+        const stepState = () => 'static';
+        const openStep = () => {};
+        const nextButton = () => null;
+        const allStepsReached = revealedRef.current >= 4;
+        const nextHint =
+          revealedRef.current === 1
+            ? 'Uzupełnij kategorię, tytuł i opis — dalsze pola pojawią się poniżej.'
+            : revealedRef.current === 2
+            ? 'Uzupełnij wymagane szczegóły — potem cena i wysyłka.'
+            : null;
 
         return (
           <form className={css.root} onSubmit={handleSubmit}>
@@ -495,13 +475,12 @@ const RefumeListingEditor = props => {
               <p className={css.lead}>
                 {isPublished
                   ? 'Zmień, co chcesz, i zapisz.'
-                  : '5 krótkich kroków. Zajmie Ci to około 2 minut.'}
+                  : 'Wypełniaj od góry — kolejne sekcje pojawią się same.'}
               </p>
             </header>
 
             <Step
               id="step-0"
-              number={1}
               title="Zdjęcia"
               hint="Dodaj do 12 zdjęć. Pierwsze będzie zdjęciem głównym. Pokaż flakon, poziom zapachu i kod batch."
               state={stepState(0)}
@@ -556,7 +535,6 @@ const RefumeListingEditor = props => {
 
             <Step
               id="step-1"
-              number={2}
               title="Co sprzedajesz?"
               hint="Wpisz nazwę perfum, a uzupełnimy resztę za Ciebie."
               state={stepState(1)}
@@ -623,9 +601,10 @@ const RefumeListingEditor = props => {
               />
             </Step>
 
+            {shown(2) ? (
             <Step
+              className={css.reveal}
               id="step-2"
-              number={3}
               title="Szczegóły"
               hint="Marka, stan, pojemność i inne informacje, po których kupujący filtrują oferty."
               state={stepState(2)}
@@ -642,10 +621,12 @@ const RefumeListingEditor = props => {
                 />
               </div>
             </Step>
+            ) : null}
 
+            {shown(3) ? (
             <Step
+              className={css.reveal}
               id="step-3"
-              number={4}
               title="Nuty zapachowe"
               optional
               hint="Pomagają kupującym znaleźć zapach. Jeśli wybrałeś perfumy z bazy, są już uzupełnione."
@@ -658,10 +639,12 @@ const RefumeListingEditor = props => {
                 <NotesFields formId={FORM_ID} />
               </div>
             </Step>
+            ) : null}
 
+            {shown(4) ? (
             <Step
+              className={css.reveal}
               id="step-4"
-              number={5}
               title="Cena i wysyłka"
               state={stepState(4)}
               onEdit={() => openStep(4)}
@@ -737,6 +720,9 @@ const RefumeListingEditor = props => {
                 )}
               </div>
             </Step>
+            ) : null}
+
+            {nextHint && !isPublished ? <p className={css.nextHint}>{nextHint}</p> : null}
 
             {allStepsReached ? (
             <div className={css.submitBar}>

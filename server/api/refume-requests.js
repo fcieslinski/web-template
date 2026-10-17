@@ -35,6 +35,13 @@ const normalize = s =>
     .replace(/[^a-z0-9]+/g, ' ')
     .trim();
 
+// Same perfume → same key (keep in sync with src/ducks/refumeRequests.js)
+const requestKey = ({ brand, name }) => {
+  const b = normalize(brand);
+  const n = normalize(name);
+  return `n:${b && !` ${n} `.includes(` ${b} `) ? `${b} ${n}` : n}`;
+};
+
 // Everyone's requests, grouped by perfume. Cached for a minute.
 const loadAll = async () => {
   if (cache && Date.now() - cache.at < CACHE_MS) {
@@ -47,9 +54,10 @@ const loadAll = async () => {
       const list = u.attributes?.profile?.privateData?.[KEY];
       if (!Array.isArray(list) || u.attributes?.banned || u.attributes?.deleted) return;
       list.forEach(r => {
-        if (!r?.key || !r?.name) return;
-        const g = groups.get(r.key) || {
-          key: r.key,
+        if (!r?.name) return;
+        const key = requestKey(r);
+        const g = groups.get(key) || {
+          key,
           name: r.name,
           brand: r.brand || '',
           perfumeId: r.perfumeId || null,
@@ -57,12 +65,14 @@ const loadAll = async () => {
           watchers: [],
         };
         if (r.createdAt && (!g.createdAt || r.createdAt < g.createdAt)) g.createdAt = r.createdAt;
+        if (!g.perfumeId && r.perfumeId) g.perfumeId = r.perfumeId;
+        if (g.watchers.some(w => w.id === u.id)) return; // same person twice
         g.watchers.push({
           id: u.id,
           email: u.attributes?.email,
           firstName: u.attributes?.profile?.firstName,
         });
-        groups.set(r.key, g);
+        groups.set(key, g);
       });
     });
     const totalPages = result.meta?.totalPages || 1;
@@ -129,12 +139,21 @@ const notifyForListing = (req, res) => {
 
       cache = null; // fresh data
       const all = await loadAll();
+      const matched = all.filter(r => matches(r, listing));
+      console.log(
+        `[refume-requests] "${listing.attributes.title}": ${all.length} requests, ` +
+          `${matched.length} match (${matched.map(r => r.name).join(', ') || '-'})`
+      );
       const rootUrl = (process.env.REACT_APP_MARKETPLACE_ROOT_URL || '').replace(/\/$/, '');
       const listingUrl = `${rootUrl}/l/${listingUuid}`;
       const sent = new Set();
-      for (const request of all.filter(r => matches(r, listing))) {
+      for (const request of matched) {
         for (const w of request.watchers) {
-          if (!w.email || w.id === me.id.uuid || sent.has(w.id)) continue;
+          if (w.id === me.id.uuid) {
+            console.log('[refume-requests]  skip: the seller is waiting for it themselves');
+            continue;
+          }
+          if (!w.email || sent.has(w.id)) continue;
           sent.add(w.id);
           const content = scentRequestEmail({
             name: w.firstName,
@@ -143,9 +162,13 @@ const notifyForListing = (req, res) => {
             price: formatPrice(listing.attributes.price),
             listingUrl,
           });
-          await sendEmail({ to: w.email, ...content }).catch(e =>
-            console.error('[refume-requests] email failed:', e.message)
-          );
+          await sendEmail({ to: w.email, ...content })
+            .then(r =>
+              console.log(
+                `[refume-requests]  email to ${w.email}: ${r?.skipped ? 'skipped (no RESEND_API_KEY)' : 'sent'}`
+              )
+            )
+            .catch(e => console.error(`[refume-requests]  email to ${w.email} failed:`, e.message));
         }
       }
       await updateListing({ id: listingUuid, metadata: { poszukiwanePowiadomiono: true } }).catch(

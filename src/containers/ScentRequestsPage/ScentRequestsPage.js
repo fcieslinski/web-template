@@ -168,7 +168,7 @@ const ScentRequestsPage = () => {
     fetchScentRequests()
       .then(res => {
         setRequests(res?.data || []);
-        initialMine.current = new Set(mine.map(r => r.key));
+        initialMine.current = new Set(mine.map(r => requestKey(r)));
       })
       .catch(() => setError(true));
   }, []);
@@ -194,7 +194,8 @@ const ScentRequestsPage = () => {
   const list = useMemo(() => {
     const byKey = new Map((requests || []).map(r => [r.key, { ...r }]));
     mine.forEach(r => {
-      if (!byKey.has(r.key)) byKey.set(r.key, { ...r, count: 0 });
+      const key = requestKey(r);
+      if (!byKey.has(key)) byKey.set(key, { ...r, key, count: 0 });
     });
     const all = Array.from(byKey.values()).map(r => {
       const wasMine = initialMine.current?.has(r.key) || false;

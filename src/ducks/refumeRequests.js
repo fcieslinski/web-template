@@ -18,9 +18,16 @@ const normalize = s =>
     .replace(/[^a-z0-9]+/g, ' ')
     .trim();
 
-/** Same perfume → same key, whoever asks for it. */
-export const requestKey = ({ perfumeId, brand, name }) =>
-  perfumeId ? `f:${perfumeId}` : `n:${normalize(`${brand || ''} ${name || ''}`)}`;
+/**
+ * Same perfume → same key, whoever asks for it and however it was added
+ * ("Dior" + "Sauvage", "Dior" + "Dior Sauvage" and "dior sauvage" are one request).
+ * Keep in sync with server/api/refume-requests.js.
+ */
+export const requestKey = ({ brand, name }) => {
+  const b = normalize(brand);
+  const n = normalize(name);
+  return `n:${b && !` ${n} `.includes(` ${b} `) ? `${b} ${n}` : n}`;
+};
 
 export const getMyRequests = currentUser => {
   const list = currentUser?.attributes?.profile?.privateData?.[REQUESTS_KEY];
@@ -46,11 +53,11 @@ const withRequests = (currentUser, list) => ({
 export const toggleRequest = request => (dispatch, getState, sdk) => {
   const currentUser = getState().user?.currentUser;
   if (!currentUser?.id) return Promise.reject(new Error('Not logged in'));
-  const key = request.key || requestKey(request);
+  const key = requestKey(request);
   const before = getMyRequests(currentUser);
-  const watching = before.some(r => r.key === key);
+  const watching = before.some(r => requestKey(r) === key);
   const after = watching
-    ? before.filter(r => r.key !== key)
+    ? before.filter(r => requestKey(r) !== key)
     : [
         {
           key,
@@ -80,7 +87,7 @@ export const useMyRequests = () => {
   return {
     isLoggedIn: !!currentUser?.id,
     mine,
-    isWatching: key => mine.some(r => r.key === key),
+    isWatching: key => mine.some(r => requestKey(r) === key),
     toggle: request => dispatch(toggleRequest(request)),
   };
 };

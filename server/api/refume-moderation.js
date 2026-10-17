@@ -20,6 +20,7 @@ const {
   showListing,
   updateListing,
 } = require('../api-util/refumeIntegrationApi');
+const { sendEmail, proofDecisionEmail } = require('../api-util/refumeEmail');
 
 const MAX_PAGES = 20; // up to 2000 listings scanned per request
 const MAX_REASON_LENGTH = 500;
@@ -105,6 +106,30 @@ const listPendingProofs = (req, res) => {
 };
 
 // POST /api/moderacja/decyzja — body: { listingId, decision: 'approve' | 'reject', reason? }
+const notifySeller = async (shown, isApproved, reason) => {
+  const listing = shown?.data;
+  const authorId = listing?.relationships?.author?.data?.id;
+  const author = (shown?.included || []).find(i => i.type === 'user' && i.id === authorId);
+  const email = author?.attributes?.email;
+  if (!email) {
+    return false;
+  }
+  const rootUrl = (process.env.REACT_APP_MARKETPLACE_ROOT_URL || '').replace(/\/$/, '');
+  const listingId = listing.id;
+  const editUrl = isApproved
+    ? `${rootUrl}/l/${listingId}`
+    : `${rootUrl}/l/listing/${listingId}/edit/photos`;
+  const content = proofDecisionEmail({
+    sellerName: author.attributes?.profile?.firstName,
+    listingTitle: listing.attributes?.title || '',
+    isApproved,
+    reason,
+    editUrl,
+  });
+  const result = await sendEmail({ to: email, ...content });
+  return !result?.skipped;
+};
+
 const decideProof = (req, res) => {
   const { listingId, decision, reason } = req.body || {};
   const trimmedReason = typeof reason === 'string' ? reason.trim() : '';
@@ -122,7 +147,7 @@ const decideProof = (req, res) => {
       }
 
       // Read the current proof on the server, so the decision applies to the reviewed upload
-      const shown = await showListing({ id: listingId });
+      const shown = await showListing({ id: listingId, include: 'author' });
       const proof = shown?.data?.attributes?.privateData?.dowodZakupu;
       if (!proof?.url) {
         throw httpError(400, 'Listing has no proof of purchase.');
@@ -140,7 +165,12 @@ const decideProof = (req, res) => {
         },
         privateData: { weryfikacjaPowod: isApproved ? null : trimmedReason },
       });
-      res.status(200).json({ data: { listingId, decision } });
+      // Notify the seller. A failed email must not undo the decision.
+      const emailSent = await notifySeller(shown, isApproved, trimmedReason).catch(e => {
+        console.error('[refume-moderation] seller email failed:', e.message);
+        return false;
+      });
+      res.status(200).json({ data: { listingId, decision, emailSent } });
     })
     .catch(e => handleError(res, e));
 };

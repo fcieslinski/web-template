@@ -65,7 +65,7 @@ const RefumeNotificationsPanel = () => {
         <TeamAvatar />
         <div>
           <h2 className={css.panelTitle}>Zespół Refume</h2>
-          <p className={css.panelSub}>Powiadomienia o Twoich poszukiwanych perfumach i nie tylko.</p>
+          <p className={css.panelSub}>Powiadomienia o poszukiwanych perfumach, weryfikacji ogłoszeń i nie tylko.</p>
         </div>
       </div>
       {list.length === 0 ? (
@@ -87,13 +87,21 @@ const RefumeNotificationsPanel = () => {
                     <p className={css.messageBody}>{n.body}</p>
                   </div>
                 </div>
-                {n.listingId ? (
+                {n.editListingId ? (
+                  <NamedLink
+                    name="EditListingPage"
+                    params={{ id: n.editListingId, slug: 'ogloszenie', type: 'edit', tab: 'details' }}
+                    className={css.cta}
+                  >
+                    Wyślij nowe zdjęcie
+                  </NamedLink>
+                ) : n.listingId ? (
                   <NamedLink
                     name="ListingPageCanonical"
                     params={{ id: n.listingId }}
                     className={css.cta}
                   >
-                    Zobacz ofertę
+                    {n.type === 'poszukiwane' ? 'Zobacz ofertę' : 'Zobacz ogłoszenie'}
                   </NamedLink>
                 ) : null}
                 <time className={css.time} dateTime={n.createdAt}>

@@ -21,6 +21,7 @@ const {
   updateListing,
 } = require('../api-util/refumeIntegrationApi');
 const { sendEmail, proofDecisionEmail } = require('../api-util/refumeEmail');
+const { addNotification } = require('../api-util/refumeNotifications');
 
 const MAX_PAGES = 20; // up to 2000 listings scanned per request
 const MAX_REASON_LENGTH = 500;
@@ -165,6 +166,30 @@ const decideProof = (req, res) => {
         },
         privateData: { weryfikacjaPowod: isApproved ? null : trimmedReason },
       });
+      // In-app message from "Zespół Refume" in the seller's inbox
+      const authorId = shown?.data?.relationships?.author?.data?.id;
+      const title = shown?.data?.attributes?.title || '';
+      if (authorId) {
+        await addNotification(
+          authorId,
+          isApproved
+            ? {
+                type: 'dowod-zatwierdzony',
+                dedupeKey: `dowod:${listingId}:${proof.uploadedAt}`,
+                title: 'Dowód zakupu zatwierdzony ✓',
+                body: `Twoje ogłoszenie „${title}” ma teraz znacznik „Zweryfikowano dowodem zakupu”. Kupujący to widzą!`,
+                listingId,
+              }
+            : {
+                type: 'dowod-odrzucony',
+                dedupeKey: `dowod:${listingId}:${proof.uploadedAt}`,
+                title: 'Dowód zakupu odrzucony',
+                body: `Moderator nie zatwierdził dowodu zakupu do ogłoszenia „${title}”. Powód: ${trimmedReason}. Możesz wysłać nowe zdjęcie w edycji ogłoszenia.`,
+                editListingId: listingId,
+              }
+        ).catch(e => console.error('[refume-moderation] inbox message failed:', e.message));
+      }
+
       // Notify the seller. A failed email must not undo the decision.
       const emailSent = await notifySeller(shown, isApproved, trimmedReason).catch(e => {
         console.error('[refume-moderation] seller email failed:', e.message);

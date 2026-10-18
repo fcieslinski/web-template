@@ -56,4 +56,17 @@ const getCarrierShippingFee = ({ carrier, size, enabledCarriers, currency }) => 
   return new Money(price, currency);
 };
 
-module.exports = { REFUME_SHIPPING_PRICES, getCarrierShippingFee };
+// Listings created before parcel sizes existed: assume M and every carrier for it.
+// Keep in sync with src/util/refumeShipping.js.
+const DEFAULT_PARCEL_SIZE = 'M';
+const getShippingSetup = publicData => {
+  const { gabaryt, shippingCarriers } = publicData || {};
+  const size = REFUME_SHIPPING_PRICES[gabaryt] ? gabaryt : DEFAULT_PARCEL_SIZE;
+  const carriers =
+    Array.isArray(shippingCarriers) && shippingCarriers.length
+      ? shippingCarriers
+      : Object.keys(REFUME_SHIPPING_PRICES[size]);
+  return { size, carriers };
+};
+
+module.exports = { REFUME_SHIPPING_PRICES, getCarrierShippingFee, getShippingSetup };

@@ -13,8 +13,9 @@ const formatPrice = subunits => `${(subunits / 100).toFixed(2).replace('.', ',')
  * @returns {Array<{ key, label, price?, deliveryMethod, carrier? }>}
  */
 export const getDeliveryOptions = publicData => {
-  const { shippingEnabled, pickupEnabled } = publicData || {};
-  const carriers = shippingEnabled ? getAvailableCarriers(publicData) : [];
+  // Refume ships everything: shipping options are always offered (old listings get defaults)
+  const { pickupEnabled } = publicData || {};
+  const carriers = getAvailableCarriers(publicData);
   const shipping = carriers.map(c => ({
     key: c.key,
     label: c.label,

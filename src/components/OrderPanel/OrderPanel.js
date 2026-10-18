@@ -605,7 +605,7 @@ const OrderPanel = props => {
             <FormattedMessage id="OrderPanel.unknownTransactionProcess" />
           </p>
         ) : null}
-        {showProductOrderForm && shippingEnabled && displayShipping && shippingCarrierOptions.length > 0 ? (
+        {showProductOrderForm && shippingCarrierOptions.length > 0 ? (
           <p className={css.deliveryHint}>
             Dostawa od{' '}
             {(Math.min(...shippingCarrierOptions.map(c => c.priceInSubunits)) / 100)

@@ -67,10 +67,23 @@ export const getCarriersForSize = size =>
  * Carriers the buyer can pick for a listing: available for its size AND enabled by the seller.
  * @param {Object} publicData listing public data
  */
-export const getAvailableCarriers = publicData => {
+// Listings created before parcel sizes existed: assume M and every carrier for it.
+// Keep in sync with server/api-util/refumeShipping.js.
+export const DEFAULT_PARCEL_SIZE = 'M';
+
+export const getShippingSetup = publicData => {
   const { gabaryt, shippingCarriers } = publicData || {};
-  const enabled = Array.isArray(shippingCarriers) ? shippingCarriers : [];
-  return getCarriersForSize(gabaryt).filter(c => enabled.includes(c.key));
+  const size = REFUME_SHIPPING_PRICES[gabaryt] ? gabaryt : DEFAULT_PARCEL_SIZE;
+  const carriers =
+    Array.isArray(shippingCarriers) && shippingCarriers.length
+      ? shippingCarriers
+      : Object.keys(REFUME_SHIPPING_PRICES[size]);
+  return { size, carriers };
+};
+
+export const getAvailableCarriers = publicData => {
+  const { size, carriers } = getShippingSetup(publicData);
+  return getCarriersForSize(size).filter(c => carriers.includes(c.key));
 };
 
 /** "Orlen Paczka – 7,99 zł" */

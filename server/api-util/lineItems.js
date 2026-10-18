@@ -7,7 +7,7 @@ const {
 const { REFUME_BUYER_COMMISSION } = require('./refumeFee');
 const { types } = require('sharetribe-flex-sdk');
 const { Money } = types;
-const { getCarrierShippingFee } = require('./refumeShipping');
+const { getCarrierShippingFee, getShippingSetup } = require('./refumeShipping');
 
 /**
  * Get quantity and add extra line-items that are related to delivery method
@@ -27,12 +27,12 @@ const getItemQuantityAndLineItems = (orderData, publicData, currency) => {
   // size (publicData.gabaryt) and the carrier the buyer chose, limited to the carriers the
   // seller enabled (publicData.shippingCarriers). Seller-set shipping prices
   // (publicData.shippingPriceInSubunits*) are no longer used.
-  const { gabaryt, shippingCarriers } = publicData || {};
+  const { size, carriers } = getShippingSetup(publicData);
   const shippingFee = isShipping
     ? getCarrierShippingFee({
         carrier: orderData && orderData.shippingCarrier,
-        size: gabaryt,
-        enabledCarriers: shippingCarriers,
+        size,
+        enabledCarriers: carriers,
         currency,
       })
     : null;

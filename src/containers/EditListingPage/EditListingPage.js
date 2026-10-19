@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { compose } from 'redux';
 import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
@@ -193,7 +193,15 @@ export const EditListingPageComponent = props => {
   const isDraftURI = type === LISTING_PAGE_PARAM_TYPE_DRAFT;
   const isNewListingFlow = isNewURI || isDraftURI;
 
-  const listingId = page.submittedListingId || (id ? new UUID(id) : null);
+  // Refume: `submittedListingId` stays in the store after a listing is published. Only use it
+  // when the listing was created on this visit of the page — otherwise "Dodaj ofertę" would
+  // redirect to the previously added listing instead of showing an empty form.
+  const createdOnThisVisitRef = useRef(false);
+  if (page.createListingDraftInProgress) {
+    createdOnThisVisitRef.current = true;
+  }
+  const submittedListingId = createdOnThisVisitRef.current ? page.submittedListingId : null;
+  const listingId = submittedListingId || (id ? new UUID(id) : null);
   const currentListing = ensureOwnListing(getOwnListing(listingId));
   const { state: currentListingState } = currentListing.attributes;
 

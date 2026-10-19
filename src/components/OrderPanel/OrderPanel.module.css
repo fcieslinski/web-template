@@ -310,3 +310,49 @@
     display: block;
   }
 }
+
+/* Refume: own listing — edit instead of buy */
+.ownActions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 24px 24px 0 24px;
+
+  @media (--viewportMedium) {
+    margin: 24px 0 0 0;
+  }
+}
+
+.ownActionsMobile {
+  margin: 0;
+  flex-grow: 1;
+  max-width: 320px;
+
+  & .ownSecondaryLink {
+    display: none;
+  }
+}
+
+.ownEditButton {
+  composes: buttonPrimary from global;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: none;
+  }
+}
+
+.ownSecondaryLink {
+  composes: buttonSecondary from global;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: none;
+  }
+}

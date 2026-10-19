@@ -37,7 +37,7 @@ import {
   resolveLatestProcessName,
 } from '../../transactions/transaction';
 
-import { ModalInMobile, PrimaryButton, AvatarSmall, H1, H2 } from '../../components';
+import { ModalInMobile, PrimaryButton, AvatarSmall, H1, H2, NamedLink } from '../../components';
 import PriceWithBuyerFee from '../RefumePrice/PriceWithBuyerFee';
 import { priceWithBuyerFee } from '../../util/refumeFee';
 import PriceVariantPicker from './PriceVariantPicker/PriceVariantPicker';
@@ -284,6 +284,27 @@ const hasValidPriceVariants = priceVariants => {
  *
  * @returns {JSX.Element} Component that displays the order panel with appropriate form
  */
+// Refume: on your own listing, edit it instead of buying it
+const OwnListingActions = ({ listing, className }) => {
+  const id = listing?.id?.uuid;
+  if (!id) return null;
+  const slug = createSlug(listing.attributes?.title || '');
+  return (
+    <div className={classNames(css.ownActions, className)}>
+      <NamedLink
+        name="EditListingPage"
+        params={{ id, slug, type: 'edit', tab: 'details' }}
+        className={css.ownEditButton}
+      >
+        Edytuj ofertę
+      </NamedLink>
+      <NamedLink name="ManageListingsPage" className={css.ownSecondaryLink}>
+        Wszystkie moje oferty
+      </NamedLink>
+    </div>
+  );
+};
+
 const OrderPanel = props => {
   const [mounted, setMounted] = useState(false);
   const intl = useIntl();
@@ -560,6 +581,8 @@ const OrderPanel = props => {
             {...priceVariantsMaybe}
             {...sharedProps}
           />
+        ) : showProductOrderForm && isOwnListing ? (
+          <OwnListingActions listing={listing} />
         ) : showProductOrderForm ? (
           <ProductOrderForm
             formId="OrderPanelProductOrderForm"
@@ -610,7 +633,7 @@ const OrderPanel = props => {
             <FormattedMessage id="OrderPanel.unknownTransactionProcess" />
           </p>
         ) : null}
-        {showProductOrderForm ? refumeTrustBox : null}
+        {showProductOrderForm && !isOwnListing ? refumeTrustBox : null}
       </ModalInMobile>
       <div className={css.openOrderForm}>
         <PriceMaybe
@@ -626,6 +649,8 @@ const OrderPanel = props => {
           <div className={css.closedListingButton}>
             <FormattedMessage id="OrderPanel.closedListingButtonText" />
           </div>
+        ) : isOwnListing && isPurchase ? (
+          <OwnListingActions listing={listing} className={css.ownActionsMobile} />
         ) : (
           <PrimaryButton
             id={ORDER_PANEL_SUBMIT_BUTTON_ID}

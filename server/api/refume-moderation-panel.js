@@ -37,6 +37,7 @@ const {
 const { addNotification } = require('../api-util/refumeNotifications');
 const { isWaitingForReview } = require('./refume-moderation');
 const { readQueue, flagAction } = require('./refume-chat-flags');
+const { forgetUser, OVERRIDE_KEY, BADGE_KEYS } = require('./refume-badges');
 
 const MAX_LISTING_PAGES = 20;
 const MAX_USER_PAGES = 50;
@@ -149,6 +150,7 @@ const scanUsers = async () => {
   if (userScan && Date.now() - userScan.at < CACHE_MS) return userScan.data;
   const reports = [];
   const blocked = [];
+  const badgeOverrides = [];
   for (let page = 1; page <= MAX_USER_PAGES; page++) {
     const result = await queryUsers({ page, perPage: 100 });
     (result.data || []).forEach(u => {
@@ -160,10 +162,13 @@ const scanUsers = async () => {
       if (profile.metadata?.refumeBlokada) {
         blocked.push({ id: u.id, name, ...profile.metadata.refumeBlokada });
       }
+      if (profile.metadata?.refumeOdznakiReczne) {
+        badgeOverrides.push({ id: u.id, name, ...profile.metadata.refumeOdznakiReczne });
+      }
     });
     if (page >= (result.meta?.totalPages || 1)) break;
   }
-  userScan = { at: Date.now(), data: { reports, blocked } };
+  userScan = { at: Date.now(), data: { reports, blocked, badgeOverrides } };
   return userScan.data;
 };
 
@@ -244,6 +249,18 @@ const getPanel = (req, res) => {
           .filter(l => l.moderacja?.ukryta)
           .map(l => ({ kind: 'ukryta', at: l.moderacja.zmieniono, reason: l.moderacja.powod, listing: l })),
         ...users.blocked.map(u => ({ kind: 'blokada', at: u.od, reason: u.powod, user: u })),
+        ...users.badgeOverrides.map(u => ({
+          kind: 'odznaki',
+          at: u.zmieniono,
+          reason: [
+            u.szybkaWysylka ? `Szybka wysyłka: ${u.szybkaWysylka === 'tak' ? 'przyznana' : 'odebrana'}` : null,
+            u.topSprzedawca ? `Top sprzedawca: ${u.topSprzedawca === 'tak' ? 'przyznana' : 'odebrana'}` : null,
+            u.powod,
+          ]
+            .filter(Boolean)
+            .join(' · '),
+          user: u,
+        })),
       ]
         .sort((a, b) => (b.at || '').localeCompare(a.at || ''))
         .slice(0, 150);
@@ -541,6 +558,8 @@ const getListingForEdit = (req, res) => {
           images,
           author: { id: author?.id, name: author?.attributes?.profile?.displayName || '' },
           edycje: a.metadata?.moderacja?.edycje || [],
+          weryfikacja: a.metadata?.weryfikacja || null,
+          hasProof: !!a.privateData?.dowodZakupu?.url,
         },
       });
     })
@@ -625,6 +644,114 @@ const editListing = (req, res) => {
     .catch(e => handleError(res, e));
 };
 
+// ---------- Manual corrections of badges ----------
+
+const BADGE_LABELS = { szybkaWysylka: 'Szybka wysyłka', topSprzedawca: 'Top sprzedawca' };
+
+// GET /api/moderacja/uzytkownik?id=… — badges (automatic) and manual overrides
+const getUserBadges = (req, res) => {
+  const userId = String(req.query.id || '');
+  requireModerator(req, res)
+    .then(async () => {
+      if (!UUID_RE.test(userId)) throw httpError(400, 'Invalid id.');
+      const user = (await showUser({ id: userId })).data;
+      const metadata = user.attributes?.profile?.metadata || {};
+      res.status(200).json({
+        data: {
+          id: userId,
+          name: user.attributes?.profile?.displayName || '',
+          automatic: metadata.refumeOdznaki || null,
+          override: metadata[OVERRIDE_KEY] || null,
+          blocked: metadata.refumeBlokada || null,
+        },
+      });
+    })
+    .catch(e => handleError(res, e));
+};
+
+// POST /api/moderacja/odznaki-konta { userId, values: { szybkaWysylka: 'auto'|'tak'|'nie', … }, reason }
+const setUserBadges = (req, res) => {
+  const userId = uuidOf(req.body?.userId);
+  const values = req.body?.values || {};
+  const reason = clean(req.body?.reason, 300);
+  requireModerator(req, res)
+    .then(async moderatorId => {
+      if (!UUID_RE.test(userId || '')) throw httpError(400, 'Invalid userId.');
+      if (!reason) throw httpError(400, 'A reason is required.');
+      const user = (await showUser({ id: userId })).data;
+      const previous = user.attributes?.profile?.metadata?.[OVERRIDE_KEY] || {};
+      const next = { powod: reason, przez: moderatorId, zmieniono: new Date().toISOString() };
+      const changes = [];
+      BADGE_KEYS.forEach(key => {
+        const v = ['tak', 'nie'].includes(values[key]) ? values[key] : null;
+        if (v) next[key] = v;
+        if ((previous[key] || null) !== v) {
+          changes.push(
+            `${BADGE_LABELS[key]}: ${v === 'tak' ? 'przyznana' : v === 'nie' ? 'odebrana' : 'liczona automatycznie'}`
+          );
+        }
+      });
+      if (!changes.length) return res.status(200).json({ data: { ok: true, changes } });
+      const hasAny = BADGE_KEYS.some(k => next[k]);
+      await updateUserProfile({ id: userId, metadata: { [OVERRIDE_KEY]: hasAny ? next : null } });
+      forgetUser(userId);
+      await addNotification(userId, {
+        type: 'odznaki-zmienione',
+        dedupeKey: `odznaki:${next.zmieniono}`,
+        title: 'Zmiana odznak na Twoim profilu',
+        body: `Moderator poprawił odznaki: ${changes.join('; ')}. Powód: ${reason}.`,
+      }).catch(() => null);
+      invalidate();
+      res.status(200).json({ data: { ok: true, changes } });
+    })
+    .catch(e => handleError(res, e));
+};
+
+// POST /api/moderacja/znacznik-oferty { listingId, verified: true|false, reason }
+const setListingVerified = (req, res) => {
+  const listingId = uuidOf(req.body?.listingId);
+  const verified = !!req.body?.verified;
+  const reason = clean(req.body?.reason, 300);
+  requireModerator(req, res)
+    .then(async moderatorId => {
+      if (!UUID_RE.test(listingId || '')) throw httpError(400, 'Invalid listingId.');
+      if (!reason) throw httpError(400, 'A reason is required.');
+      const listing = (await showListing({ id: listingId })).data;
+      const proof = listing.attributes.privateData?.dowodZakupu;
+      const now = new Date().toISOString();
+      await updateListing({
+        id: listingId,
+        metadata: {
+          weryfikacja: {
+            status: verified ? 'zweryfikowano' : 'cofnieto',
+            // Tie the decision to the current proof, so it doesn't land back in the queue
+            dowodUploadedAt: proof?.uploadedAt || null,
+            sprawdzonoAt: now,
+            reczna: true,
+            przez: moderatorId,
+          },
+        },
+        privateData: { weryfikacjaPowod: verified ? null : reason },
+      });
+      const authorId = listing.relationships?.author?.data?.id;
+      const title = listing.attributes.title || '';
+      if (authorId) {
+        await addNotification(authorId, {
+          type: verified ? 'znacznik-przyznany' : 'znacznik-odebrany',
+          dedupeKey: `znacznik:${listingId}:${now}`,
+          title: verified ? 'Oferta oznaczona jako zweryfikowana' : 'Znacznik weryfikacji usunięty',
+          body: verified
+            ? `Moderator oznaczył ofertę „${title}” jako „Zweryfikowano dowodem zakupu”. ${reason}`
+            : `Moderator usunął znacznik „Zweryfikowano dowodem zakupu” z oferty „${title}”. Powód: ${reason}. Możesz dodać nowy dowód zakupu w edycji oferty.`,
+          ...(verified ? { listingId } : { editListingId: listingId }),
+        }).catch(() => null);
+      }
+      invalidate();
+      res.status(200).json({ data: { ok: true } });
+    })
+    .catch(e => handleError(res, e));
+};
+
 // Moderator: handle an automatically flagged chat message
 const chatFlagAction = (req, res) => {
   const { flagId, action } = req.body || {};
@@ -679,6 +806,9 @@ const getConversation = (req, res) => {
 };
 
 module.exports = {
+  getUserBadges,
+  setUserBadges,
+  setListingVerified,
   getListingForEdit,
   editListing,
   chatFlagAction,

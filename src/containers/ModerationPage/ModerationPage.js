@@ -11,6 +11,7 @@ import {
   resolveReport,
   fetchReportedConversation,
   moderateChatFlag,
+  setUserBadgesAsModerator,
 } from '../../util/api';
 import { detectChatRisks } from '../../util/refumeChatSafety';
 import { Page, LayoutSingleColumn, NamedLink } from '../../components';
@@ -627,6 +628,8 @@ const HISTORY_LABELS = {
   odrzucono: ['Dowód odrzucony', css.pillDanger],
   ukryta: ['Oferta ukryta', css.pillWarning],
   blokada: ['Konto zablokowane', css.pillDanger],
+  cofnieto: ['Znacznik odebrany', css.pillWarning],
+  odznaki: ['Odznaki poprawione', css.pill],
 };
 
 const HistoryRow = ({ item, onChanged }) => {
@@ -663,11 +666,23 @@ const HistoryRow = ({ item, onChanged }) => {
               ? undoProofDecision({ listingId: item.listing.id })
               : item.kind === 'ukryta'
               ? moderateListing({ listingId: item.listing.id, action: 'przywroc' })
+              : item.kind === 'odznaki'
+              ? setUserBadgesAsModerator({
+                  userId: item.user.id,
+                  values: { szybkaWysylka: 'auto', topSprzedawca: 'auto' },
+                  reason: 'Przywrócono automatyczne liczenie odznak.',
+                })
               : moderateUser({ userId: item.user.id, action: 'odblokuj' })
           )
         }
       >
-        {item.kind === 'dowod' ? 'Cofnij decyzję' : item.kind === 'ukryta' ? 'Przywróć ofertę' : 'Odblokuj'}
+        {item.kind === 'dowod'
+          ? 'Cofnij decyzję'
+          : item.kind === 'ukryta'
+          ? 'Przywróć ofertę'
+          : item.kind === 'odznaki'
+          ? 'Przywróć automatyczne'
+          : 'Odblokuj'}
       </button>
     </li>
   );

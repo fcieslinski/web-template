@@ -4,7 +4,11 @@ import { Form as FinalForm, Field } from 'react-final-form';
 import arrayMutators from 'final-form-arrays';
 import classNames from 'classnames';
 
-import { fetchListingForModeration, editListingAsModerator } from '../../util/api';
+import {
+  fetchListingForModeration,
+  editListingAsModerator,
+  setListingVerifiedAsModerator,
+} from '../../util/api';
 import { Page, LayoutSingleColumn, NamedLink } from '../../components';
 import TopbarContainer from '../TopbarContainer/TopbarContainer';
 import FooterContainer from '../FooterContainer/FooterContainer';
@@ -30,6 +34,63 @@ const errorText = e =>
     : e?.status === 400
     ? 'Sprawdź pola: tytuł, cenę (min. 1 zł) i zostaw przynajmniej jedno zdjęcie.'
     : 'Coś poszło nie tak. Spróbuj ponownie.';
+
+const VerificationControl = ({ listing, onChanged }) => {
+  const verified = listing.weryfikacja?.status === 'zweryfikowano';
+  const [reason, setReason] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState(null);
+  const submit = () => {
+    setBusy(true);
+    setMessage(null);
+    setListingVerifiedAsModerator({ listingId: listing.id, verified: !verified, reason: reason.trim() })
+      .then(() => {
+        setReason('');
+        setMessage({ ok: true, text: 'Zapisano. Sprzedawca dostał wiadomość.' });
+        onChanged();
+      })
+      .catch(e => setMessage({ ok: false, text: errorText(e) }))
+      .finally(() => setBusy(false));
+  };
+  return (
+    <section className={css.card} style={{ marginTop: 16 }}>
+      <h2 className={css.cardTitle}>Znacznik „Zweryfikowano dowodem zakupu”</h2>
+      <p className={css.meta}>
+        Teraz: <strong>{verified ? 'oferta ma znacznik' : 'brak znacznika'}</strong>
+        {listing.weryfikacja?.reczna ? ' (ustawiony ręcznie)' : ''}
+        {listing.hasProof ? ' · sprzedawca dodał dowód zakupu' : ' · brak dowodu zakupu'}
+      </p>
+      <label className={css.label} htmlFor="mod-verify-reason">
+        Powód zmiany (zobaczy go sprzedawca)
+      </label>
+      <input
+        id="mod-verify-reason"
+        className={css.input}
+        value={reason}
+        maxLength={300}
+        onChange={e => setReason(e.target.value)}
+        placeholder={
+          verified
+            ? 'Np. Dowód zakupu okazał się nieprawdziwy.'
+            : 'Np. Dowód sprawdzony mailowo, poprawka błędu systemu.'
+        }
+      />
+      <button
+        type="button"
+        className={css.submit}
+        disabled={busy || !reason.trim()}
+        onClick={submit}
+      >
+        {verified ? 'Odbierz znacznik' : 'Nadaj znacznik'}
+      </button>
+      {message ? (
+        <p className={message.ok ? css.success : css.error} role="status">
+          {message.text}
+        </p>
+      ) : null}
+    </section>
+  );
+};
 
 /**
  * Refume: moderator edits someone else's listing (route /moderacja/oferta/:id).
@@ -250,6 +311,8 @@ const ModeratorListingEditPage = () => {
                   </form>
                 )}
               />
+
+              <VerificationControl listing={listing} onChanged={load} />
 
               {listing.edycje?.length ? (
                 <section className={css.history}>

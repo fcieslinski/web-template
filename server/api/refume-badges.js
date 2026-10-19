@@ -33,15 +33,29 @@ const cache = new Map(); // userId -> { at, badges }
 const lastRun = new Map(); // userId -> timestamp of last recompute
 const running = new Map(); // userId -> Promise
 
-const publicShape = badges =>
-  badges
-    ? {
-        szybkaWysylka: !!badges.szybkaWysylka,
-        topSprzedawca: !!badges.topSprzedawca,
-        statystyki: badges.statystyki || {},
-        przeliczono: badges.przeliczono || null,
-      }
-    : { szybkaWysylka: false, topSprzedawca: false, statystyki: {}, przeliczono: null };
+const OVERRIDE_KEY = 'refumeOdznakiReczne';
+const BADGE_KEYS = ['szybkaWysylka', 'topSprzedawca'];
+const overrides = new Map(); // userId -> manual overrides from a moderator
+
+// Moderator overrides win: 'tak' = given, 'nie' = taken away, missing = automatic
+const applyOverrides = (badges, override) => {
+  const result = { ...(badges || {}) };
+  BADGE_KEYS.forEach(key => {
+    if (override?.[key] === 'tak') result[key] = true;
+    if (override?.[key] === 'nie') result[key] = false;
+  });
+  return result;
+};
+
+const publicShape = (badges, userId) => {
+  const b = applyOverrides(badges, userId ? overrides.get(userId) : null);
+  return {
+    szybkaWysylka: !!b.szybkaWysylka,
+    topSprzedawca: !!b.topSprzedawca,
+    statystyki: badges?.statystyki || {},
+    przeliczono: badges?.przeliczono || null,
+  };
+};
 
 const recompute = userId => {
   if (running.has(userId)) return running.get(userId);
@@ -86,13 +100,14 @@ const recompute = userId => {
 
 const loadStored = async userId => {
   const cached = cache.get(userId);
-  if (cached && Date.now() - cached.at < CACHE_MS) return cached.badges;
+  if (cached && Date.now() - cached.at < CACHE_MS && overrides.has(userId)) return cached.badges;
   const shown = await showUser({ id: userId });
   const user = shown.data;
   if (!user || user.attributes?.banned || user.attributes?.deleted) {
     throw httpError(404, 'User not found.');
   }
   const badges = user.attributes?.profile?.metadata?.[KEY] || null;
+  overrides.set(userId, user.attributes?.profile?.metadata?.[OVERRIDE_KEY] || null);
   cache.set(userId, { at: Date.now(), badges });
   return badges;
 };
@@ -114,7 +129,7 @@ const getBadges = (req, res) => {
         });
       }
       res.set('Cache-Control', 'public, max-age=300');
-      res.status(200).json({ data: publicShape(badges) });
+      res.status(200).json({ data: publicShape(badges, userId) });
     })
     .catch(e => handleError(res, e));
 };
@@ -132,12 +147,18 @@ const recomputeForTransaction = (req, res) => {
       if (!providerId) throw httpError(404, 'Provider not found.');
 
       if (Date.now() - (lastRun.get(providerId) || 0) < MIN_RECOMPUTE_GAP_MS) {
-        return res.status(200).json({ data: publicShape(cache.get(providerId)?.badges) });
+        return res.status(200).json({ data: publicShape(cache.get(providerId)?.badges, providerId) });
       }
       const badges = await recompute(providerId);
-      res.status(200).json({ data: publicShape(badges) });
+      res.status(200).json({ data: publicShape(badges, providerId) });
     })
     .catch(e => handleError(res, e));
 };
 
-module.exports = { getBadges, recomputeForTransaction };
+// For the moderator panel: drop cached data after a manual change
+const forgetUser = userId => {
+  cache.delete(userId);
+  overrides.delete(userId);
+};
+
+module.exports = { getBadges, recomputeForTransaction, forgetUser, OVERRIDE_KEY, BADGE_KEYS };

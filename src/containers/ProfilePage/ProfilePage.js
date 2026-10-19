@@ -50,6 +50,7 @@ import TopbarContainer from '../../containers/TopbarContainer/TopbarContainer';
 import FooterContainer from '../../containers/FooterContainer/FooterContainer';
 import NotFoundPage from '../../containers/NotFoundPage/NotFoundPage';
 import SellerBadges from '../../components/SellerBadges/SellerBadges';
+import ModeratorBadgeControls from '../../components/SellerBadges/ModeratorBadgeControls';
 import ReportButton from '../../components/ReportButton/ReportButton';
 
 import css from './ProfilePage.module.css';
@@ -298,6 +299,7 @@ export const MainContent = props => {
         <FormattedMessage id="ProfilePage.desktopHeading" values={{ name: displayName }} />
       </H2>
       {refumeUserId ? <SellerBadges userId={refumeUserId} className={css.refumeBadges} /> : null}
+      {refumeUserId ? <ModeratorBadgeControls userId={refumeUserId} /> : null}
       {refumeUserId && !refumeIsOwnProfile ? (
         <ReportButton type="uzytkownik" targetId={refumeUserId} className={css.refumeReport} />
       ) : null}

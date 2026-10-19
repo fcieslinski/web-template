@@ -35,6 +35,9 @@ const {
   chatFlagAction: moderationChatFlag,
   getListingForEdit: moderationGetListing,
   editListing: moderationEditListing,
+  getUserBadges: moderationGetUserBadges,
+  setUserBadges: moderationSetUserBadges,
+  setListingVerified: moderationSetListingVerified,
 } = require('./api/refume-moderation-panel');
 const { checkConversation } = require('./api/refume-chat-flags');
 
@@ -92,6 +95,9 @@ router.get('/moderacja/rozmowa', moderationConversation);
 router.post('/moderacja/flaga', moderationChatFlag);
 router.get('/moderacja/oferta', moderationGetListing);
 router.post('/moderacja/oferta-edycja', moderationEditListing);
+router.get('/moderacja/uzytkownik', moderationGetUserBadges);
+router.post('/moderacja/odznaki-konta', moderationSetUserBadges);
+router.post('/moderacja/znacznik-oferty', moderationSetListingVerified);
 router.post('/czat/sprawdz', checkConversation);
 router.post('/oferty/zloz', makeOffer);
 router.post('/oferty/odpowiedz', respondToOffer);

@@ -180,6 +180,10 @@ export const moderateChatFlag = body => post('/api/moderacja/flaga', body);
 export const fetchListingForModeration = id =>
   request(`/api/moderacja/oferta?id=${encodeURIComponent(id)}`, { method: methods.GET });
 export const editListingAsModerator = body => post('/api/moderacja/oferta-edycja', body);
+export const fetchUserForModeration = id =>
+  request(`/api/moderacja/uzytkownik?id=${encodeURIComponent(id)}`, { method: methods.GET });
+export const setUserBadgesAsModerator = body => post('/api/moderacja/odznaki-konta', body);
+export const setListingVerifiedAsModerator = body => post('/api/moderacja/znacznik-oferty', body);
 export const fetchReportedConversation = txId =>
   request(`/api/moderacja/rozmowa?txId=${encodeURIComponent(txId)}`, { method: methods.GET });
 

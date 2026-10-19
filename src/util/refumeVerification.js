@@ -31,7 +31,10 @@ export const getProofStatus = (privateData, metadata) => {
   const decision = metadata?.weryfikacja;
 
   if (!proof?.url) {
-    return { status: PROOF_STATUS.NONE };
+    // A moderator may have set the badge by hand without a proof upload
+    return decision?.status === 'zweryfikowano'
+      ? { status: PROOF_STATUS.VERIFIED }
+      : { status: PROOF_STATUS.NONE };
   }
   // The latest decision applies only to the upload it was made for
   if (!decision || decision.dowodUploadedAt !== proof.uploadedAt) {

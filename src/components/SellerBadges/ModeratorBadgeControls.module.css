@@ -1,0 +1,92 @@
+.root {
+  margin: 8px 0 16px 0;
+  max-width: 560px;
+}
+
+.toggle {
+  padding: 6px 12px;
+  border: 1px dashed var(--colorGrey300, #bbb);
+  border-radius: 8px;
+  background: none;
+  color: var(--colorGrey700);
+  font: inherit;
+  font-size: 13px;
+  font-weight: var(--fontWeightSemiBold);
+  cursor: pointer;
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+  padding: 16px;
+  border-radius: 12px;
+  background-color: var(--colorGrey50);
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.label {
+  display: flex;
+  flex-direction: column;
+  font-size: 14px;
+  font-weight: var(--fontWeightSemiBold);
+}
+
+.hint,
+.muted {
+  font-size: 12px;
+  font-weight: var(--fontWeightRegular);
+  color: var(--colorGrey700);
+  margin: 0;
+}
+
+.select,
+.input {
+  padding: 8px 10px;
+  border: 1px solid var(--colorGrey200);
+  border-radius: 8px;
+  background-color: var(--colorWhite);
+  font: inherit;
+  font-size: 14px;
+}
+
+.input {
+  width: 100%;
+}
+
+.save {
+  align-self: flex-start;
+  padding: 9px 16px;
+  border: 0;
+  border-radius: 8px;
+  background-color: var(--marketplaceColor);
+  color: var(--colorWhite);
+  font: inherit;
+  font-weight: var(--fontWeightSemiBold);
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.success {
+  margin: 0;
+  color: hsl(145 60% 28%);
+  font-size: 14px;
+}
+
+.error {
+  margin: 0;
+  color: var(--colorFail);
+  font-size: 14px;
+}

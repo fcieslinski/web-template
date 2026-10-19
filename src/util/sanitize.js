@@ -175,11 +175,32 @@ const sanitizedExtendedDataFields = (value, config) => {
  * @param {*} config
  * @returns
  */
+// Refume: structured perfume data written by our own listing editor. These keys may also
+// exist as (hidden) listing fields in Console with a simple schema, which would wipe the
+// structure, so they are sanitized here by shape instead.
+const sanitizeStringList = list =>
+  Array.isArray(list) ? list.filter(v => typeof v === 'string').map(v => sanitizeText(v)) : [];
+const REFUME_STRUCTURED_KEYS = {
+  nuty: value =>
+    value && typeof value === 'object' && !Array.isArray(value)
+      ? {
+          glowy: sanitizeStringList(value.glowy),
+          serca: sanitizeStringList(value.serca),
+          bazy: sanitizeStringList(value.bazy),
+        }
+      : null,
+  akordy: value => sanitizeStringList(value),
+  shippingCarriers: value => sanitizeStringList(value),
+};
+
 const sanitizeConfiguredPublicData = (publicData, config = {}) => {
   // The publicData could be null (e.g. for banned user)
   const publicDataObj = publicData || {};
   return Object.entries(publicDataObj).reduce((sanitized, entry) => {
     const [key, value] = entry;
+    if (REFUME_STRUCTURED_KEYS[key]) {
+      return { ...sanitized, [key]: REFUME_STRUCTURED_KEYS[key](value) };
+    }
     const foundListingFieldConfig = config?.listingFields?.find(d => d.key === key);
     const foundUserFieldConfig = config?.userFields?.find(d => d.key === key);
     const knownKeysWithString = [

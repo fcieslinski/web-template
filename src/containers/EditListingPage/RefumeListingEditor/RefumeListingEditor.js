@@ -324,8 +324,9 @@ const RefumeListingEditor = props => {
         ? publicData.shippingCarriers
         : undefined,
     };
-    // Built once per listing; edits live in the form
-  }, [listing?.id?.uuid]);
+    // Rebuilt only when the saved listing data really changes (e.g. the full listing finished
+    // loading); edits live in the form, which compares initial values by content.
+  }, [listing?.id?.uuid, JSON.stringify(listing?.attributes?.publicData || {})]);
 
   const minPrice = config.listingMinimumPriceSubUnits;
   const priceValidators = validators.composeValidators(

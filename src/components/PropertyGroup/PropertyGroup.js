@@ -15,7 +15,7 @@ const checkSelected = (options, selectedOptions) => {
   return options.map(option => ({
     key: option.key,
     label: option.label,
-    isSelected: selectedOptions.includes(option.key),
+    isSelected: Array.isArray(selectedOptions) && selectedOptions.includes(option.key),
   }));
 };
 

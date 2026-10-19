@@ -28,8 +28,11 @@ const CustomListingFields = props => {
   const currentCategories = Object.values(categoriesObj);
 
   // Fields are shown by default. Set showConfig.displayOnListingPage to false to explicitly hide a field.
+  // Refume: notes and accords have their own section (NotesSection), not the Console field.
   const displayableFieldConfigs = listingFieldConfigs.filter(
-    fieldConfig => fieldConfig.showConfig?.displayOnListingPage !== false
+    fieldConfig =>
+      fieldConfig.showConfig?.displayOnListingPage !== false &&
+      !['nuty', 'akordy'].includes(fieldConfig.key)
   );
 
   const isFieldForSelectedCategories = fieldConfig => {

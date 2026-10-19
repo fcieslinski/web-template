@@ -318,6 +318,7 @@ const RefumeListingEditor = props => {
       refumeNutyBazy: toList(publicData.nuty?.bazy, 20),
       refumeAkordy: toList(publicData.akordy, 6),
       refumeFragellaId: publicData.fragellaId || '',
+      refumePerfumeImage: publicData.fragellaImage || '',
       price: attrs.price || undefined,
       gabaryt: publicData.gabaryt || undefined,
       shippingCarriers: Array.isArray(publicData.shippingCarriers)
@@ -417,6 +418,9 @@ const RefumeListingEditor = props => {
         },
         akordy: toList(values.refumeAkordy, 6),
         fragellaId: values.refumeFragellaId || null,
+        fragellaImage: /^https:\/\/[a-z0-9.-]*fragella\.com\//i.test(values.refumePerfumeImage || '')
+          ? values.refumePerfumeImage
+          : null,
         shippingEnabled: true,
         pickupEnabled: false,
         gabaryt: values.gabaryt,

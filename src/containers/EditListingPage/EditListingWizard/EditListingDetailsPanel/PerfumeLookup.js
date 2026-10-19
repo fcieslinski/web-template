@@ -132,6 +132,7 @@ const PerfumeLookup = props => {
         formApi.change('refumeAkordy', (perfume.accords || []).map(translateAccord).filter(Boolean));
       }
       formApi.change('refumeFragellaId', perfume.id);
+      formApi.change('refumePerfumeImage', perfume.image || '');
     });
     // The chosen perfume replaces whatever was typed in the search box
     const label = fullName(brand, perfume.name);

@@ -125,6 +125,18 @@ const searchFragella = async (query, { force = false } = {}) => {
   return data;
 };
 
+// Perfume picture: saved on the listing, or from cached Fragella results
+const safeImage = url =>
+  typeof url === 'string' && /^https:\/\/[a-z0-9.-]*fragella\.com\//i.test(url) ? url : '';
+const cachedImage = fragellaId => {
+  if (!fragellaId) return '';
+  for (const { data } of cache.values()) {
+    const hit = (data || []).find(item => item.id === fragellaId && item.image);
+    if (hit) return hit.image;
+  }
+  return '';
+};
+
 // Perfumes already listed on Refume (notes chosen by sellers) — our own data
 const searchListings = async (sdk, query) => {
   const response = await sdk.listings.query({
@@ -136,6 +148,7 @@ const searchListings = async (sdk, query) => {
       'publicData.nuty',
       'publicData.akordy',
       'publicData.fragellaId',
+      'publicData.fragellaImage',
     ],
   });
   const seen = new Set();
@@ -155,7 +168,7 @@ const searchListings = async (sdk, query) => {
       year: '',
       gender: '',
       concentration: '',
-      image: '',
+      image: safeImage(publicData.fragellaImage) || cachedImage(publicData.fragellaId),
       accordsPl: Array.isArray(publicData.akordy) ? publicData.akordy : [],
       noteIds: { top: nuty.glowy || [], middle: nuty.serca || [], base: nuty.bazy || [] },
       source: 'listings',

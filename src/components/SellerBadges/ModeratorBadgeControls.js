@@ -4,6 +4,7 @@ import { useSelector } from 'react-redux';
 import { fetchUserForModeration, setUserBadgesAsModerator } from '../../util/api';
 import { useModerationStatus } from '../../util/refumeModeration';
 import { SELLER_BADGES } from '../../util/refumeBadges';
+import { refreshSellerBadges } from './SellerBadges';
 
 import css from './ModeratorBadgeControls.module.css';
 
@@ -49,6 +50,7 @@ const ModeratorBadgeControls = ({ userId }) => {
           text: changes.length ? `Zapisano: ${changes.join('; ')}.` : 'Nic się nie zmieniło.',
         });
         setReason('');
+        refreshSellerBadges(userId);
         load();
       })
       .catch(() => setMessage({ ok: false, text: 'Nie udało się zapisać. Podaj powód zmiany.' }))

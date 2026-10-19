@@ -128,7 +128,7 @@ const getBadges = (req, res) => {
           return badges;
         });
       }
-      res.set('Cache-Control', 'public, max-age=300');
+      res.set('Cache-Control', 'no-store');
       res.status(200).json({ data: publicShape(badges, userId) });
     })
     .catch(e => handleError(res, e));

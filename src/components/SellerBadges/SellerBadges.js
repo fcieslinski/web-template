@@ -21,6 +21,15 @@ const BadgeIcon = ({ icon }) =>
   );
 
 const cache = new Map(); // userId -> Promise<badges>
+const CHANGED_EVENT = 'refume:badges-changed';
+
+/** Call after a moderator changed someone's badges, so every badge list refreshes. */
+export const refreshSellerBadges = userId => {
+  cache.delete(userId);
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent(CHANGED_EVENT, { detail: { userId } }));
+  }
+};
 
 const loadBadges = userId => {
   if (!cache.has(userId)) {
@@ -52,9 +61,15 @@ const SellerBadges = props => {
   useEffect(() => {
     if (!userId) return;
     let cancelled = false;
-    loadBadges(userId).then(b => !cancelled && setBadges(b));
+    const load = () => loadBadges(userId).then(b => !cancelled && setBadges(b));
+    load();
+    const onChanged = e => {
+      if (e.detail?.userId === userId) load();
+    };
+    window.addEventListener(CHANGED_EVENT, onChanged);
     return () => {
       cancelled = true;
+      window.removeEventListener(CHANGED_EVENT, onChanged);
     };
   }, [userId]);
 

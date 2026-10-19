@@ -194,9 +194,14 @@ const ErrorLine = ({ error }) =>
 
 const ListingFacts = ({ listing }) => (
   <>
-    <NamedLink name="ListingPageCanonical" params={{ id: listing.id }} className={css.listingTitle}>
-      {listing.title}
-    </NamedLink>
+    <span className={css.titleRow}>
+      <NamedLink name="ListingPageCanonical" params={{ id: listing.id }} className={css.listingTitle}>
+        {listing.title}
+      </NamedLink>
+      <NamedLink name="ModeratorListingEditPage" params={{ id: listing.id }} className={css.editLink}>
+        Edytuj
+      </NamedLink>
+    </span>
     <p className={css.meta}>
       {[listing.brand, formatPrice(listing.price)].filter(Boolean).join(' · ')}
     </p>

@@ -649,3 +649,15 @@
   line-height: 24px;
   font-weight: var(--fontWeightBold);
 }
+
+.titleRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+}
+
+.editLink {
+  font-size: 14px;
+  font-weight: var(--fontWeightSemiBold);
+}

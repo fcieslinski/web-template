@@ -41,6 +41,7 @@ const TransactionPage = loadable(() => import(/* webpackChunkName: "TransactionP
 const ScentRequestsPage = loadable(() => import(/* webpackChunkName: "ScentRequestsPage" */ '../containers/ScentRequestsPage/ScentRequestsPage'));
 const FavoritesPage = loadable(() => import(/* webpackChunkName: "FavoritesPage" */ '../containers/FavoritesPage/FavoritesPage'));
 const ModerationPage = loadable(() => import(/* webpackChunkName: "ModerationPage" */ '../containers/ModerationPage/ModerationPage'));
+const ModeratorListingEditPage = loadable(() => import(/* webpackChunkName: "ModeratorListingEditPage" */ '../containers/ModerationPage/ModeratorListingEditPage'));
 const NoAccessPage = loadable(() => import(/* webpackChunkName: "NoAccessPage" */ '../containers/NoAccessPage/NoAccessPage'));
 
 // Styleguide helps you to review current components and develop new ones
@@ -422,6 +423,14 @@ const routeConfiguration = (layoutConfig, accessControlConfig) => {
       auth: true,
       authPage: 'LoginPage',
       component: ModerationPage,
+    },
+    {
+      // Refume: moderator edits someone's listing (access checked on the server)
+      path: '/moderacja/oferta/:id',
+      name: 'ModeratorListingEditPage',
+      auth: true,
+      authPage: 'LoginPage',
+      component: ModeratorListingEditPage,
     },
     {
       path: '/styleguide',

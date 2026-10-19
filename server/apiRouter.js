@@ -33,6 +33,8 @@ const {
   createReport,
   getConversation: moderationConversation,
   chatFlagAction: moderationChatFlag,
+  getListingForEdit: moderationGetListing,
+  editListing: moderationEditListing,
 } = require('./api/refume-moderation-panel');
 const { checkConversation } = require('./api/refume-chat-flags');
 
@@ -88,6 +90,8 @@ router.post('/moderacja/zgloszenie', moderationReportAction);
 router.post('/zgloszenia', createReport);
 router.get('/moderacja/rozmowa', moderationConversation);
 router.post('/moderacja/flaga', moderationChatFlag);
+router.get('/moderacja/oferta', moderationGetListing);
+router.post('/moderacja/oferta-edycja', moderationEditListing);
 router.post('/czat/sprawdz', checkConversation);
 router.post('/oferty/zloz', makeOffer);
 router.post('/oferty/odpowiedz', respondToOffer);

@@ -500,6 +500,131 @@ const createReport = (req, res) => {
     .catch(e => handleError(res, e));
 };
 
+// ---------- Editing someone's listing ----------
+
+const NOTE_LEVELS = ['glowy', 'serca', 'bazy'];
+const cleanList = (value, max, maxLen = 60) =>
+  (Array.isArray(value) ? value : [])
+    .map(v => clean(v, maxLen))
+    .filter(Boolean)
+    .slice(0, max);
+
+// GET /api/moderacja/oferta?id=…
+const getListingForEdit = (req, res) => {
+  const listingId = String(req.query.id || '');
+  requireModerator(req, res)
+    .then(async () => {
+      if (!UUID_RE.test(listingId)) throw httpError(400, 'Invalid id.');
+      const shown = await showListing({
+        id: listingId,
+        include: 'author,images',
+        'fields.image': 'variants.landscape-crop,variants.square-small2x,variants.default',
+      });
+      const l = shown.data;
+      const included = shown.included || [];
+      const author = included.find(i => i.type === 'user');
+      const images = (l.relationships?.images?.data || []).map(ref => {
+        const image = included.find(i => i.type === 'image' && i.id === ref.id);
+        return { id: ref.id, url: imageUrl(image) };
+      });
+      const a = l.attributes;
+      res.status(200).json({
+        data: {
+          id: l.id,
+          state: a.state,
+          title: a.title || '',
+          description: a.description || '',
+          price: a.price ? { amount: a.price.amount, currency: a.price.currency } : null,
+          marka: a.publicData?.marka || '',
+          nuty: a.publicData?.nuty || {},
+          akordy: Array.isArray(a.publicData?.akordy) ? a.publicData.akordy : [],
+          images,
+          author: { id: author?.id, name: author?.attributes?.profile?.displayName || '' },
+          edycje: a.metadata?.moderacja?.edycje || [],
+        },
+      });
+    })
+    .catch(e => handleError(res, e));
+};
+
+// POST /api/moderacja/oferta-edycja
+//   { listingId, title, description, priceAmount, marka, nuty, akordy, keepImageIds, note }
+const editListing = (req, res) => {
+  const body = req.body || {};
+  const listingId = uuidOf(body.listingId);
+  requireModerator(req, res)
+    .then(async moderatorId => {
+      if (!UUID_RE.test(listingId || '')) throw httpError(400, 'Invalid listingId.');
+      const shown = await showListing({ id: listingId, include: 'images' });
+      const l = shown.data;
+      const a = l.attributes;
+      const currentImageIds = (l.relationships?.images?.data || []).map(r => r.id);
+
+      const title = clean(body.title, 120);
+      const description = clean(body.description, 5000);
+      const priceAmount = Math.round(Number(body.priceAmount));
+      if (!title) throw httpError(400, 'Title is required.');
+      if (!Number.isFinite(priceAmount) || priceAmount < 100) throw httpError(400, 'Invalid price.');
+      const keep = (Array.isArray(body.keepImageIds) ? body.keepImageIds : [])
+        .map(uuidOf)
+        .filter(id => currentImageIds.includes(id));
+      if (!keep.length) throw httpError(400, 'At least one photo must stay.');
+
+      const nuty = NOTE_LEVELS.reduce((acc, level) => {
+        acc[level] = cleanList(body.nuty?.[level], 20);
+        return acc;
+      }, {});
+      const akordy = cleanList(body.akordy, 8);
+      const marka = clean(body.marka, 80);
+
+      // What changed (for the seller and the history)
+      const changed = [];
+      if (title !== a.title) changed.push('tytuł');
+      if (description !== (a.description || '')) changed.push('opis');
+      if (priceAmount !== a.price?.amount) changed.push('cena');
+      if (marka !== (a.publicData?.marka || '')) changed.push('marka');
+      if (JSON.stringify(nuty) !== JSON.stringify({ glowy: a.publicData?.nuty?.glowy || [], serca: a.publicData?.nuty?.serca || [], bazy: a.publicData?.nuty?.bazy || [] })) {
+        changed.push('nuty zapachowe');
+      }
+      if (JSON.stringify(akordy) !== JSON.stringify(a.publicData?.akordy || [])) changed.push('akordy');
+      const removedPhotos = currentImageIds.length - keep.length;
+      if (removedPhotos > 0) changed.push(removedPhotos === 1 ? 'usunięte 1 zdjęcie' : `usunięte zdjęcia (${removedPhotos})`);
+      if (!changed.length) return res.status(200).json({ data: { ok: true, changed } });
+
+      const now = new Date().toISOString();
+      const previous = a.metadata?.moderacja || {};
+      const note = clean(body.note, 400);
+      await updateListing({
+        id: listingId,
+        title,
+        description,
+        price: { amount: priceAmount, currency: a.price?.currency || 'PLN' },
+        images: keep,
+        publicData: { marka, nuty, akordy },
+        metadata: {
+          moderacja: {
+            ...previous,
+            edycje: [{ at: now, przez: moderatorId, pola: changed, notatka: note || null }, ...(previous.edycje || [])].slice(0, 10),
+          },
+        },
+      });
+
+      const authorId = l.relationships?.author?.data?.id;
+      if (authorId) {
+        await addNotification(authorId, {
+          type: 'oferta-edytowana',
+          dedupeKey: `edycja:${listingId}:${now}`,
+          title: 'Moderator poprawił Twoją ofertę',
+          body: `W ofercie „${title}” zmieniono: ${changed.join(', ')}.${note ? ` ${note}` : ''}`,
+          listingId,
+        }).catch(() => null);
+      }
+      invalidate();
+      res.status(200).json({ data: { ok: true, changed } });
+    })
+    .catch(e => handleError(res, e));
+};
+
 // Moderator: handle an automatically flagged chat message
 const chatFlagAction = (req, res) => {
   const { flagId, action } = req.body || {};
@@ -554,6 +679,8 @@ const getConversation = (req, res) => {
 };
 
 module.exports = {
+  getListingForEdit,
+  editListing,
   chatFlagAction,
   getConversation,
   getStatus,

@@ -874,3 +874,35 @@
   align-self: center;
   font-size: 13px;
 }
+
+/* Moderator shortcut on someone else's listing */
+.moderatorBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  margin: 0 24px 20px 24px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background-color: var(--colorGrey900, #1f1f1f);
+  color: var(--colorWhite);
+  font-size: 14px;
+
+  @media (--viewportMedium) {
+    margin: 0 0 24px 0;
+  }
+}
+
+.moderatorBarLink {
+  padding: 6px 14px;
+  border-radius: 8px;
+  background-color: var(--colorWhite);
+  color: var(--colorGrey900, #1f1f1f);
+  font-weight: var(--fontWeightSemiBold);
+
+  &:hover {
+    text-decoration: none;
+    color: var(--colorGrey900, #1f1f1f);
+  }
+}

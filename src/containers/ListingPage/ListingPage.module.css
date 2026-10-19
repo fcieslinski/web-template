@@ -831,3 +831,10 @@
   width: 100%;
   height: 100%;
 }
+
+/* Refume: from 1024px the order panel is inline and shows the trust box under the buttons */
+.trustBoxMobileOnly {
+  @media (min-width: 1024px) {
+    display: none;
+  }
+}

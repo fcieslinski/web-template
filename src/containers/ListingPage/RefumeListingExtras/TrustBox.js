@@ -60,9 +60,12 @@ const ITEMS = [
 ];
 
 /** Refume: "safe shopping" box in the right column of the listing page. */
-const TrustBox = () => (
-  <section className={css.trustBox} aria-labelledby="trust-box-title">
-    <h2 id="trust-box-title" className={css.sellerHeading}>
+const TrustBox = ({ className, titleId = 'trust-box-title' }) => (
+  <section
+    className={className ? `${css.trustBox} ${className}` : css.trustBox}
+    aria-labelledby={titleId}
+  >
+    <h2 id={titleId} className={css.sellerHeading}>
       Bezpieczne zakupy
     </h2>
     <ul className={css.trustList}>

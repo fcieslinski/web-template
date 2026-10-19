@@ -348,6 +348,7 @@ export const ListingPageComponent = props => {
                   currentUser={currentUser}
                 />
               }
+              refumeTrustBox={<TrustBox />}
               payoutDetailsWarning={payoutDetailsWarning}
               author={ensuredAuthor}
               onManageDisableScrolling={onManageDisableScrolling}
@@ -365,7 +366,8 @@ export const ListingPageComponent = props => {
               isOwnListing={isOwnListing}
               onContactUser={onContactUser}
             />
-            <TrustBox />
+            {/* On small screens the order panel is a modal, so the trust box also stays here */}
+            <TrustBox className={css.trustBoxMobileOnly} titleId="trust-box-title-mobile" />
           </div>
         </div>
         <ListingViewTracker listing={currentListing} isOwnListing={isOwnListing} />

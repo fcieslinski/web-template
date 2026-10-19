@@ -175,6 +175,8 @@ export const moderateUser = body => post('/api/moderacja/uzytkownik', body);
 export const undoProofDecision = body => post('/api/moderacja/cofnij-dowod', body);
 export const resolveReport = body => post('/api/moderacja/zgloszenie', body);
 export const createReport = body => post('/api/zgloszenia', body);
+export const checkConversation = body => post('/api/czat/sprawdz', body);
+export const moderateChatFlag = body => post('/api/moderacja/flaga', body);
 export const fetchReportedConversation = txId =>
   request(`/api/moderacja/rozmowa?txId=${encodeURIComponent(txId)}`, { method: methods.GET });
 

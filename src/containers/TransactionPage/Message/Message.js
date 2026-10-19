@@ -10,7 +10,7 @@ import { Avatar } from '../../../components';
 
 import { FileAttachmentList } from '../FileAttachments/FileAttachments';
 
-import { detectChatRisks } from '../../../util/refumeChatSafety';
+import { detectChatRisks, maskContactDetails } from '../../../util/refumeChatSafety';
 import ChatSafetyNotice from '../../../components/ChatSafetyNotice/ChatSafetyNotice';
 
 import css from './Message.module.css';
@@ -25,7 +25,7 @@ const MIN_LENGTH_FOR_LONG_WORDS = 20;
  * @param {Object} intl Intl
  * @returns A rich text version of the message content
  */
-const getMessageContent = (message, transaction, intl, richTextOptions = {}) => {
+const getMessageContent = (message, transaction, intl, richTextOptions = {}, textOverride) => {
   const { customer, provider } = transaction;
   const customerBannedUuid = customer?.attributes.banned ? customer?.id.uuid : '';
   const providerBannedUuid = provider?.attributes.banned ? provider?.id.uuid : '';
@@ -35,7 +35,7 @@ const getMessageContent = (message, transaction, intl, richTextOptions = {}) => 
     ? intl.formatMessage({
         id: 'TransactionPage.messageSenderBanned',
       })
-    : message.attributes.content;
+    : textOverride ?? message.attributes.content;
 
   return richText(content, {
     linkify: true,
@@ -74,11 +74,14 @@ export const Message = props => {
   // Refume: warn about contact/payment outside Refume; links to unknown sites aren't clickable
   const detected = detectChatRisks(message?.attributes?.content);
   const risks = refumeSplitPhone ? { ...detected, contact: true, any: true } : detected;
+  // Contact details are hidden from the recipient
+  const masked = maskContactDetails(message?.attributes?.content, !!refumeSplitPhone);
   const content = getMessageContent(
     message,
     transaction,
     intl,
-    risks.links.length ? { linkify: false } : {}
+    risks.links.length ? { linkify: false } : {},
+    masked.text
   );
 
   const hasPendingFiles = messageHasPendingFiles(message);
@@ -110,7 +113,7 @@ export const Message = props => {
             </div>
           ) : null}
         </div>
-        <ChatSafetyNotice risks={risks} variant="incoming" />
+        <ChatSafetyNotice risks={risks} variant="incoming" masked={masked.masked} />
         <p className={css.messageDate}>{formattedDate}</p>
       </div>
     </div>
@@ -140,10 +143,13 @@ export const OwnMessage = props => {
     downloadFile,
     fileDownloads,
     marketplaceName,
+    refumeSplitPhone,
   } = props;
 
   const hasPendingFiles = messageHasPendingFiles(message);
   const hasFailedFiles = messageHasFailedFiles(message);
+  const ownRisks = detectChatRisks(message?.attributes?.content);
+  const ownFlagged = refumeSplitPhone || ownRisks.contact || ownRisks.payment;
 
   // Grey bubble while files are still verifying or have failed; purple once all verified.
   const isUnverified = hasPendingFiles || hasFailedFiles;
@@ -189,6 +195,12 @@ export const OwnMessage = props => {
       ) : hasFailedFiles ? (
         <p className={css.securityCheckFailedNote}>
           <FormattedMessage id="Message.securityCheckFailedNote" />
+        </p>
+      ) : null}
+      {ownFlagged ? (
+        <p className={css.ownMessageFlagged}>
+          Dane kontaktowe są ukryte u odbiorcy, a wiadomość została przekazana do sprawdzenia
+          moderatorowi.
         </p>
       ) : null}
       <p className={css.ownMessageDate}>{formattedDate}</p>

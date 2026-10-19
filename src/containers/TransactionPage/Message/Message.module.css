@@ -145,3 +145,13 @@
 .fileAttachmentIconOwnMessageUnverified {
   color: var(--colorGrey600);
 }
+
+/* Refume: own message with contact details */
+.ownMessageFlagged {
+  margin: 4px 0 0 auto;
+  max-width: 420px;
+  font-size: 12px;
+  line-height: 16px;
+  color: hsl(28 60% 30%);
+  text-align: right;
+}

@@ -123,3 +123,30 @@ export const detectChatRisks = text => {
   const links = untrustedLinks(t);
   return { contact, payment, links, any: contact || payment || links.length > 0 };
 };
+
+// ---------- Masking for the recipient ----------
+
+const MASK = '•••';
+const DIGIT_WORD_ANY = new RegExp(
+  `(?<![${L}])(?:zero|jeden|jedna|jedno|dwa|dwie|trzy|cztery|pięć|piec|sześć|szesc|siedem|osiem|dziewięć|dziewiec)(?![${L}])`,
+  'gi'
+);
+
+/**
+ * Hides contact details in a message: e-mails, phone numbers, account numbers. When a number
+ * is disguised ("5..0.0 2-3"), every digit and digit word in the message is hidden.
+ * @param {string} text
+ * @param {boolean} [hideAllDigits] also hide all digits (e.g. a number split over messages)
+ * @returns {{ text: string, masked: boolean }}
+ */
+export const maskContactDetails = (text, hideAllDigits = false) => {
+  const original = String(text || '');
+  let t = original
+    .replace(new RegExp(EMAIL_RE.source, 'gi'), MASK)
+    .replace(new RegExp(ACCOUNT_RE.source, 'gi'), MASK)
+    .replace(new RegExp(PHONE_RE.source, 'g'), MASK);
+  if (hideAllDigits || hasHiddenPhone(t)) {
+    t = t.replace(/\d/g, '•').replace(DIGIT_WORD_ANY, MASK);
+  }
+  return { text: t, masked: t !== original };
+};

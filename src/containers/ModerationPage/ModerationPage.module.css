@@ -637,3 +637,15 @@
   white-space: pre-line;
   word-break: break-word;
 }
+
+.flagBlock {
+  margin-bottom: 32px;
+}
+
+.sectionTitle {
+  margin: 0 0 8px 0;
+  padding: 0;
+  font-size: 18px;
+  line-height: 24px;
+  font-weight: var(--fontWeightBold);
+}

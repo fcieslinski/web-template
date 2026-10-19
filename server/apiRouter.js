@@ -32,7 +32,9 @@ const {
   reportAction: moderationReportAction,
   createReport,
   getConversation: moderationConversation,
+  chatFlagAction: moderationChatFlag,
 } = require('./api/refume-moderation-panel');
+const { checkConversation } = require('./api/refume-chat-flags');
 
 const createUserWithIdp = require('./api/auth/createUserWithIdp');
 
@@ -85,6 +87,8 @@ router.post('/moderacja/cofnij-dowod', undoProofDecision);
 router.post('/moderacja/zgloszenie', moderationReportAction);
 router.post('/zgloszenia', createReport);
 router.get('/moderacja/rozmowa', moderationConversation);
+router.post('/moderacja/flaga', moderationChatFlag);
+router.post('/czat/sprawdz', checkConversation);
 router.post('/oferty/zloz', makeOffer);
 router.post('/oferty/odpowiedz', respondToOffer);
 router.get('/perfumy', searchPerfumes);

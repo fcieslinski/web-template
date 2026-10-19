@@ -10,6 +10,7 @@ import {
   undoProofDecision,
   resolveReport,
   fetchReportedConversation,
+  moderateChatFlag,
 } from '../../util/api';
 import { detectChatRisks } from '../../util/refumeChatSafety';
 import { Page, LayoutSingleColumn, NamedLink } from '../../components';
@@ -544,6 +545,76 @@ const ReportCard = ({ item, onChanged, openImage }) => {
   );
 };
 
+// ---------- Automatically flagged chat messages ----------
+
+const FLAG_TYPES = {
+  kontakt: 'Dane kontaktowe',
+  platnosc: 'Płatność poza Refume',
+  link: 'Podejrzany link',
+};
+
+const ChatFlagCard = ({ item, onChanged }) => {
+  const [showChat, setShowChat] = useState(false);
+  const [blocking, setBlocking] = useState(false);
+  const { busy, error, run } = useAction(onChanged);
+  const act = action => run(() => moderateChatFlag({ flagId: item.id, action }));
+  return (
+    <li className={css.card}>
+      <div className={css.reportHead}>
+        <span className={css.pillWarning}>Wykryte automatycznie</span>
+        {item.typy.map(t => (
+          <span key={t} className={css.reportReason}>
+            {FLAG_TYPES[t] || t}
+          </span>
+        ))}
+        <span className={css.metaSmall}>
+          Wysłał(a){' '}
+          <NamedLink name="ProfilePage" params={{ id: item.senderId }}>
+            {item.senderName || '—'}
+          </NamedLink>{' '}
+          · {formatDate(item.wyslano || item.utworzono)}
+          {item.listingTitle ? ` · „${item.listingTitle}”` : ''}
+        </span>
+      </div>
+      <button type="button" className={css.linkButton} onClick={() => setShowChat(v => !v)}>
+        {showChat ? 'Ukryj rozmowę' : 'Pokaż rozmowę'}
+      </button>
+      {showChat ? <Conversation txId={item.txId} /> : null}
+      {blocking ? (
+        <ReasonForm
+          id={`fblock-${item.id}`}
+          label={`Zablokować konto ${item.senderName || ''}? Wszystkie jego oferty zostaną ukryte.`}
+          presets={['Wielokrotne wyprowadzanie kontaktu poza Refume', ...BLOCK_REASONS]}
+          confirmLabel="Zablokuj konto"
+          danger
+          busy={busy}
+          onConfirm={reason =>
+            run(() =>
+              moderateUser({ userId: item.senderId, action: 'zablokuj', reason }).then(() =>
+                moderateChatFlag({ flagId: item.id, action: 'zablokuj' })
+              )
+            )
+          }
+          onCancel={() => setBlocking(false)}
+        />
+      ) : (
+        <div className={css.actions}>
+          <button type="button" className={css.approveButton} disabled={busy} onClick={() => act('ok')}>
+            W porządku
+          </button>
+          <button type="button" className={css.secondaryButton} disabled={busy} onClick={() => act('ostrzez')}>
+            Ostrzeż nadawcę
+          </button>
+          <button type="button" className={css.dangerLink} disabled={busy} onClick={() => setBlocking(true)}>
+            Zablokuj nadawcę…
+          </button>
+        </div>
+      )}
+      <ErrorLine error={error} />
+    </li>
+  );
+};
+
 // ---------- History ----------
 
 const HISTORY_LABELS = {
@@ -627,11 +698,12 @@ const ModerationPage = () => {
   const setTab = key => history.replace({ search: key === 'dowody' ? '' : `?tab=${key}` });
 
   const openReports = (data?.reports || []).filter(r => r.status === 'nowe');
+  const openFlags = (data?.chatFlags || []).filter(f => f.status === 'nowe');
   const closedReports = (data?.reports || []).filter(r => r.status !== 'nowe');
   const counts = {
     dowody: data?.proofs?.length || 0,
     oferty: data?.newListings?.length || 0,
-    zgloszenia: openReports.length,
+    zgloszenia: openReports.length + openFlags.length,
     historia: null,
   };
 
@@ -698,6 +770,21 @@ const ModerationPage = () => {
             </>
           ) : tab === 'zgloszenia' ? (
             <>
+              {openFlags.length ? (
+                <div className={css.flagBlock}>
+                  <h2 className={css.sectionTitle}>Wykryte automatycznie w czacie</h2>
+                  <p className={css.intro}>
+                    Wiadomości z numerem telefonu, e-mailem, numerem konta, propozycją płatności poza
+                    Refume albo podejrzanym linkiem. Odbiorca widzi je już z zakrytymi danymi.
+                  </p>
+                  <ul className={css.list}>
+                    {openFlags.map(item => (
+                      <ChatFlagCard key={item.id} item={item} onChanged={load} />
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+              {openFlags.length ? <h2 className={css.sectionTitle}>Zgłoszenia od użytkowników</h2> : null}
               {openReports.length ? (
                 <ul className={css.list}>
                   {openReports.map(item => (

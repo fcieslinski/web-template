@@ -25,7 +25,7 @@ const ShieldIcon = () => (
  * @param {{ contact: boolean, payment: boolean, links: string[] }} props.risks
  */
 const ChatSafetyNotice = props => {
-  const { risks, variant = 'incoming', className } = props;
+  const { risks, variant = 'incoming', masked, className } = props;
   if (!risks?.any) return null;
 
   const lines = [];
@@ -37,7 +37,7 @@ const ChatSafetyNotice = props => {
     }
     if (risks.contact) {
       lines.push(
-        'Dla bezpieczeństwa nie podawaj numeru telefonu ani e-maila. Rozmowy poza Refume nie są chronione.'
+        'Nie podawaj numeru telefonu ani e-maila. Odbiorca zobaczy je zakryte, a wiadomość trafi do sprawdzenia przez moderatora.'
       );
     }
     if (risks.links.length) {
@@ -49,8 +49,10 @@ const ChatSafetyNotice = props => {
         'Ta wiadomość dotyczy płatności poza Refume. Takie płatności nie są objęte Ochroną Kupującego. Płać wyłącznie przez „Kup teraz” w ofercie.'
       );
     }
-    if (risks.contact) {
-      lines.push('Ta osoba proponuje kontakt poza Refume. Rozmowy poza serwisem nie są chronione.');
+    if (risks.contact || masked) {
+      lines.push(
+        'Ukryliśmy dane kontaktowe z tej wiadomości. Rozmawiaj i płać przez Refume, tylko wtedy działa Ochrona Kupującego. Moderator został powiadomiony.'
+      );
     }
     if (risks.links.length) {
       lines.push(

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import classNames from 'classnames';
 
 import { FormattedMessage, useIntl } from '../../../util/reactIntl';
@@ -20,7 +20,8 @@ import { Message, OwnMessage } from '../Message/Message';
 
 import { stateDataShape } from '../TransactionPage.stateData';
 
-import { hasHiddenPhone } from '../../../util/refumeChatSafety';
+import { hasHiddenPhone, detectChatRisks } from '../../../util/refumeChatSafety';
+import { checkConversation } from '../../../util/api';
 import css from './ActivityFeed.module.css';
 
 const { Money } = sdkTypes;
@@ -171,6 +172,19 @@ const ReviewComponentMaybe = props => {
 
 const isMessage = item => item && item.type === 'message';
 
+// Refume: ask the server to queue suspicious messages for moderators (once per set of messages)
+const reportedKeys = new Set();
+const ChatFlagReporter = ({ txId, riskyKey }) => {
+  useEffect(() => {
+    if (!txId || !riskyKey) return;
+    const key = `${txId}|${riskyKey}`;
+    if (reportedKeys.has(key)) return;
+    reportedKeys.add(key);
+    checkConversation({ txId }).catch(() => reportedKeys.delete(key));
+  }, [txId, riskyKey]);
+  return null;
+};
+
 // Compare function for sorting an array containing messages and transitions
 const compareItems = (a, b) => {
   const itemDate = item => (isMessage(item) ? item.attributes.createdAt : item.createdAt);
@@ -261,16 +275,27 @@ export const ActivityFeed = props => {
   items.forEach((item, i) => {
     if (!isMessage(item)) return;
     const senderId = item.sender?.id?.uuid;
-    const parts = [item.attributes.content || ''];
-    for (let j = i - 1; j >= 0 && parts.length < 4; j--) {
+    const run = [item];
+    for (let j = i - 1; j >= 0 && run.length < 4; j--) {
       const prev = items[j];
       if (!isMessage(prev) || prev.sender?.id?.uuid !== senderId) break;
-      parts.unshift(prev.attributes.content || '');
+      run.unshift(prev);
     }
+    const parts = run.map(m => m.attributes.content || '');
     if (parts.length > 1 && !hasHiddenPhone(parts[parts.length - 1]) && hasHiddenPhone(parts.join(' '))) {
-      splitPhoneIds.add(item.id.uuid);
+      // Hide every part of the split number
+      run.forEach(m => splitPhoneIds.add(m.id.uuid));
     }
   });
+  // Messages the moderators should look at (checked again on the server)
+  const riskyKey = items
+    .filter(
+      item =>
+        isMessage(item) &&
+        (splitPhoneIds.has(item.id.uuid) || detectChatRisks(item.attributes.content).any)
+    )
+    .map(item => item.id.uuid)
+    .join(',');
 
   const messageListItem = message => {
     const formattedDate = formatDateWithProximity(message.attributes.createdAt, intl, todayString, {
@@ -280,6 +305,7 @@ export const ActivityFeed = props => {
     const messageComponent = isOwnMessage ? (
       <OwnMessage
         message={message}
+        refumeSplitPhone={splitPhoneIds.has(message.id.uuid)}
         formattedDate={formattedDate}
         transaction={transaction}
         intl={intl}
@@ -385,6 +411,7 @@ export const ActivityFeed = props => {
           </InlineTextButton>
         </li>
       ) : null}
+      <ChatFlagReporter txId={transaction?.id?.uuid} riskyKey={riskyKey} />
       {items.map(item => {
         if (isMessage(item)) {
           return messageListItem(item);

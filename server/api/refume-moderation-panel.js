@@ -36,6 +36,7 @@ const {
 } = require('../api-util/refumeIntegrationApi');
 const { addNotification } = require('../api-util/refumeNotifications');
 const { isWaitingForReview } = require('./refume-moderation');
+const { readQueue, flagAction } = require('./refume-chat-flags');
 
 const MAX_LISTING_PAGES = 20;
 const MAX_USER_PAGES = 50;
@@ -186,14 +187,20 @@ const getStatus = (req, res) => {
       if (!userId || !moderatorIds().includes(userId) || !isIntegrationApiConfigured()) {
         return res.status(200).json({ data: { isModerator: false } });
       }
-      const [listings, users] = await Promise.all([scanListings(), scanUsers()]);
+      const [listings, users, flags] = await Promise.all([
+        scanListings(),
+        scanUsers(),
+        readQueue().catch(() => []),
+      ]);
       res.status(200).json({
         data: {
           isModerator: true,
           counts: {
             dowody: listings.filter(l => l.waitingForProof).length,
             oferty: listings.filter(isNewToReview).length,
-            zgloszenia: users.reports.filter(r => r.status === 'nowe').length,
+            zgloszenia:
+              users.reports.filter(r => r.status === 'nowe').length +
+              flags.filter(f => f.status === 'nowe').length,
           },
         },
       });
@@ -204,7 +211,11 @@ const getStatus = (req, res) => {
 const getPanel = (req, res) => {
   requireModerator(req, res)
     .then(async () => {
-      const [listings, users] = await Promise.all([scanListings(), scanUsers()]);
+      const [listings, users, chatFlags] = await Promise.all([
+        scanListings(),
+        scanUsers(),
+        readQueue().catch(() => []),
+      ]);
       const proofs = listings
         .filter(l => l.waitingForProof)
         .sort((a, b) => (a.proof?.uploadedAt || '').localeCompare(b.proof?.uploadedAt || ''));
@@ -237,7 +248,7 @@ const getPanel = (req, res) => {
         .sort((a, b) => (b.at || '').localeCompare(a.at || ''))
         .slice(0, 150);
 
-      res.status(200).json({ data: { proofs, newListings, reports, history } });
+      res.status(200).json({ data: { proofs, newListings, reports, history, chatFlags } });
     })
     .catch(e => handleError(res, e));
 };
@@ -489,6 +500,20 @@ const createReport = (req, res) => {
     .catch(e => handleError(res, e));
 };
 
+// Moderator: handle an automatically flagged chat message
+const chatFlagAction = (req, res) => {
+  const { flagId, action } = req.body || {};
+  requireModerator(req, res)
+    .then(async moderatorId => {
+      if (!flagId || !['ok', 'ostrzez', 'zablokuj'].includes(action)) {
+        throw httpError(400, 'Invalid action.');
+      }
+      await flagAction({ flagId, action, moderatorId });
+      res.status(200).json({ data: { ok: true } });
+    })
+    .catch(e => handleError(res, e));
+};
+
 // Moderator: messages of a reported conversation
 const getConversation = (req, res) => {
   const txId = String(req.query.txId || '');
@@ -529,6 +554,7 @@ const getConversation = (req, res) => {
 };
 
 module.exports = {
+  chatFlagAction,
   getConversation,
   getStatus,
   getPanel,

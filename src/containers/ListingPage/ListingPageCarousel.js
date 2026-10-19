@@ -366,8 +366,6 @@ export const ListingPageComponent = props => {
               isOwnListing={isOwnListing}
               onContactUser={onContactUser}
             />
-            {/* On small screens the order panel is a modal, so the trust box also stays here */}
-            <TrustBox className={css.trustBoxMobileOnly} titleId="trust-box-title-mobile" />
           </div>
         </div>
         <ListingViewTracker listing={currentListing} isOwnListing={isOwnListing} />

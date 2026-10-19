@@ -1,7 +1,6 @@
 /**
- * Refume: short AI description of a perfume ("O tym zapachu"), 3–4 sentences in Polish:
- * what it is (year, perfumer, standing), how the notes work together, when to wear it and
- * what users say. Based on the listing (brand, name, notes, accords) and Fragella community
+ * Refume: short AI description of a perfume ("O tym zapachu"), 3–4 varied sentences in
+ * Polish, using only the data given (no facts from the model's own knowledge). Based on the listing (brand, name, notes, accords) and Fragella community
  * data (year, perfumer, rating, longevity, sillage, popularity, seasons, occasions).
  *
  * GET /api/opis-ai?listingId=…
@@ -85,22 +84,24 @@ const SYSTEM_PROMPT = [
   'Jesteś redaktorem polskiego serwisu z perfumami. Piszesz krótką notkę o perfumach dla',
   'kupujących, konkretnie i ciekawie, jak w dobrym magazynie o zapachach.',
   '',
-  'Struktura: 4 zdania, razem najwyżej 650 znaków, po polsku, zwykłym tekstem.',
-  '1. Czym jest ten zapach: rok premiery, perfumiarz i jego pozycja (np. klasyk, bestseller).',
-  '2. Kompozycja: jak połączenie konkretnych nut tworzy charakter zapachu',
-  '   (np. „połączenie bergamotki i ambroksanu daje…”).',
-  '3. Kiedy i dla kogo: pory roku i okazje.',
-  '4. Co mówią użytkownicy: odbiór na podstawie oceny społeczności, trwałości i projekcji',
-  '   (np. „Użytkownicy szczególnie doceniają jego trwałość…”).',
+  'Forma: 3 albo 4 zdania, razem najwyżej 600 znaków, po polsku, zwykłym tekstem.',
+  'Nie trzymaj się stałego schematu. Każdy opis ma brzmieć inaczej: zaczynaj różnie',
+  '(np. od wrażenia, od nut, od pory roku, od charakteru), zmieniaj kolejność i słownictwo.',
+  'Wybierz z tych wątków te, które najlepiej pasują do danych:',
+  '- charakter i nastrój zapachu,',
+  '- jak połączenie konkretnych nut tworzy ten efekt i jak zapach się rozwija,',
+  '- na jaką porę roku, okazję lub dla kogo,',
+  '- odbiór wśród użytkowników (ocena, trwałość, projekcja),',
+  '- rok premiery lub perfumiarz.',
   '',
-  'Zasady dotyczące faktów:',
-  '- Dane w sekcji „Dane” są sprawdzone, korzystaj z nich.',
-  '- Nagrody, historię powstania i ciekawostki dodawaj tylko wtedy, gdy to powszechnie znany',
-  '  fakt o bardzo znanym zapachu i masz co do niego pewność. W razie wątpliwości pomiń.',
-  '  Nigdy nie zgaduj lat, nazwisk ani nagród.',
-  '- Słów „kultowy” lub „ikoniczny” używaj tylko przy wysokiej popularności albo dla',
-  '  powszechnie uznanego klasyka.',
-  '- Jeśli brakuje danych do któregoś zdania, pomiń je zamiast zmyślać (wtedy 3 zdania).',
+  'Fakty — najważniejsza zasada:',
+  '- Korzystaj WYŁĄCZNIE z informacji w sekcji „Dane”. Nie dodawaj niczego z własnej wiedzy:',
+  '  żadnych lat, nazwisk, nagród, historii, ciekawostek ani opinii, których nie ma w danych.',
+  '- Rok premiery i perfumiarza podawaj tylko, jeśli są w danych — i nie zawsze, tylko gdy',
+  '  pasują do opisu. Jeśli ich nie ma, po prostu o nich nie pisz.',
+  '- O odbiorze użytkowników pisz tylko na podstawie oceny, trwałości, projekcji lub',
+  '  popularności z danych. Bez tych danych pomiń ten wątek.',
+  '- „Kultowy” lub „ikoniczny” tylko przy popularności „High” lub „Very high” w danych.',
   '- Nie podawaj ceny, nie porównuj z innymi perfumami, nie wspominaj o ofercie, sprzedającym,',
   '  stanie flakonu ani o źródłach danych.',
   '- Bez emoji, nagłówków, list, cudzysłowów wokół całego tekstu i wykrzykników.',
@@ -157,7 +158,7 @@ const callGemini = async (model, prompt) => {
       body: JSON.stringify({
         systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
         contents: [{ role: 'user', parts: [{ text: prompt }] }],
-        generationConfig: { temperature: 0.5, maxOutputTokens: 2048 },
+        generationConfig: { temperature: 0.9, maxOutputTokens: 2048 },
       }),
     }
   );

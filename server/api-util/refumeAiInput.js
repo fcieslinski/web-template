@@ -38,7 +38,7 @@ const aiInputKey = (title, input) => {
   for (let i = 0; i < text.length; i++) {
     hash = ((hash << 5) + hash + text.charCodeAt(i)) | 0;
   }
-  return `v2-${(hash >>> 0).toString(36)}`;
+  return `v3-${(hash >>> 0).toString(36)}`;
 };
 
 module.exports = { aiInputOf, aiInputKey, hasEnoughForAi };

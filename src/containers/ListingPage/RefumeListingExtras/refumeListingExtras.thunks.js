@@ -68,11 +68,19 @@ export const fetchListingIds = ({
       ...cardQueryParams(listingImageConfig, includeSoldOut),
     })
     .then(response => {
-      dispatch(addMarketplaceEntities(response));
-      return response.data.data
-        .map(l => l.id)
-        .filter(id => id.uuid !== excludeId?.uuid)
-        .slice(0, limit);
+      // Leave the listing being viewed out of the store update: these card queries return
+      // only a few fields, which would replace its full data (notes, accords, metadata).
+      const isExcluded = l => l.type === 'listing' && l.id.uuid === excludeId?.uuid;
+      const cardsOnly = {
+        ...response,
+        data: {
+          ...response.data,
+          data: response.data.data.filter(l => !isExcluded(l)),
+          included: (response.data.included || []).filter(l => !isExcluded(l)),
+        },
+      };
+      dispatch(addMarketplaceEntities(cardsOnly));
+      return cardsOnly.data.data.map(l => l.id).slice(0, limit);
     });
 
 /**

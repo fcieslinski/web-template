@@ -61,9 +61,25 @@ module.exports = (req, res) => {
   let lineItems = null;
   let metadataMaybe = {};
 
-  Promise.all([listingPromise(sdk, bodyParams?.params?.listingId), fetchCommission(sdk)])
-    .then(([showListingResponse, fetchAssetsResponse]) => {
+  Promise.all([
+    listingPromise(sdk, bodyParams?.params?.listingId),
+    fetchCommission(sdk),
+    sdk.currentUser.show().catch(() => null),
+  ])
+    .then(([showListingResponse, fetchAssetsResponse, currentUserResponse]) => {
       const listing = showListingResponse.data.data;
+      // Refume: blocked accounts can't buy, hidden listings can't be bought
+      const buyer = currentUserResponse?.data?.data;
+      if (buyer?.attributes?.profile?.metadata?.refumeBlokada) {
+        const e = new Error('Account blocked.');
+        Object.assign(e, { status: 403, statusText: 'Account blocked.', data: {} });
+        throw e;
+      }
+      if (listing.attributes?.metadata?.moderacja?.ukryta) {
+        const e = new Error('Listing hidden by a moderator.');
+        Object.assign(e, { status: 403, statusText: 'Listing hidden.', data: {} });
+        throw e;
+      }
       const commissionAsset = fetchAssetsResponse.data.data[0];
 
       const currency = listing.attributes.price?.currency || orderData.currency;

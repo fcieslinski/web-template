@@ -868,3 +868,9 @@
   line-height: 18px;
   color: var(--colorGrey700);
 }
+
+/* "Zgłoś ofertę" under the seller card links */
+.reportLink {
+  align-self: center;
+  font-size: 13px;
+}

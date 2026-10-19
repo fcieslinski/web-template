@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Form as FinalForm, Field } from 'react-final-form';
 import arrayMutators from 'final-form-arrays';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import classNames from 'classnames';
 
 import appSettings from '../../../config/settings';
@@ -272,6 +272,9 @@ const RefumeListingEditor = props => {
   } = props;
   const intl = useIntl();
   const dispatch = useDispatch();
+  const blockade = useSelector(
+    state => state.user?.currentUser?.attributes?.profile?.metadata?.refumeBlokada
+  );
   const routes = useRouteConfiguration();
   const [submitError, setSubmitError] = useState(null);
   const [proofFile, setProofFile] = useState(null);
@@ -471,6 +474,20 @@ const RefumeListingEditor = props => {
       );
     }
   };
+
+  // Refume: blocked accounts can't list
+  if (blockade) {
+    return (
+      <div className={css.blockedNotice} role="alert">
+        <h2 className={css.blockedTitle}>Twoje konto jest zablokowane</h2>
+        <p>
+          Moderator zablokował konto{blockade.powod ? ` (powód: ${blockade.powod})` : ''}, więc nie
+          możesz teraz wystawiać ofert. Szczegóły znajdziesz w skrzynce, w wiadomości od Zespołu
+          Refume.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <FinalForm

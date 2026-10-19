@@ -23,6 +23,15 @@ const initiatePrivileged = require('./api/initiate-privileged');
 const transitionPrivileged = require('./api/transition-privileged');
 const deleteAccount = require('./api/delete-account');
 const { listPendingProofs, decideProof } = require('./api/refume-moderation');
+const {
+  getStatus: moderationStatus,
+  getPanel: moderationPanel,
+  listingAction: moderationListingAction,
+  userAction: moderationUserAction,
+  undoProofDecision,
+  reportAction: moderationReportAction,
+  createReport,
+} = require('./api/refume-moderation-panel');
 
 const createUserWithIdp = require('./api/auth/createUserWithIdp');
 
@@ -67,6 +76,13 @@ router.post('/delete-account', deleteAccount);
 // Refume: moderation of proof-of-purchase photos (moderators only)
 router.get('/moderacja/dowody', listPendingProofs);
 router.post('/moderacja/decyzja', decideProof);
+router.get('/moderacja/status', moderationStatus);
+router.get('/moderacja/panel', moderationPanel);
+router.post('/moderacja/oferta', moderationListingAction);
+router.post('/moderacja/uzytkownik', moderationUserAction);
+router.post('/moderacja/cofnij-dowod', undoProofDecision);
+router.post('/moderacja/zgloszenie', moderationReportAction);
+router.post('/zgloszenia', createReport);
 router.post('/oferty/zloz', makeOffer);
 router.post('/oferty/odpowiedz', respondToOffer);
 router.get('/perfumy', searchPerfumes);

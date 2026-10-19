@@ -18,6 +18,7 @@ import {
 import TopbarSearchForm from '../TopbarSearchForm/TopbarSearchForm';
 import CustomLinksMenu from './CustomLinksMenu/CustomLinksMenu';
 
+import { useModerationStatus } from '../../../../util/refumeModeration';
 import css from './TopbarDesktop.module.css';
 
 const SignupLink = () => {
@@ -180,6 +181,17 @@ const TopbarDesktop = props => {
     </NamedLink>
   );
 
+  // Refume: moderator panel, only for moderators
+  const moderation = useModerationStatus(authenticatedOnClientSide ? currentUser?.id?.uuid : null);
+  const moderationLinkMaybe = moderation.isModerator ? (
+    <NamedLink id="moderation-link" className={css.topbarLink} name="ModerationPage">
+      <span className={css.topbarLinkLabel}>
+        Moderacja
+        {moderation.total ? <span className={css.moderationCount}>{moderation.total}</span> : null}
+      </span>
+    </NamedLink>
+  ) : null;
+
   // Refume: favourites
   const favoritesLinkMaybe = authenticatedOnClientSide ? (
     <NamedLink id="favorites-link" className={css.topbarLink} name="FavoritesPage">
@@ -243,6 +255,7 @@ const TopbarDesktop = props => {
       />
 
       {requestsLink}
+      {moderationLinkMaybe}
       {favoritesLinkMaybe}
       {inboxLinkMaybe}
       {profileMenuMaybe}

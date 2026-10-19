@@ -5,6 +5,7 @@ import { AvatarLarge, NamedLink } from '../../../components';
 import { fetchSellerRating } from './refumeListingExtras.thunks';
 import StarRating from './StarRating';
 import SellerBadges from '../../../components/SellerBadges/SellerBadges';
+import ReportButton from '../../../components/ReportButton/ReportButton';
 
 import css from './RefumeListingExtras.module.css';
 
@@ -75,6 +76,9 @@ const SellerCard = props => {
         <NamedLink name="ProfilePage" params={{ id: authorId.uuid }} className={css.profileLink}>
           Zobacz profil i opinie
         </NamedLink>
+        {!isOwnListing ? (
+          <ReportButton type="oferta" targetId={listing?.id?.uuid} className={css.reportLink} />
+        ) : null}
       </div>
     </section>
   );

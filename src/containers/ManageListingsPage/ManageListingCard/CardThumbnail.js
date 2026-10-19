@@ -153,7 +153,17 @@ const DraftOverlay = props => {
 };
 
 const ClosedOverlay = props => {
-  const { title, listingId, intl, inProgressListingId, onOpenListing } = props;
+  const { title, listingId, intl, inProgressListingId, onOpenListing, hiddenByModerator } = props;
+  // Refume: listings hidden by a moderator can't be reopened by the seller
+  if (hiddenByModerator) {
+    return (
+      <Overlay
+        message={`Ukryta przez moderatora${
+          hiddenByModerator.powod ? `: ${hiddenByModerator.powod}` : ''
+        }`}
+      />
+    );
+  }
   return (
     <Overlay
       message={intl.formatMessage(
@@ -370,6 +380,9 @@ const CardThumbnail = props => {
     onOpenListing,
     onCloseListing,
     hasStockManagementInUse,
+    hiddenByModerator: listing?.attributes?.metadata?.moderacja?.ukryta
+      ? listing.attributes.metadata.moderacja
+      : null,
   };
 
   return (

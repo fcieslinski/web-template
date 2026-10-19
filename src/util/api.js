@@ -166,6 +166,16 @@ export const decideProof = body => {
   return post('/api/moderacja/decyzja', body);
 };
 
+// Refume: moderator panel
+export const fetchModerationStatus = () =>
+  request('/api/moderacja/status', { method: methods.GET });
+export const fetchModerationPanel = () => request('/api/moderacja/panel', { method: methods.GET });
+export const moderateListing = body => post('/api/moderacja/oferta', body);
+export const moderateUser = body => post('/api/moderacja/uzytkownik', body);
+export const undoProofDecision = body => post('/api/moderacja/cofnij-dowod', body);
+export const resolveReport = body => post('/api/moderacja/zgloszenie', body);
+export const createReport = body => post('/api/zgloszenia', body);
+
 // Refume: price offers in the buyer–seller chat
 export const makePriceOffer = body => post('/api/oferty/zloz', body);
 export const respondToPriceOffer = body => post('/api/oferty/odpowiedz', body);

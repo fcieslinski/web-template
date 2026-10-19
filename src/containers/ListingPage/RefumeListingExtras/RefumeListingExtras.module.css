@@ -304,7 +304,7 @@
   color: var(--colorGrey500, var(--colorGrey700));
 }
 
-/* ---------- Notes pyramid ---------- */
+/* ---------- Notes: accords (bars) + pyramid ---------- */
 .notes {
   margin: 0 24px 40px 24px;
 
@@ -321,80 +321,130 @@
   font-weight: var(--fontWeightBold);
 }
 
-.accords {
-  margin: 0 0 16px 0;
-  padding: 0;
-  font-size: 15px;
-  color: var(--colorGrey700);
-}
-
-.accordsLabel {
-  font-weight: var(--fontWeightSemiBold);
-  color: var(--colorGrey900);
-}
-
-.pyramid {
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  border-top: 1px solid var(--colorGrey100);
-}
-
-.pyramidRow {
+.notesGrid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 8px;
-  padding: 14px 0;
-  border-bottom: 1px solid var(--colorGrey100);
+  gap: 28px;
 
   @media (--viewportMedium) {
-    grid-template-columns: 200px 1fr;
-    gap: 16px;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+    gap: 32px;
+    align-items: start;
   }
 }
 
-.pyramidLabel {
-  display: flex;
-  flex-direction: column;
-  font-weight: var(--fontWeightSemiBold);
-}
-
-.pyramidHint {
+.notesSubtitle {
+  margin: 0 0 12px 0;
+  padding: 0;
   font-size: 13px;
-  font-weight: var(--fontWeightRegular);
+  line-height: 16px;
+  font-weight: var(--fontWeightSemiBold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   color: var(--colorGrey700);
 }
 
-.pyramidNotes {
+/* Main accords as bars, widest = most important */
+.accordBars {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
   margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.accordBar {
+  min-width: 120px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: var(--fontWeightSemiBold);
+  color: var(--colorGrey900);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Pyramid: three tiers, narrow at the top and wide at the base */
+.pyramid {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tier {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+}
+
+.tier_glowy {
+  background-color: hsl(330 40% 97%);
+
+  @media (--viewportMedium) {
+    width: 72%;
+  }
+}
+
+.tier_serca {
+  background-color: hsl(330 38% 94%);
+
+  @media (--viewportMedium) {
+    width: 86%;
+  }
+}
+
+.tier_bazy {
+  background-color: hsl(330 32% 90%);
+}
+
+.tierHead {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.tierLabel {
+  font-size: 15px;
+  line-height: 20px;
+  font-weight: var(--fontWeightBold);
+  color: var(--colorGrey900);
+}
+
+.tierHint {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--colorGrey700);
+}
+
+.tierNotes {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   gap: 6px;
-  align-content: flex-start;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
 .note {
   padding: 4px 10px;
   border-radius: 999px;
-  background-color: var(--colorGrey50);
+  background-color: var(--colorWhite);
   font-size: 14px;
   line-height: 20px;
-}
-
-.accords {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.accordChip {
-  padding: 5px 12px;
-  border-radius: 999px;
-  background-color: var(--colorGrey900);
-  color: var(--colorWhite);
-  font-size: 14px;
-  line-height: 20px;
-  font-weight: var(--fontWeightSemiBold);
+  color: var(--colorGrey900);
 }
 
 /* ---------- Likes next to the heart ---------- */

@@ -15,7 +15,6 @@ import {
   H3,
 } from '../../../components';
 
-import RefumeOrderSummary from './RefumeOrderSummary';
 
 import FetchLineItemsError from '../FetchLineItemsError/FetchLineItemsError.js';
 
@@ -183,6 +182,7 @@ const renderForm = formRenderProps => {
     fetchLineItemsError,
     price,
     payoutDetailsWarning,
+    refumeOfferAction,
     marketplaceName,
     values,
     sectionHeadingAs = 'h3',
@@ -256,9 +256,6 @@ const renderForm = formRenderProps => {
     }
   };
 
-  const breakdownData = {};
-  const showBreakdown =
-    breakdownData && lineItems && !fetchLineItemsInProgress && !fetchLineItemsError;
 
   const showContactUser = typeof onContactUser === 'function';
 
@@ -337,9 +334,6 @@ const renderForm = formRenderProps => {
         />
       ) : null}
 
-      {showBreakdown ? (
-        <RefumeOrderSummary lineItems={lineItems} currency={price.currency} />
-      ) : null}
 
       <FetchLineItemsError error={fetchLineItemsError} />
 
@@ -352,6 +346,10 @@ const renderForm = formRenderProps => {
           )}
         </PrimaryButton>
       </div>
+      {/* Refume: "Zaproponuj cenę" right under "Kup teraz" */}
+      {hasStock && refumeOfferAction ? (
+        <div className={css.offerAction}>{refumeOfferAction}</div>
+      ) : null}
       <p className={css.finePrint}>
         {payoutDetailsWarning ? (
           payoutDetailsWarning

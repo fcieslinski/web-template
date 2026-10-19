@@ -290,13 +290,16 @@
 }
 
 /* Refume: delivery is chosen at checkout */
-.deliveryHint {
-  margin: 12px 0 0 0;
+.shippingFrom {
+  margin: 4px 24px 0 24px;
   padding: 0;
   font-size: 14px;
   line-height: 20px;
   color: var(--colorGrey700);
-  text-align: center;
+
+  @media (--viewportMedium) {
+    margin: 4px 0 0 0;
+  }
 }
 
 /* Refume: listing summary under the title (desktop panel only; mobile shows it in the page heading) */

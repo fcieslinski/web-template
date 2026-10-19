@@ -67,7 +67,17 @@
 
   @media (--viewportMedium) {
     padding: 0;
-    margin-top: 72px;
+    margin-top: 24px;
+  }
+}
+
+/* Refume: "Zaproponuj cenę" under "Kup teraz" */
+.offerAction {
+  padding: 0 24px;
+  margin-bottom: 12px;
+
+  @media (--viewportMedium) {
+    padding: 0;
   }
 }
 

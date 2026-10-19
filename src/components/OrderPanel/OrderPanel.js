@@ -486,6 +486,15 @@ const OrderPanel = props => {
             marketplaceCurrency={marketplaceCurrency}
           />
         )}
+        {!hidePrice && shouldHavePurchase && !isClosed && shippingCarrierOptions.length > 0 ? (
+          <p className={css.shippingFrom}>
+            + wysyłka od{' '}
+            {intl.formatNumber(
+              Math.min(...shippingCarrierOptions.map(c => c.priceInSubunits)) / 100,
+              { style: 'currency', currency: 'PLN', minimumFractionDigits: 2 }
+            )}
+          </p>
+        ) : null}
 
         {!hideAuthorInfo && (
           <div className={css.author}>
@@ -562,6 +571,7 @@ const OrderPanel = props => {
             shippingCarrierOptions={[]}
             displayDeliveryMethod={false}
             onContactUser={onContactUser}
+            refumeOfferAction={refumeOfferAction}
             {...sharedProps}
           />
         ) : showDownloadForm ? (
@@ -599,16 +609,6 @@ const OrderPanel = props => {
             <FormattedMessage id="OrderPanel.unknownTransactionProcess" />
           </p>
         ) : null}
-        {showProductOrderForm && shippingCarrierOptions.length > 0 ? (
-          <p className={css.deliveryHint}>
-            Dostawa od{' '}
-            {(Math.min(...shippingCarrierOptions.map(c => c.priceInSubunits)) / 100)
-              .toFixed(2)
-              .replace('.', ',')}{' '}
-            zł. Przewoźnika wybierzesz przy zamówieniu.
-          </p>
-        ) : null}
-        {showProductOrderForm ? refumeOfferAction : null}
       </ModalInMobile>
       <div className={css.openOrderForm}>
         <PriceMaybe

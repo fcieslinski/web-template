@@ -282,16 +282,28 @@ export const ListingPageComponent = props => {
               )}
               <ListingSummary listing={currentListing} config={config} />
             </div>
-            {showDescription && <SectionText text={description} showAsIngress />}
-            <AiPerfumeSummary listing={currentListing} />
+            {/* Refume: main column content in bordered, rounded cards */}
+            <section className={css.refumeCard} aria-labelledby="listing-description-title">
+              <h2 id="listing-description-title" className={css.refumeCardTitle}>
+                Opis
+              </h2>
+              {showDescription ? (
+                <SectionText text={description} showAsIngress />
+              ) : (
+                <p className={css.refumeCardEmpty}>Sprzedający nie dodał opisu.</p>
+              )}
+              <AiPerfumeSummary listing={currentListing} />
+            </section>
 
-            <CustomListingFields
-              publicData={publicData}
-              metadata={metadata}
-              listingFieldConfigs={listingConfig.listingFields}
-              categoryConfiguration={config.categoryConfiguration}
-              intl={intl}
-            />
+            <div className={css.refumeCard}>
+              <CustomListingFields
+                publicData={publicData}
+                metadata={metadata}
+                listingFieldConfigs={listingConfig.listingFields}
+                categoryConfiguration={config.categoryConfiguration}
+                intl={intl}
+              />
+            </div>
 
             <NotesSection publicData={publicData} />
 

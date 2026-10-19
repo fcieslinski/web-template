@@ -831,3 +831,45 @@
   width: 100%;
   height: 100%;
 }
+
+/* ---------- Refume: content cards in the main column ---------- */
+.refumeCard {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin: 0 24px 20px 24px;
+  padding: 20px;
+  border: 1px solid var(--colorGrey100);
+  border-radius: 16px;
+  background-color: var(--colorWhite);
+
+  @media (--viewportMedium) {
+    margin: 0 0 24px 0;
+    padding: 24px 28px;
+  }
+
+  /* Sections inside a card bring their own page margins; the card handles spacing */
+  & > * {
+    margin-top: 0;
+    margin-bottom: 0;
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  &:empty {
+    display: none;
+  }
+}
+
+.refumeCardTitle {
+  margin: 0;
+  padding: 0;
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: var(--fontWeightBold);
+}
+
+.refumeCardEmpty {
+  margin: 0;
+  color: var(--colorGrey700);
+}

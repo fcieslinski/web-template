@@ -306,10 +306,15 @@
 
 /* ---------- Notes: accords (bars) + pyramid ---------- */
 .notes {
-  margin: 0 24px 40px 24px;
+  margin: 0 24px 20px 24px;
+  padding: 20px;
+  border: 1px solid var(--colorGrey100);
+  border-radius: 16px;
+  background-color: var(--colorWhite);
 
   @media (--viewportMedium) {
-    margin: 0 0 40px 0;
+    margin: 0 0 24px 0;
+    padding: 24px 28px;
   }
 }
 
@@ -552,17 +557,15 @@
 
 /* ---------- AI perfume description ---------- */
 .aiSection {
-  margin: 24px 24px 0 24px;
-  padding: 18px 20px;
+  /* Sits inside the "Opis" card */
+  margin: 0;
+  padding: 16px 18px;
+  border: 1px solid hsl(330 30% 90%);
   border-radius: 12px;
   background-color: var(--refumePlumSoft, hsl(330 35% 96%));
   display: flex;
   flex-direction: column;
   gap: 8px;
-
-  @media (--viewportMedium) {
-    margin: 32px 0 0 0;
-  }
 }
 
 .aiTitle {

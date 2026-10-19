@@ -4,7 +4,6 @@ import { Form as FinalForm, FormSpy } from 'react-final-form';
 import { FormattedMessage, useIntl } from '../../../util/reactIntl';
 import { propTypes } from '../../../util/types';
 import { numberAtLeast, required } from '../../../util/validators';
-import { PURCHASE_PROCESS_NAME } from '../../../transactions/transaction';
 import { formatCarrierOption } from '../../../util/refumeShipping';
 
 import {
@@ -14,10 +13,9 @@ import {
   InlineTextButton,
   PrimaryButton,
   H3,
-  H6,
 } from '../../../components';
 
-import EstimatedCustomerBreakdownMaybe from '../EstimatedCustomerBreakdownMaybe';
+import RefumeOrderSummary from './RefumeOrderSummary';
 
 import FetchLineItemsError from '../FetchLineItemsError/FetchLineItemsError.js';
 
@@ -340,19 +338,7 @@ const renderForm = formRenderProps => {
       ) : null}
 
       {showBreakdown ? (
-        <div className={css.breakdownWrapper}>
-          <H6 as={sectionHeadingAs} className={css.bookingBreakdownTitle}>
-            <FormattedMessage id="ProductOrderForm.breakdownTitle" />
-          </H6>
-          <hr className={css.totalDivider} />
-          <EstimatedCustomerBreakdownMaybe
-            breakdownData={breakdownData}
-            lineItems={lineItems}
-            currency={price.currency}
-            marketplaceName={marketplaceName}
-            processName={PURCHASE_PROCESS_NAME}
-          />
-        </div>
+        <RefumeOrderSummary lineItems={lineItems} currency={price.currency} />
       ) : null}
 
       <FetchLineItemsError error={fetchLineItemsError} />

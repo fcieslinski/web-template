@@ -1,0 +1,70 @@
+@import '../../../styles/customMediaQueries.css';
+
+.root {
+  margin: 0 24px;
+  padding: 16px 0 0 0;
+  border-top: 1px solid var(--colorGrey100);
+
+  @media (--viewportMedium) {
+    margin: 24px 0 0 0;
+  }
+}
+
+.rows {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--colorGrey700);
+
+  & dt,
+  & dd {
+    margin: 0;
+    padding: 0;
+  }
+
+  & dd {
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+}
+
+.muted {
+  color: var(--colorGrey500, var(--colorGrey700));
+  font-style: normal;
+}
+
+.total {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--colorGrey100);
+}
+
+.totalLabel {
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: var(--fontWeightSemiBold);
+  color: var(--colorGrey900);
+}
+
+.totalAmount {
+  font-size: 26px;
+  line-height: 32px;
+  font-weight: var(--fontWeightBold);
+  color: var(--colorGrey900);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}

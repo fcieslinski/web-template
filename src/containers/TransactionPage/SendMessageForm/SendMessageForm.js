@@ -9,6 +9,8 @@ import { propTypes } from '../../../util/types';
 import { Form, FieldTextInput, FileUpload, Button } from '../../../components';
 import { MAX_FILE_UPLOAD_COUNT } from '../../../util/fileHelpers';
 
+import { detectChatRisks } from '../../../util/refumeChatSafety';
+import ChatSafetyNotice from '../../../components/ChatSafetyNotice/ChatSafetyNotice';
 import css from './SendMessageForm.module.css';
 
 const BLUR_TIMEOUT_MS = 100;
@@ -169,6 +171,10 @@ class SendMessageFormComponent extends Component {
                 placeholder={messagePlaceholder}
                 onFocus={this.handleFocus}
                 onBlur={this.handleBlur}
+              />
+              <ChatSafetyNotice
+                risks={detectChatRisks(formState.values.message)}
+                variant="outgoing"
               />
               {showUploads ? (
                 <div className={css.files}>

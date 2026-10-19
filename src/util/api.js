@@ -175,6 +175,8 @@ export const moderateUser = body => post('/api/moderacja/uzytkownik', body);
 export const undoProofDecision = body => post('/api/moderacja/cofnij-dowod', body);
 export const resolveReport = body => post('/api/moderacja/zgloszenie', body);
 export const createReport = body => post('/api/zgloszenia', body);
+export const fetchReportedConversation = txId =>
+  request(`/api/moderacja/rozmowa?txId=${encodeURIComponent(txId)}`, { method: methods.GET });
 
 // Refume: price offers in the buyer–seller chat
 export const makePriceOffer = body => post('/api/oferty/zloz', body);

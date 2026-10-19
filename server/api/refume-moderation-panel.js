@@ -18,7 +18,8 @@
  * POST /api/moderacja/uzytkownik    { userId, action: 'zablokuj'|'odblokuj', reason? }
  * POST /api/moderacja/cofnij-dowod  { listingId } — undo a proof decision (back to the queue)
  * POST /api/moderacja/zgloszenie    { reporterId, reportId, action: 'rozpatrzone'|'odrzucone' }
- * POST /api/zgloszenia              { typ: 'oferta'|'uzytkownik', celId, powod, opis } (any user)
+ * POST /api/zgloszenia              { typ: 'oferta'|'uzytkownik'|'rozmowa', celId, powod, opis }
+ * GET  /api/moderacja/rozmowa?txId  messages of a reported conversation (moderators only)
  */
 const { getSdk, handleError } = require('../api-util/sdk');
 const {
@@ -31,6 +32,7 @@ const {
   updateUserProfile,
   closeListing,
   openListing,
+  showTransaction,
 } = require('../api-util/refumeIntegrationApi');
 const { addNotification } = require('../api-util/refumeNotifications');
 const { isWaitingForReview } = require('./refume-moderation');
@@ -48,6 +50,8 @@ const REPORT_REASONS = {
   niedozwolone: 'Niedozwolony produkt',
   spam: 'Spam lub powielona oferta',
   zachowanie: 'Obraźliwe zachowanie',
+  kontakt: 'Namawianie do kontaktu lub płatności poza Refume',
+  phishing: 'Podejrzany link lub prośba o dane',
   inne: 'Inne',
 };
 
@@ -418,7 +422,11 @@ const createReport = (req, res) => {
   const sdk = getSdk(req, res);
   Promise.resolve()
     .then(async () => {
-      if (!['oferta', 'uzytkownik'].includes(typ) || !UUID_RE.test(celId || '') || !REPORT_REASONS[powod]) {
+      if (
+        !['oferta', 'uzytkownik', 'rozmowa'].includes(typ) ||
+        !UUID_RE.test(celId || '') ||
+        !REPORT_REASONS[powod]
+      ) {
         throw httpError(400, 'Invalid report.');
       }
       if (!isIntegrationApiConfigured()) throw httpError(500, 'Integration API is not configured.');
@@ -426,7 +434,23 @@ const createReport = (req, res) => {
       const myId = me.id.uuid;
 
       let celNazwa = '';
-      if (typ === 'oferta') {
+      let celUzytkownikId = null;
+      if (typ === 'rozmowa') {
+        // Only a participant can report a conversation (the Marketplace API checks that)
+        const tx = (
+          await sdk.transactions.show({ id: celId, include: ['listing', 'customer', 'provider'] })
+        ).data;
+        const rel = tx.data.relationships || {};
+        const included = tx.included || [];
+        const find = (type, id) => included.find(i => i.type === type && i.id.uuid === id?.uuid);
+        const isCustomer = rel.customer?.data?.id?.uuid === myId;
+        const other = find('user', isCustomer ? rel.provider?.data?.id : rel.customer?.data?.id);
+        const listing = find('listing', rel.listing?.data?.id);
+        celUzytkownikId = other?.id?.uuid || null;
+        celNazwa = `Rozmowa z użytkownikiem ${other?.attributes?.profile?.displayName || '—'}${
+          listing ? ` o „${listing.attributes.title}”` : ''
+        }`;
+      } else if (typ === 'oferta') {
         const listing = (await showListing({ id: celId })).data;
         if (listing.relationships?.author?.data?.id === myId) throw httpError(400, 'Own listing.');
         celNazwa = listing.attributes.title || '';
@@ -448,6 +472,7 @@ const createReport = (req, res) => {
         typ,
         celId,
         celNazwa,
+        ...(celUzytkownikId ? { celUzytkownikId } : {}),
         powod,
         powodEtykieta: REPORT_REASONS[powod],
         opis,
@@ -464,7 +489,47 @@ const createReport = (req, res) => {
     .catch(e => handleError(res, e));
 };
 
+// Moderator: messages of a reported conversation
+const getConversation = (req, res) => {
+  const txId = String(req.query.txId || '');
+  requireModerator(req, res)
+    .then(async () => {
+      if (!UUID_RE.test(txId)) throw httpError(400, 'Invalid txId.');
+      const shown = await showTransaction({
+        id: txId,
+        include: 'messages,messages.sender,listing,customer,provider',
+      });
+      const included = shown.included || [];
+      const byKey = new Map(included.map(i => [`${i.type}/${i.id}`, i]));
+      const rel = shown.data?.relationships || {};
+      const customerId = rel.customer?.data?.id;
+      const messages = (rel.messages?.data || [])
+        .map(ref => byKey.get(`message/${ref.id}`))
+        .filter(Boolean)
+        .map(m => {
+          const senderId = m.relationships?.sender?.data?.id;
+          const sender = byKey.get(`user/${senderId}`);
+          return {
+            id: m.id,
+            content: m.attributes?.content || '',
+            createdAt: m.attributes?.createdAt,
+            senderId,
+            senderName: sender?.attributes?.profile?.displayName || '',
+            role: senderId === customerId ? 'kupujący' : 'sprzedający',
+          };
+        })
+        .sort((a, b) => (a.createdAt || '').localeCompare(b.createdAt || ''))
+        .slice(-200);
+      const listing = byKey.get(`listing/${rel.listing?.data?.id}`);
+      res.status(200).json({
+        data: { listingTitle: listing?.attributes?.title || '', lastTransition: shown.data?.attributes?.lastTransition, messages },
+      });
+    })
+    .catch(e => handleError(res, e));
+};
+
 module.exports = {
+  getConversation,
   getStatus,
   getPanel,
   listingAction,

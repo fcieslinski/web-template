@@ -511,3 +511,15 @@
     margin-top: 16px;
   }
 }
+
+/* Refume: "Zgłoś rozmowę" under the message box */
+.refumeReportConversation {
+  display: flex;
+  justify-content: flex-end;
+  margin: 4px 24px 0 24px;
+  font-size: 13px;
+
+  @media (--viewportMedium) {
+    margin: 4px 0 0 0;
+  }
+}

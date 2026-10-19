@@ -19,6 +19,14 @@ const REASONS = {
     ['spam', 'Spam lub powielona oferta'],
     ['inne', 'Inne'],
   ],
+  rozmowa: [
+    ['kontakt', 'Namawia do kontaktu lub płatności poza Refume'],
+    ['phishing', 'Podejrzany link lub prośba o dane (karta, BLIK, login)'],
+    ['oszustwo', 'Próba oszustwa'],
+    ['zachowanie', 'Obraźliwe zachowanie'],
+    ['spam', 'Spam'],
+    ['inne', 'Inne'],
+  ],
   uzytkownik: [
     ['oszustwo', 'Oszustwo lub płatność poza Refume'],
     ['podrobka', 'Sprzedaje podróbki'],
@@ -46,8 +54,8 @@ const FlagIcon = () => (
  * the moderators; the reported person never learns who reported them.
  *
  * @param {Object} props
- * @param {'oferta'|'uzytkownik'} props.type
- * @param {string} props.targetId listing or user uuid
+ * @param {'oferta'|'uzytkownik'|'rozmowa'} props.type
+ * @param {string} props.targetId listing, user or transaction uuid
  */
 const ReportButton = props => {
   const { type, targetId, className } = props;
@@ -69,7 +77,8 @@ const ReportButton = props => {
   }, [open]);
 
   if (!targetId) return null;
-  const label = type === 'oferta' ? 'Zgłoś ofertę' : 'Zgłoś użytkownika';
+  const label =
+    type === 'oferta' ? 'Zgłoś ofertę' : type === 'rozmowa' ? 'Zgłoś rozmowę' : 'Zgłoś użytkownika';
 
   const onOpen = () => {
     if (!isLoggedIn) {
@@ -115,8 +124,9 @@ const ReportButton = props => {
                   Dziękujemy za zgłoszenie
                 </h2>
                 <p className={css.text}>
-                  Moderator Refume je sprawdzi. Dostaniesz wiadomość w skrzynce, gdy podejmiemy
-                  decyzję. Zgłaszana osoba nie dowie się, kto zgłosił.
+                  Moderator Refume je sprawdzi{type === 'rozmowa' ? ' (zobaczy tylko tę rozmowę)' : ''}.
+                  Dostaniesz wiadomość w skrzynce, gdy podejmiemy decyzję. Zgłaszana osoba nie
+                  dowie się, kto zgłosił.
                 </p>
                 <button type="button" className={css.primary} onClick={() => setOpen(false)}>
                   Zamknij

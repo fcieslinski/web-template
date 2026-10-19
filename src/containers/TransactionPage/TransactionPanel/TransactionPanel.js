@@ -20,6 +20,8 @@ import FeedSection from './FeedSection';
 import DiminishedActionButtonMaybe from './DiminishedActionButtonMaybe';
 import PanelHeading from './PanelHeading';
 
+import ReportButton from '../../../components/ReportButton/ReportButton';
+
 import css from './TransactionPanel.module.css';
 
 // Helper function to get display names for different roles
@@ -292,6 +294,11 @@ export class TransactionPanelComponent extends Component {
                 <FormattedMessage id="TransactionPanel.sendingMessageNotAllowed" />
               </div>
             )}
+            {this.props.transactionId?.uuid ? (
+              <div className={css.refumeReportConversation}>
+                <ReportButton type="rozmowa" targetId={this.props.transactionId.uuid} />
+              </div>
+            ) : null}
 
             {stateData.showActionButtons ? (
               <>

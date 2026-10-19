@@ -10,6 +10,9 @@ import { Avatar } from '../../../components';
 
 import { FileAttachmentList } from '../FileAttachments/FileAttachments';
 
+import { detectChatRisks } from '../../../util/refumeChatSafety';
+import ChatSafetyNotice from '../../../components/ChatSafetyNotice/ChatSafetyNotice';
+
 import css from './Message.module.css';
 
 const MIN_LENGTH_FOR_LONG_WORDS = 20;
@@ -67,7 +70,14 @@ export const Message = props => {
     marketplaceName,
   } = props;
 
-  const content = getMessageContent(message, transaction, intl);
+  // Refume: warn about contact/payment outside Refume; links to unknown sites aren't clickable
+  const risks = detectChatRisks(message?.attributes?.content);
+  const content = getMessageContent(
+    message,
+    transaction,
+    intl,
+    risks.links.length ? { linkify: false } : {}
+  );
 
   const hasPendingFiles = messageHasPendingFiles(message);
   const hasFailedFiles = messageHasFailedFiles(message);
@@ -98,6 +108,7 @@ export const Message = props => {
             </div>
           ) : null}
         </div>
+        <ChatSafetyNotice risks={risks} variant="incoming" />
         <p className={css.messageDate}>{formattedDate}</p>
       </div>
     </div>

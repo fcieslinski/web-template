@@ -9,7 +9,9 @@ import {
   moderateUser,
   undoProofDecision,
   resolveReport,
+  fetchReportedConversation,
 } from '../../util/api';
+import { detectChatRisks } from '../../util/refumeChatSafety';
 import { Page, LayoutSingleColumn, NamedLink } from '../../components';
 import TopbarContainer from '../TopbarContainer/TopbarContainer';
 import FooterContainer from '../FooterContainer/FooterContainer';
@@ -361,12 +363,60 @@ const NewListingCard = ({ item, onChanged, openImage }) => {
 
 // ---------- Reports ----------
 
+const Conversation = ({ txId }) => {
+  const [state, setState] = useState({ loading: true });
+  useEffect(() => {
+    let cancelled = false;
+    fetchReportedConversation(txId)
+      .then(r => !cancelled && setState({ data: r?.data }))
+      .catch(e => !cancelled && setState({ error: errorMessage(e) }));
+    return () => {
+      cancelled = true;
+    };
+  }, [txId]);
+  if (state.loading) return <p className={css.muted}>Ładowanie rozmowy…</p>;
+  if (state.error) return <ErrorLine error={state.error} />;
+  const messages = state.data?.messages || [];
+  return (
+    <div className={css.conversation}>
+      <p className={css.metaSmall}>
+        {state.data?.listingTitle ? `Oferta: ${state.data.listingTitle} · ` : ''}
+        {messages.length} wiadomości. Wiadomości z ostrzeżeniem są podświetlone.
+      </p>
+      <ol className={css.messages}>
+        {messages.map(m => {
+          const flagged = detectChatRisks(m.content).any;
+          return (
+            <li key={m.id} className={classNames(css.chatMessage, { [css.chatFlagged]: flagged })}>
+              <span className={css.chatMeta}>
+                <strong>{m.senderName || '—'}</strong> ({m.role}) · {formatDate(m.createdAt)}
+              </span>
+              <span className={css.chatText}>{m.content}</span>
+            </li>
+          );
+        })}
+      </ol>
+    </div>
+  );
+};
+
 const ReportCard = ({ item, onChanged, openImage }) => {
   const [mode, setMode] = useState(null);
   const { busy, error, run } = useAction(onChanged);
   const isOpen = item.status === 'nowe';
-  const targetUserId = item.typ === 'uzytkownik' ? item.celId : item.listing?.author?.id;
-  const targetUserName = item.typ === 'uzytkownik' ? item.celNazwa : item.listing?.author?.name;
+  const [showChat, setShowChat] = useState(false);
+  const targetUserId =
+    item.typ === 'uzytkownik'
+      ? item.celId
+      : item.typ === 'rozmowa'
+      ? item.celUzytkownikId
+      : item.listing?.author?.id;
+  const targetUserName =
+    item.typ === 'uzytkownik'
+      ? item.celNazwa
+      : item.typ === 'rozmowa'
+      ? 'tę osobę'
+      : item.listing?.author?.name;
   const resolve = action => run(() => resolveReport({ reporterId: item.reporterId, reportId: item.id, action }));
 
   return (
@@ -377,7 +427,8 @@ const ReportCard = ({ item, onChanged, openImage }) => {
         </span>
         <span className={css.reportReason}>{item.powodEtykieta || item.powod}</span>
         <span className={css.metaSmall}>
-          {item.typ === 'oferta' ? 'Oferta' : 'Użytkownik'} · zgłosił(a){' '}
+          {item.typ === 'oferta' ? 'Oferta' : item.typ === 'rozmowa' ? 'Rozmowa' : 'Użytkownik'} ·
+          zgłosił(a){' '}
           <NamedLink name="ProfilePage" params={{ id: item.reporterId }}>
             {item.reporterName || '—'}
           </NamedLink>{' '}
@@ -402,6 +453,21 @@ const ReportCard = ({ item, onChanged, openImage }) => {
             ) : (
               <p className={css.meta}>{item.celNazwa || 'Oferta'} (już nie istnieje)</p>
             )
+          ) : item.typ === 'rozmowa' ? (
+            <>
+              <span className={css.listingTitle}>{item.celNazwa || 'Rozmowa'}</span>
+              {item.celUzytkownikId ? (
+                <p className={css.meta}>
+                  Zgłoszona osoba:{' '}
+                  <NamedLink name="ProfilePage" params={{ id: item.celUzytkownikId }}>
+                    zobacz profil
+                  </NamedLink>
+                </p>
+              ) : null}
+              <button type="button" className={css.linkButton} onClick={() => setShowChat(v => !v)}>
+                {showChat ? 'Ukryj rozmowę' : 'Pokaż rozmowę'}
+              </button>
+            </>
           ) : (
             <NamedLink name="ProfilePage" params={{ id: item.celId }} className={css.listingTitle}>
               {item.celNazwa || 'Profil użytkownika'}
@@ -411,6 +477,7 @@ const ReportCard = ({ item, onChanged, openImage }) => {
           {!isOpen && item.decyzja ? <p className={css.metaSmall}>Notatka: {item.decyzja}</p> : null}
         </div>
       </div>
+      {item.typ === 'rozmowa' && showChat ? <Conversation txId={item.celId} /> : null}
 
       {isOpen ? (
         mode === 'hide' ? (
@@ -460,7 +527,7 @@ const ReportCard = ({ item, onChanged, openImage }) => {
             ) : null}
             {targetUserId ? (
               <button type="button" className={css.dangerLink} disabled={busy} onClick={() => setMode('block')}>
-                Zablokuj {item.typ === 'oferta' ? 'sprzedawcę' : 'użytkownika'}…
+                Zablokuj {item.typ === 'oferta' ? 'sprzedawcę' : 'tę osobę'}…
               </button>
             ) : null}
             <button type="button" className={css.approveButton} disabled={busy} onClick={() => resolve('rozpatrzone')}>

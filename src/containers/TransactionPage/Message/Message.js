@@ -68,10 +68,12 @@ export const Message = props => {
     downloadFile,
     fileDownloads,
     marketplaceName,
+    refumeSplitPhone,
   } = props;
 
   // Refume: warn about contact/payment outside Refume; links to unknown sites aren't clickable
-  const risks = detectChatRisks(message?.attributes?.content);
+  const detected = detectChatRisks(message?.attributes?.content);
+  const risks = refumeSplitPhone ? { ...detected, contact: true, any: true } : detected;
   const content = getMessageContent(
     message,
     transaction,

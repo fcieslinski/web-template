@@ -20,6 +20,7 @@ import { Message, OwnMessage } from '../Message/Message';
 
 import { stateDataShape } from '../TransactionPage.stateData';
 
+import { hasHiddenPhone } from '../../../util/refumeChatSafety';
 import css from './ActivityFeed.module.css';
 
 const { Money } = sdkTypes;
@@ -254,6 +255,23 @@ export const ActivityFeed = props => {
   const hideOldTransitions = hasOlderMessages || fetchMessagesInProgress;
   const items = organizedItems(messages, relevantTransitions, hideOldTransitions);
 
+  // Refume: a phone number split over several messages ("500", "234", "567"). For each
+  // message, join it with up to 3 earlier messages in a row from the same person.
+  const splitPhoneIds = new Set();
+  items.forEach((item, i) => {
+    if (!isMessage(item)) return;
+    const senderId = item.sender?.id?.uuid;
+    const parts = [item.attributes.content || ''];
+    for (let j = i - 1; j >= 0 && parts.length < 4; j--) {
+      const prev = items[j];
+      if (!isMessage(prev) || prev.sender?.id?.uuid !== senderId) break;
+      parts.unshift(prev.attributes.content || '');
+    }
+    if (parts.length > 1 && !hasHiddenPhone(parts[parts.length - 1]) && hasHiddenPhone(parts.join(' '))) {
+      splitPhoneIds.add(item.id.uuid);
+    }
+  });
+
   const messageListItem = message => {
     const formattedDate = formatDateWithProximity(message.attributes.createdAt, intl, todayString, {
       firstDayOfWeek: config.localization.firstDayOfWeek,
@@ -273,6 +291,7 @@ export const ActivityFeed = props => {
     ) : (
       <Message
         message={message}
+        refumeSplitPhone={splitPhoneIds.has(message.id.uuid)}
         formattedDate={formattedDate}
         transaction={transaction}
         intl={intl}

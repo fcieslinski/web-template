@@ -2,8 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 
 import { AvatarLarge, NamedLink } from '../../../components';
-import VerifiedProofBadge from '../../../components/VerifiedProofBadge/VerifiedProofBadge';
-import { getStanInfo } from '../../../components/ListingCard/ListingCard.refume';
 import { fetchSellerRating } from './refumeListingExtras.thunks';
 import StarRating from './StarRating';
 import SellerBadges from '../../../components/SellerBadges/SellerBadges';
@@ -19,7 +17,7 @@ const shorten = text => {
 
 /**
  * Refume: seller card in the right column of the listing page — avatar, name, rating,
- * short bio, the listing's badges and a contact button.
+ * short bio, seller badges and a contact button.
  */
 const SellerCard = props => {
   const { listing, isOwnListing, onContactUser } = props;
@@ -47,7 +45,6 @@ const SellerCard = props => {
   }
 
   const { displayName, bio } = author.attributes?.profile || {};
-  const stan = getStanInfo(listing?.attributes?.publicData);
   const shortBio = shorten(bio);
 
   return (
@@ -68,11 +65,6 @@ const SellerCard = props => {
       <SellerBadges userId={authorId.uuid} />
 
       {shortBio ? <p className={css.sellerBio}>{shortBio}</p> : null}
-
-      <div className={css.badges}>
-        <VerifiedProofBadge metadata={listing?.attributes?.metadata} />
-        {stan ? <span className={css.badge}>{stan.label}</span> : null}
-      </div>
 
       <div className={css.sellerActions}>
         {!isOwnListing ? (

@@ -493,3 +493,8 @@
   line-height: 18px;
   color: var(--colorGrey700);
 }
+
+/* Proof-of-purchase badge under the title (it's about the listing, not the seller) */
+.summaryVerified {
+  margin: 8px 0 6px 0;
+}

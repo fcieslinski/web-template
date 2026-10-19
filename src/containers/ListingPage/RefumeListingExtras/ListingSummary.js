@@ -5,6 +5,7 @@ import { NamedLink } from '../../../components';
 import FavoriteButton from '../../../components/FavoriteButton/FavoriteButton';
 import { timeAgoPl } from '../../../util/refumeTimeAgo';
 import { LikeCount, getViewStats, plural } from './ListingStats';
+import VerifiedProofBadge from '../../../components/VerifiedProofBadge/VerifiedProofBadge';
 
 import css from './RefumeListingExtras.module.css';
 
@@ -112,6 +113,10 @@ const ListingSummary = props => {
           </React.Fragment>
         ))}
       </p>
+      <VerifiedProofBadge
+        metadata={listing?.attributes?.metadata}
+        className={css.summaryVerified}
+      />
       {addedText || views > 0 ? (
         <p className={css.addedAt}>
           {addedText ? (

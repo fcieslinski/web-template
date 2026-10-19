@@ -62,6 +62,7 @@ import MoreListings from './RefumeListingExtras/MoreListings';
 import TrustBox from './RefumeListingExtras/TrustBox';
 import ListingSummary from './RefumeListingExtras/ListingSummary';
 import NotesSection from './RefumeListingExtras/NotesSection';
+import AiPerfumeSummary from './RefumeListingExtras/AiPerfumeSummary';
 import { ListingViewTracker, OwnerStatsPanel } from './RefumeListingExtras/ListingStats';
 import css from './ListingPage.module.css';
 
@@ -282,6 +283,7 @@ export const ListingPageComponent = props => {
               <ListingSummary listing={currentListing} config={config} />
             </div>
             {showDescription && <SectionText text={description} showAsIngress />}
+            <AiPerfumeSummary listing={currentListing} />
 
             <CustomListingFields
               publicData={publicData}

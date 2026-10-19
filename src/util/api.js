@@ -184,3 +184,7 @@ export const fetchSellerBadges = userId =>
 export const recomputeSellerBadges = body => post('/api/odznaki/przelicz', body);
 export const recordListingView = body => post('/api/statystyki/wyswietlenie', body);
 export const syncListingLike = body => post('/api/statystyki/polubienie', body);
+
+// Refume: AI perfume description ("O tym zapachu")
+export const fetchAiDescription = listingId =>
+  request(`/api/opis-ai?listingId=${encodeURIComponent(listingId)}`, { method: methods.GET });

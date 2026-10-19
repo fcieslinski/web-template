@@ -17,6 +17,7 @@ const { searchPerfumes } = require('./api/refume-perfumes');
 const { listRequests, notifyForListing } = require('./api/refume-requests');
 const { getBadges, recomputeForTransaction } = require('./api/refume-badges');
 const { recordView, syncLike } = require('./api/refume-stats');
+const { getAiDescription } = require('./api/refume-ai-description');
 const transactionLineItems = require('./api/transaction-line-items');
 const initiatePrivileged = require('./api/initiate-privileged');
 const transitionPrivileged = require('./api/transition-privileged');
@@ -75,6 +76,7 @@ router.get('/odznaki', getBadges);
 router.post('/odznaki/przelicz', recomputeForTransaction);
 router.post('/statystyki/wyswietlenie', recordView);
 router.post('/statystyki/polubienie', syncLike);
+router.get('/opis-ai', getAiDescription);
 
 // Create user with identity provider (e.g. Facebook or Google)
 // This endpoint is called to create a new user after user has confirmed

@@ -15,12 +15,8 @@
  */
 const fs = require('fs');
 const path = require('path');
-const { handleError } = require('../api-util/sdk');
-const {
-  isIntegrationApiConfigured,
-  showListing,
-  updateListing,
-} = require('../api-util/refumeIntegrationApi');
+const { getSdk } = require('../api-util/sdk');
+const { isIntegrationApiConfigured, updateListing } = require('../api-util/refumeIntegrationApi');
 const { aiInputOf, aiInputKey, hasEnoughForAi } = require('../api-util/refumeAiInput');
 const { findFragellaPerfume } = require('./refume-perfumes');
 
@@ -207,21 +203,25 @@ const generate = async prompt => {
 
 const running = new Map(); // key -> Promise
 
+const savedOnListing = new Set(); // listing ids whose metadata already has the current text
+
 const getAiDescription = (req, res) => {
   const listingId = String(req.query.listingId || '');
   Promise.resolve()
     .then(async () => {
       if (!UUID_RE.test(listingId)) throw httpError(400, 'Invalid listingId.');
-      if (!isIntegrationApiConfigured()) throw httpError(500, 'Integration API is not configured.');
 
-      const listing = (await showListing({ id: listingId })).data;
+      // Read through the Marketplace API (public data + metadata), so this doesn't use the
+      // Integration API rate limit on every page view.
+      const sdk = getSdk(req, res);
+      const listing = (await sdk.listings.show({ id: listingId })).data.data;
       if (!listing || listing.attributes.state !== 'published') {
-        return res.status(200).json({ data: null });
+        return res.status(200).json({ data: null, reason: 'not-published' });
       }
       const { title, publicData = {}, metadata = {} } = listing.attributes;
       const input = aiInputOf(publicData);
       if (!hasEnoughForAi(input)) {
-        return res.status(200).json({ data: null });
+        return res.status(200).json({ data: null, reason: 'too-few-notes' });
       }
       const key = aiInputKey(title, input);
       const saved = metadata[META_KEY];
@@ -233,7 +233,7 @@ const getAiDescription = (req, res) => {
       let result = readCache()[key];
       if (!result) {
         if (!process.env.GEMINI_API_KEY) {
-          return res.status(200).json({ data: null });
+          return res.status(200).json({ data: null, reason: 'no-key' });
         }
         if (!running.has(key)) {
           const job = findFragellaPerfume({
@@ -255,17 +255,24 @@ const getAiDescription = (req, res) => {
         result = await running.get(key);
       }
 
-      await updateListing({ id: listingId, metadata: { [META_KEY]: result } }).catch(e =>
-        console.error('[refume-ai] not saved on listing:', e.message)
-      );
+      // Save on the listing once (in the background), so next time it comes with the page
+      const savedKey = `${listingId}|${key}`;
+      if (!savedOnListing.has(savedKey) && isIntegrationApiConfigured()) {
+        savedOnListing.add(savedKey);
+        updateListing({ id: listingId, metadata: { [META_KEY]: result } }).catch(e => {
+          savedOnListing.delete(savedKey);
+          console.error('[refume-ai] not saved on listing:', e.message);
+        });
+      }
       res.status(200).json({ data: result });
     })
     .catch(e => {
-      if (e.status === 429 || (e.status && e.status >= 400 && !e.data)) {
-        console.error('[refume-ai] generation failed:', e.message);
-        return res.status(200).json({ data: null });
+      console.error(`[refume-ai] ${listingId}: ${e.status || ''} ${e.message}`);
+      if (e.status === 404) {
+        return res.status(200).json({ data: null, reason: 'not-found' });
       }
-      handleError(res, e);
+      // Never break the listing page because of the description
+      res.status(200).json({ data: null, reason: 'error' });
     });
 };
 

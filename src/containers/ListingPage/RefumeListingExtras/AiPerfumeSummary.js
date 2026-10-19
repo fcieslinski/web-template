@@ -36,13 +36,31 @@ const AiPerfumeSummary = props => {
   useEffect(() => {
     if (!uuid || !canHave || savedText) return;
     let cancelled = false;
+    let timer = null;
     setLoading(true);
-    fetchAiDescription(uuid)
-      .then(r => !cancelled && setFetched(r?.data?.tekst || null))
-      .catch(() => null)
-      .finally(() => !cancelled && setLoading(false));
+    // One retry: the server may be busy for a moment (e.g. restarting in development)
+    const load = attempt =>
+      fetchAiDescription(uuid)
+        .then(r => {
+          const tekst = r?.data?.tekst || null;
+          if (!tekst && r?.reason === 'error' && attempt === 0) throw new Error('retry');
+          if (!cancelled) {
+            setFetched(tekst);
+            setLoading(false);
+          }
+        })
+        .catch(() => {
+          if (cancelled) return;
+          if (attempt === 0) {
+            timer = setTimeout(() => load(1), 3000);
+          } else {
+            setLoading(false);
+          }
+        });
+    load(0);
     return () => {
       cancelled = true;
+      clearTimeout(timer);
     };
   }, [uuid, key, canHave, !!savedText]);
 

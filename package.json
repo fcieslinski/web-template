@@ -150,6 +150,11 @@
     "moment": "^2.30.1",
     "@babel/helper-compilation-targets/lru-cache": "5.1.1"
   },
+  "nodemonConfig": {
+    "ignore": [
+      "server/data/*"
+    ]
+  },
   "jest": {
     "roots": [
       "<rootDir>/src"

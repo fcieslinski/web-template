@@ -4,7 +4,7 @@ import { isFieldForListingType } from '../../../util/fieldHelpers';
 import { NamedLink } from '../../../components';
 import FavoriteButton from '../../../components/FavoriteButton/FavoriteButton';
 import { timeAgoPl } from '../../../util/refumeTimeAgo';
-import { LikeCount } from './ListingStats';
+import { LikeCount, getViewStats, plural } from './ListingStats';
 
 import css from './RefumeListingExtras.module.css';
 
@@ -74,6 +74,8 @@ const ListingSummary = props => {
   const brand = items.find(i => i.strong);
   const rest = items.filter(i => !i.strong);
 
+  const views = getViewStats(listing?.attributes?.metadata).total;
+
   // Relative time is computed in the browser only, so server and client render the same HTML
   const createdAt = listing?.attributes?.createdAt;
   const [addedText, setAddedText] = useState(null);
@@ -110,9 +112,21 @@ const ListingSummary = props => {
           </React.Fragment>
         ))}
       </p>
-      {addedText ? (
+      {addedText || views > 0 ? (
         <p className={css.addedAt}>
-          <time dateTime={new Date(createdAt).toISOString()}>Dodano {addedText}</time>
+          {addedText ? (
+            <time dateTime={new Date(createdAt).toISOString()}>Dodano {addedText}</time>
+          ) : null}
+          {addedText && views > 0 ? (
+            <span className={css.summaryDot} aria-hidden="true">
+              {' · '}
+            </span>
+          ) : null}
+          {views > 0 ? (
+            <span>
+              {views} {plural(views, 'wyświetlenie', 'wyświetlenia', 'wyświetleń')}
+            </span>
+          ) : null}
         </p>
       ) : null}
       </div>

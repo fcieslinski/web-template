@@ -29,7 +29,7 @@ export const getViewStats = metadata => {
 
 export const getLikeCount = metadata => metadata?.refumePolubienia?.n || 0;
 
-const plural = (n, one, few, many) => {
+export const plural = (n, one, few, many) => {
   if (n === 1) return one;
   const lastTwo = n % 100;
   const last = n % 10;

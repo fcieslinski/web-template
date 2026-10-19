@@ -496,5 +496,6 @@
 
 /* Proof-of-purchase badge under the title (it's about the listing, not the seller) */
 .summaryVerified {
+  width: fit-content;
   margin: 8px 0 6px 0;
 }

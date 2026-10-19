@@ -38,7 +38,6 @@ import {
 } from '../../transactions/transaction';
 
 import { ModalInMobile, PrimaryButton, AvatarSmall, H1, H2 } from '../../components';
-import VerifiedProofBadge from '../VerifiedProofBadge/VerifiedProofBadge';
 import PriceWithBuyerFee from '../RefumePrice/PriceWithBuyerFee';
 import { priceWithBuyerFee } from '../../util/refumeFee';
 import PriceVariantPicker from './PriceVariantPicker/PriceVariantPicker';
@@ -499,11 +498,6 @@ const OrderPanel = props => {
             </span>
           </div>
         )}
-
-        <VerifiedProofBadge
-          metadata={listing?.attributes?.metadata}
-          className={css.verifiedBadge}
-        />
 
         {showPriceMissing ? (
           <PriceMissing />

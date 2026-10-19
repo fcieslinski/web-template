@@ -63,6 +63,7 @@ import TrustBox from './RefumeListingExtras/TrustBox';
 import ListingSummary from './RefumeListingExtras/ListingSummary';
 import NotesSection from './RefumeListingExtras/NotesSection';
 import AiPerfumeSummary from './RefumeListingExtras/AiPerfumeSummary';
+import OwnerTips from './RefumeListingExtras/OwnerTips';
 import { ListingViewTracker, OwnerStatsPanel } from './RefumeListingExtras/ListingStats';
 import css from './ListingPage.module.css';
 
@@ -282,6 +283,8 @@ export const ListingPageComponent = props => {
               )}
               <ListingSummary listing={currentListing} config={config} />
             </div>
+            {isOwnListing ? <OwnerTips listing={currentListing} /> : null}
+
             {/* Refume: main column content in bordered, rounded cards */}
             <section className={css.refumeCard} aria-labelledby="listing-description-title">
               <h2 id="listing-description-title" className={css.refumeCardTitle}>

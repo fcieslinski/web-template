@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Form as FinalForm, Field } from 'react-final-form';
 import arrayMutators from 'final-form-arrays';
 import { useDispatch } from 'react-redux';
@@ -275,6 +275,16 @@ const RefumeListingEditor = props => {
   const routes = useRouteConfiguration();
   const [submitError, setSubmitError] = useState(null);
   const [proofFile, setProofFile] = useState(null);
+
+  // Links like "Dodaj dowód" open the editor at the proof-of-purchase section
+  useEffect(() => {
+    if (typeof window === 'undefined' || window.location.hash !== '#dowod-zakupu') return;
+    const timer = setTimeout(() => {
+      const el = document.getElementById('dowod-zakupu');
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [listing?.id?.uuid]);
   const [imageError, setImageError] = useState(null);
   // Steps: 0 photos, 1 what you sell, 2 details, 3 notes, 4 price & shipping
   // Sections appear one after another as the seller fills in the previous ones
@@ -769,7 +779,7 @@ const RefumeListingEditor = props => {
                 </div>
               </div>
 
-              <div className={css.proofBlock}>
+              <div className={css.proofBlock} id="dowod-zakupu">
                 <h3 className={css.subTitle}>
                   Dowód zakupu <span className={css.optional}>(opcjonalnie)</span>
                 </h3>

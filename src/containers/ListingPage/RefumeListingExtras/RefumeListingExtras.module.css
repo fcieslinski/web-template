@@ -584,3 +584,50 @@
     opacity: 0.45;
   }
 }
+
+/* Collapsed AI text: 3 lines, faded out, "Czytaj więcej" to expand */
+.aiTextWrap {
+  position: relative;
+}
+
+.aiTextCollapsed {
+  max-height: 78px; /* 3 lines × 26px */
+  overflow: hidden;
+}
+
+.aiFade {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 48px;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    var(--refumePlumSoft, hsl(330 35% 96%))
+  );
+  pointer-events: none;
+}
+
+.aiToggle {
+  margin-top: 4px;
+  padding: 2px 0;
+  border: 0;
+  background: none;
+  color: var(--marketplaceColor);
+  font: inherit;
+  font-size: 15px;
+  line-height: 22px;
+  font-weight: var(--fontWeightSemiBold);
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--marketplaceColor);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}

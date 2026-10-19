@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 import { fetchAiDescription } from '../../../util/api';
 import { aiInputOf, aiInputKey, hasEnoughForAi } from '../../../util/refumeAiInput';
@@ -30,6 +30,9 @@ const AiPerfumeSummary = props => {
 
   const [fetched, setFetched] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [expanded, setExpanded] = useState(false);
+  const [overflows, setOverflows] = useState(false);
+  const textRef = useRef(null);
 
   const canHave = state === 'published' && hasEnoughForAi(input);
 
@@ -65,6 +68,16 @@ const AiPerfumeSummary = props => {
   }, [uuid, key, canHave, !!savedText]);
 
   const text = savedText || fetched;
+
+  // Show the "Czytaj więcej" toggle only when the text is longer than the collapsed height
+  useEffect(() => {
+    const el = textRef.current;
+    if (!el) return;
+    const measure = () => setOverflows(el.scrollHeight > el.clientHeight + 2);
+    measure();
+    window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
+  }, [text, expanded]);
   if (!canHave || (!text && !loading)) {
     return null;
   }
@@ -75,7 +88,29 @@ const AiPerfumeSummary = props => {
         <SparkleIcon />O tym zapachu
       </h2>
       {text ? (
-        <p className={css.aiText}>{text}</p>
+        <div>
+          <div className={css.aiTextWrap}>
+          <p
+            id="ai-summary-text"
+            ref={textRef}
+            className={expanded ? css.aiText : `${css.aiText} ${css.aiTextCollapsed}`}
+          >
+            {text}
+          </p>
+          {!expanded && overflows ? <div className={css.aiFade} aria-hidden="true" /> : null}
+          </div>
+          {overflows || expanded ? (
+            <button
+              type="button"
+              className={css.aiToggle}
+              aria-expanded={expanded}
+              aria-controls="ai-summary-text"
+              onClick={() => setExpanded(v => !v)}
+            >
+              {expanded ? 'Zwiń' : 'Czytaj więcej'}
+            </button>
+          ) : null}
+        </div>
       ) : (
         <div className={css.aiSkeleton} aria-label="Przygotowujemy opis zapachu…">
           <span />

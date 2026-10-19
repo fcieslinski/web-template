@@ -3,6 +3,8 @@ import React from 'react';
 import { ListingCard, NamedLink } from '../../components';
 import RefumeCategoryBar from '../../components/RefumeCategoryBar/RefumeCategoryBar';
 
+import RecentlyViewed from '../../components/RecentlyViewed/RecentlyViewed';
+
 import css from './CatalogHome.module.css';
 
 // Quick filters shown as pills. Values match the "stan" listing field and the
@@ -117,6 +119,8 @@ const CatalogHome = props => {
             </p>
           )}
         </section>
+
+        <RecentlyViewed className={css.recentlyViewed} titleClassName={css.sectionTitle} />
       </div>
     </div>
   );

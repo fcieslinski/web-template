@@ -5,6 +5,7 @@ import { useConfiguration } from '../../../context/configurationContext';
 import { useIntl, FormattedMessage } from '../../../util/reactIntl';
 import {
   LISTING_STATE_DRAFT,
+  LISTING_STATE_PUBLISHED,
   LISTING_STATE_PENDING_APPROVAL,
   STOCK_MULTIPLE_ITEMS,
   propTypes,
@@ -252,6 +253,13 @@ export const ManageListingCard = props => {
           <div className={css.titleWrapper}>
             <LinkedListingTitle state={state} id={id} slug={slug} title={title} />
           </div>
+          {state === LISTING_STATE_PUBLISHED ? (
+            <p className={css.refumeStats}>
+              <span>Wyświetlenia: {currentListing.attributes.metadata?.refumeWyswietlenia?.n || 0}</span>
+              <span aria-hidden="true">·</span>
+              <span>Polubienia: {currentListing.attributes.metadata?.refumePolubienia?.n || 0}</span>
+            </p>
+          ) : null}
         </div>
 
         <div className={css.manageLinks}>

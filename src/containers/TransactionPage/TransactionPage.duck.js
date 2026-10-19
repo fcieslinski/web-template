@@ -11,7 +11,7 @@ import {
   stringifyDateToISO8601,
 } from '../../util/dates';
 import { isTransactionsTransitionInvalidTransition, storableError } from '../../util/errors';
-import { transactionLineItems, transitionPrivileged } from '../../util/api';
+import { transactionLineItems, transitionPrivileged, recomputeSellerBadges } from '../../util/api';
 import * as log from '../../util/log';
 import {
   updatedEntities,
@@ -412,8 +412,21 @@ export const makeTransitionThunk = createAsyncThunk(
 );
 
 // Backward compatible wrapper for makeTransition
+// Refume: order steps that change the seller's badges (shipping speed, completed sales)
+const BADGE_TRANSITIONS = [
+  'transition/mark-delivered',
+  'transition/mark-received',
+  'transition/mark-received-from-purchased',
+  'transition/dispute',
+];
+
 export const makeTransition = (txId, transitionName, params) => dispatch => {
-  return dispatch(makeTransitionThunk({ txId, transitionName, params }));
+  return dispatch(makeTransitionThunk({ txId, transitionName, params })).then(result => {
+    if (!result?.error && BADGE_TRANSITIONS.includes(transitionName)) {
+      recomputeSellerBadges({ txId }).catch(() => null);
+    }
+    return result;
+  });
 };
 
 ////////////////////

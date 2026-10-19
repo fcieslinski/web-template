@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { ListingCard, NamedLink } from '../../../components';
 import { getListingsById } from '../../../ducks/marketplaceData.duck';
 import { fetchListingIds } from './refumeListingExtras.thunks';
+import RecentlyViewed from '../../../components/RecentlyViewed/RecentlyViewed';
 
 import css from './RefumeListingExtras.module.css';
 
@@ -100,6 +101,11 @@ const MoreListings = props => {
         linkLabel="Wszystkie"
       />
       <ListingRow title="Podobne oferty" ids={similarOthers} />
+      <RecentlyViewed
+        excludeUuid={listingId?.uuid}
+        className={css.moreSection}
+        titleClassName={css.moreTitle}
+      />
     </div>
   );
 };

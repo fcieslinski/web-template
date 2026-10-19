@@ -4,6 +4,7 @@
  */
 import { useDispatch, useSelector } from 'react-redux';
 import { setCurrentUser } from './user.duck';
+import { syncListingLike } from '../util/api';
 
 export const FAVORITES_KEY = 'refumeUlubione';
 const MAX_FAVORITES = 500;
@@ -42,7 +43,11 @@ export const toggleFavorite = listingUuid => (dispatch, getState, sdk) => {
   dispatch(setCurrentUser(withFavorites(currentUser, after)));
   return sdk.currentUser
     .updateProfile({ privateData: { [FAVORITES_KEY]: after } })
-    .then(() => !isFavorite)
+    .then(() => {
+      // Listing like counter (server checks the saved favourites)
+      syncListingLike({ listingId: listingUuid }).catch(() => null);
+      return !isFavorite;
+    })
     .catch(e => {
       const latest = getState().user?.currentUser;
       if (latest?.id) {

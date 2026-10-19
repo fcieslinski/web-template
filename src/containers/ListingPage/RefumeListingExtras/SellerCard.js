@@ -6,6 +6,7 @@ import VerifiedProofBadge from '../../../components/VerifiedProofBadge/VerifiedP
 import { getStanInfo } from '../../../components/ListingCard/ListingCard.refume';
 import { fetchSellerRating } from './refumeListingExtras.thunks';
 import StarRating from './StarRating';
+import SellerBadges from '../../../components/SellerBadges/SellerBadges';
 
 import css from './RefumeListingExtras.module.css';
 
@@ -63,6 +64,8 @@ const SellerCard = props => {
           {rating ? <StarRating average={rating.average} count={rating.count} /> : null}
         </div>
       </div>
+
+      <SellerBadges userId={authorId.uuid} />
 
       {shortBio ? <p className={css.sellerBio}>{shortBio}</p> : null}
 

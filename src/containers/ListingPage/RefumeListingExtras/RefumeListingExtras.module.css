@@ -396,3 +396,100 @@
   line-height: 20px;
   font-weight: var(--fontWeightSemiBold);
 }
+
+/* ---------- Likes next to the heart ---------- */
+.favoriteWrap {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: -6px;
+}
+
+.favoriteWrap .summaryFavorite {
+  margin-top: 0;
+}
+
+.likeCount {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: var(--fontWeightSemiBold);
+  color: var(--colorGrey700);
+  font-variant-numeric: tabular-nums;
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* ---------- Owner statistics ---------- */
+.statsPanel {
+  composes: sellerCard;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+
+.statItem {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px;
+  border-radius: 8px;
+  background-color: var(--colorGrey50);
+}
+
+.statLabel {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  line-height: 16px;
+  color: var(--colorGrey700);
+}
+
+.statValue {
+  margin: 0;
+  font-size: 22px;
+  line-height: 28px;
+  font-weight: var(--fontWeightBold);
+  color: var(--colorGrey900);
+  font-variant-numeric: tabular-nums;
+}
+
+.statIcon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.statsChart {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 56px;
+}
+
+.statsBar {
+  flex: 1;
+  min-height: 3px;
+  border-radius: 3px 3px 0 0;
+  background-color: var(--marketplaceColor);
+  opacity: 0.75;
+}
+
+.statsNote {
+  margin: 0;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--colorGrey700);
+}

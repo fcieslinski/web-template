@@ -49,6 +49,7 @@ import {
 import TopbarContainer from '../../containers/TopbarContainer/TopbarContainer';
 import FooterContainer from '../../containers/FooterContainer/FooterContainer';
 import NotFoundPage from '../../containers/NotFoundPage/NotFoundPage';
+import SellerBadges from '../../components/SellerBadges/SellerBadges';
 
 import css from './ProfilePage.module.css';
 
@@ -261,6 +262,7 @@ export const MainContent = props => {
     intl,
     hideReviews,
     userTypeRoles,
+    refumeUserId,
   } = props;
 
   const hasListings = listings.length > 0;
@@ -293,6 +295,7 @@ export const MainContent = props => {
       <H2 as="h1" className={css.desktopHeading}>
         <FormattedMessage id="ProfilePage.desktopHeading" values={{ name: displayName }} />
       </H2>
+      {refumeUserId ? <SellerBadges userId={refumeUserId} className={css.refumeBadges} /> : null}
       {hasBio ? <p className={css.bio}>{bioWithLinks}</p> : null}
 
       {displayName ? (
@@ -486,6 +489,7 @@ export const ProfilePageComponent = props => {
           hideReviews={hasNoViewingRightsOnPrivateMarketplace}
           intl={intl}
           userTypeRoles={userTypeRoles}
+          refumeUserId={profileUser?.id?.uuid}
           {...rest}
         />
       </LayoutSideNavigation>

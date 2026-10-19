@@ -4,6 +4,7 @@ import { isFieldForListingType } from '../../../util/fieldHelpers';
 import { NamedLink } from '../../../components';
 import FavoriteButton from '../../../components/FavoriteButton/FavoriteButton';
 import { timeAgoPl } from '../../../util/refumeTimeAgo';
+import { LikeCount } from './ListingStats';
 
 import css from './RefumeListingExtras.module.css';
 
@@ -116,11 +117,14 @@ const ListingSummary = props => {
       ) : null}
       </div>
       {showFavorite ? (
-        <FavoriteButton
-          listingUuid={listing?.id?.uuid}
-          title={listing?.attributes?.title}
-          className={css.summaryFavorite}
-        />
+        <div className={css.favoriteWrap}>
+          <LikeCount listing={listing} />
+          <FavoriteButton
+            listingUuid={listing?.id?.uuid}
+            title={listing?.attributes?.title}
+            className={css.summaryFavorite}
+          />
+        </div>
       ) : null}
     </div>
   );

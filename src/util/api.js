@@ -177,3 +177,10 @@ export const searchPerfumes = q =>
 // Refume: "Poszukiwane" (perfumes people are waiting for)
 export const fetchScentRequests = () => request('/api/poszukiwane', { method: methods.GET });
 export const notifyScentRequests = body => post('/api/poszukiwane/powiadom', body);
+
+// Refume: seller badges and listing statistics
+export const fetchSellerBadges = userId =>
+  request(`/api/odznaki?userId=${encodeURIComponent(userId)}`, { method: methods.GET });
+export const recomputeSellerBadges = body => post('/api/odznaki/przelicz', body);
+export const recordListingView = body => post('/api/statystyki/wyswietlenie', body);
+export const syncListingLike = body => post('/api/statystyki/polubienie', body);

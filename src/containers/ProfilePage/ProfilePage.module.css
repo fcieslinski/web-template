@@ -334,3 +334,9 @@
     margin-bottom: 24px;
   }
 }
+
+/* Refume: seller badges under the name */
+.refumeBadges {
+  margin: 8px 0 16px 0;
+  max-width: 560px;
+}

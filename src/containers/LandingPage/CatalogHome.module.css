@@ -191,3 +191,8 @@
 .empty {
   color: var(--colorGrey700);
 }
+
+/* Refume: "Ostatnio oglądane" under the newest listings */
+.recentlyViewed {
+  margin-top: 48px;
+}

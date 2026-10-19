@@ -1,0 +1,70 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 4px 12px 4px 10px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: var(--fontWeightSemiBold);
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid var(--marketplaceColor);
+    outline-offset: 2px;
+  }
+}
+
+.bolt {
+  background-color: hsl(45 100% 92%);
+  color: hsl(35 80% 26%);
+
+  &:hover,
+  &.chipOpen {
+    border-color: hsl(40 70% 60%);
+  }
+}
+
+.star {
+  background-color: hsl(330 45% 94%);
+  color: hsl(330 50% 30%);
+
+  &:hover,
+  &.chipOpen {
+    border-color: hsl(330 40% 65%);
+  }
+}
+
+.icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.description {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background-color: var(--colorGrey50);
+  color: var(--colorGrey700);
+  font-size: 14px;
+  line-height: 20px;
+}

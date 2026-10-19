@@ -62,6 +62,7 @@ import MoreListings from './RefumeListingExtras/MoreListings';
 import TrustBox from './RefumeListingExtras/TrustBox';
 import ListingSummary from './RefumeListingExtras/ListingSummary';
 import NotesSection from './RefumeListingExtras/NotesSection';
+import { ListingViewTracker, OwnerStatsPanel } from './RefumeListingExtras/ListingStats';
 import css from './ListingPage.module.css';
 
 const MIN_LENGTH_FOR_LONG_WORDS_IN_TITLE = 16;
@@ -358,6 +359,7 @@ export const ListingPageComponent = props => {
               marketplaceName={config.marketplaceName}
               showListingImage={showListingImage}
             />
+            {isOwnListing ? <OwnerStatsPanel listing={currentListing} /> : null}
             <SellerCard
               listing={currentListing}
               isOwnListing={isOwnListing}
@@ -366,6 +368,7 @@ export const ListingPageComponent = props => {
             <TrustBox />
           </div>
         </div>
+        <ListingViewTracker listing={currentListing} isOwnListing={isOwnListing} />
         <MoreListings
           listing={currentListing}
           listingImageConfig={config.layout.listingImage}

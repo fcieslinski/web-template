@@ -15,6 +15,8 @@ const loginAs = require('./api/login-as');
 const { makeOffer, respondToOffer } = require('./api/refume-offers');
 const { searchPerfumes } = require('./api/refume-perfumes');
 const { listRequests, notifyForListing } = require('./api/refume-requests');
+const { getBadges, recomputeForTransaction } = require('./api/refume-badges');
+const { recordView, syncLike } = require('./api/refume-stats');
 const transactionLineItems = require('./api/transaction-line-items');
 const initiatePrivileged = require('./api/initiate-privileged');
 const transitionPrivileged = require('./api/transition-privileged');
@@ -69,6 +71,10 @@ router.post('/oferty/odpowiedz', respondToOffer);
 router.get('/perfumy', searchPerfumes);
 router.get('/poszukiwane', listRequests);
 router.post('/poszukiwane/powiadom', notifyForListing);
+router.get('/odznaki', getBadges);
+router.post('/odznaki/przelicz', recomputeForTransaction);
+router.post('/statystyki/wyswietlenie', recordView);
+router.post('/statystyki/polubienie', syncLike);
 
 // Create user with identity provider (e.g. Facebook or Google)
 // This endpoint is called to create a new user after user has confirmed

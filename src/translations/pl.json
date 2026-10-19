@@ -1463,7 +1463,7 @@
   "TransactionPage.default-purchase.provider.inquiry.title": "Klient {customerName} zapytał o Twoją ofertę.",
   "TransactionPage.default-purchase.provider.payment-expired.title": "Płatność nie została potwierdzona na czas.",
   "TransactionPage.default-purchase.provider.pending-payment.title": "Płatność nie została jeszcze potwierdzona.",
-  "TransactionPage.default-purchase.provider.purchased.title": "Klient {customerName} złożył zamówienie.",
+  "TransactionPage.default-purchase.provider.purchased.title": "Klient {customerName} złożył zamówienie. Nadaj paczkę w ciągu 24 godzin i potwierdź wysyłkę, żeby zdobyć odznakę „Szybka wysyłka”.",
   "TransactionPage.default-purchase.provider.received.title": "Klient {customerName} odebrał zamówienie!",
   "TransactionPage.default-purchase.provider.reviewed-by-customer.title": "Klient {customerName} odebrał zamówienie!",
   "TransactionPage.default-purchase.provider.reviewed-by-provider.title": "Klient {customerName} odebrał zamówienie!",

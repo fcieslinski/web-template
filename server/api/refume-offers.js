@@ -2,7 +2,7 @@
  * Refume: price offers in the buyer–seller chat (see server/api-util/refumeOffers.js).
  *
  * POST /api/oferty/zloz       { listingId, amount }                 buyer makes an offer
- * POST /api/oferty/odpowiedz  { transactionId, action, amount? }     accept | reject | counter
+ * POST /api/oferty/odpowiedz  { transactionId, action, amount? }     accept | reject | counter | propose
  *
  * Both sides act as themselves through the Marketplace API (their session cookie);
  * only the offer list in transaction metadata is written with the Integration API.
@@ -46,6 +46,8 @@ const offerMessage = (type, amount) => {
       return `💬 Propozycja ceny: ${formatPln(amount)}`;
     case 'counter':
       return `💬 Kontroferta: ${formatPln(amount)}`;
+    case 'propose':
+      return `💬 Propozycja ceny: ${formatPln(amount)}`;
     case 'accept':
       return `✅ Propozycja ${formatPln(amount)} zaakceptowana. Kupujący może teraz kupić za tę cenę (ważne ${ACCEPTED_OFFER_VALID_HOURS} h).`;
     case 'reject':
@@ -143,7 +145,7 @@ const respondToOffer = (req, res) => {
   Promise.resolve()
     .then(async () => {
       requireConfigured();
-      if (!uuidOf(transactionId) || !['accept', 'reject', 'counter'].includes(action)) {
+      if (!uuidOf(transactionId) || !['accept', 'reject', 'counter', 'propose'].includes(action)) {
         throw httpError(400, 'Invalid request.');
       }
       const [userRes, txRes] = await Promise.all([
@@ -170,7 +172,7 @@ const respondToOffer = (req, res) => {
       }
 
       const price = listing?.attributes?.price;
-      if (action === 'counter') {
+      if (action === 'counter' || action === 'propose') {
         const amountError = validateOfferAmount(amount, price);
         if (amountError) {
           throw httpError(400, amountError);
@@ -185,7 +187,7 @@ const respondToOffer = (req, res) => {
         currency: price?.currency,
       });
       const answered = existing[existing.length - 1];
-      const messageAmount = action === 'counter' ? amount : answered.amount;
+      const messageAmount = action === 'counter' || action === 'propose' ? amount : answered.amount;
       await saveOffersAndNotify(sdk, transaction.id, offers, action, messageAmount);
       res.status(200).json({ data: { transactionId: transaction.id.uuid, offers } });
     })

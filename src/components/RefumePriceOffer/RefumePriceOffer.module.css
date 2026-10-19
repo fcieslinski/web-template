@@ -126,3 +126,8 @@
   font-size: 13px;
   color: var(--colorGrey700);
 }
+
+/* "Zaproponuj cenę" again after a rejected or expired offer */
+.proposeAgain {
+  margin-top: 10px;
+}

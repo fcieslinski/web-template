@@ -96,7 +96,7 @@ const applyOfferAction = (offers, action) => {
   const last = offers.length ? offers[offers.length - 1] : null;
   const lastIsPending = last?.status === 'pending';
 
-  if (offers.length >= MAX_OFFERS && ['offer', 'counter'].includes(type)) {
+  if (offers.length >= MAX_OFFERS && ['offer', 'counter', 'propose'].includes(type)) {
     fail('Too many offers in this conversation.');
   }
 
@@ -104,6 +104,12 @@ const applyOfferAction = (offers, action) => {
     case 'offer': {
       // A buyer starts (or restarts) negotiation when nothing is pending.
       if (role !== 'customer') fail('Only the buyer can start an offer.');
+      if (lastIsPending) fail('An offer is already waiting for an answer.');
+      return [...offers, { by: role, amount, currency, status: 'pending', createdAt: now }];
+    }
+    case 'propose': {
+      // Either side proposes a price in an existing conversation when nothing is pending
+      // (the seller can offer a discount, the buyer can make or renew an offer).
       if (lastIsPending) fail('An offer is already waiting for an answer.');
       return [...offers, { by: role, amount, currency, status: 'pending', createdAt: now }];
     }

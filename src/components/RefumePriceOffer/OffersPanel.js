@@ -46,17 +46,21 @@ const OffersPanel = props => {
   const [error, setError] = useState(null);
   const [inProgress, setInProgress] = useState(false);
 
+  const [proposing, setProposing] = useState(false);
+
   const metadata = transaction?.attributes?.metadata;
   const offers = getOffers(metadata);
   const last = getLastOffer(metadata);
   const price = listing?.attributes?.price;
-  if (!last || !price) {
+  if (!price) {
     return null;
   }
 
-  const isMine = last.by === role;
-  const canAnswer = last.status === 'pending' && !isMine;
+  const isMine = last?.by === role;
+  const canAnswer = last?.status === 'pending' && !isMine;
   const acceptedValid = isAcceptedOfferValid(last);
+  // Anyone can propose a price when nothing is waiting for an answer
+  const canPropose = !last || (last.status !== 'pending' && !acceptedValid);
 
   const send = (action, amount) => {
     setInProgress(true);
@@ -64,6 +68,7 @@ const OffersPanel = props => {
     respondToPriceOffer({ transactionId: transaction.id, action, amount })
       .then(() => {
         setCountering(false);
+        setProposing(false);
         setValue('');
         setInProgress(false);
         onChanged && onChanged();
@@ -84,6 +89,89 @@ const OffersPanel = props => {
     }
     send('counter', amount);
   };
+
+  const handlePropose = e => {
+    e.preventDefault();
+    const amount = parsePlnToSubunits(value);
+    const validation = validateOfferInput(amount, price.amount);
+    if (validation) {
+      setError(validation);
+      return;
+    }
+    send('propose', amount);
+  };
+
+  const proposeLabel = role === 'provider' ? 'Zaproponuj niższą cenę' : 'Zaproponuj cenę';
+  const proposeId = `propose-${transaction.id.uuid}`;
+  const proposeBlock = proposing ? (
+    <form className={css.form} onSubmit={handlePropose}>
+      <label htmlFor={proposeId} className={css.label}>
+        {role === 'provider' ? 'Cena dla tego kupującego' : 'Twoja propozycja'} (cena w ofercie:{' '}
+        {formatPln(price.amount)})
+      </label>
+      <div className={css.inputRow}>
+        <input
+          id={proposeId}
+          className={css.input}
+          inputMode="decimal"
+          autoComplete="off"
+          autoFocus
+          value={value}
+          onChange={e => setValue(e.target.value)}
+        />
+        <span className={css.suffix}>zł</span>
+      </div>
+      <div className={css.buttons}>
+        <button type="submit" className={css.primary} disabled={inProgress}>
+          Wyślij propozycję
+        </button>
+        <button
+          type="button"
+          className={css.secondary}
+          disabled={inProgress}
+          onClick={() => {
+            setProposing(false);
+            setError(null);
+          }}
+        >
+          Anuluj
+        </button>
+      </div>
+    </form>
+  ) : (
+    <button
+      type="button"
+      className={css.secondary}
+      disabled={inProgress}
+      onClick={() => {
+        setValue('');
+        setError(null);
+        setProposing(true);
+      }}
+    >
+      {proposeLabel}
+    </button>
+  );
+
+  // No offer yet: just the button
+  if (!last) {
+    return (
+      <section className={css.panel} aria-label="Propozycja ceny">
+        <p className={css.panelTitle}>Negocjacja ceny</p>
+        <p className={css.statusText}>
+          {role === 'provider'
+            ? 'Możesz zaproponować kupującemu niższą cenę.'
+            : `Cena w ofercie: ${formatPln(price.amount)}. Zaproponuj swoją.`}
+        </p>
+        {proposeBlock}
+        {error ? (
+          <p className={css.error} role="alert">
+            {error}
+          </p>
+        ) : null}
+      </section>
+    );
+  }
 
   const who = isMine ? 'Twoja propozycja' : role === 'customer' ? 'Propozycja sprzedawcy' : 'Propozycja kupującego';
 
@@ -175,6 +263,8 @@ const OffersPanel = props => {
           </div>
         </form>
       ) : null}
+
+      {canPropose ? <div className={css.proposeAgain}>{proposeBlock}</div> : null}
 
       {error ? (
         <p className={css.error} role="alert">

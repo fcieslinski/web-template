@@ -66,7 +66,7 @@ const AiPerfumeSummary = props => {
         </div>
       )}
       <p className={css.aiNote}>
-        Opis wygenerowany automatycznie na podstawie nut zapachowych. Może zawierać nieścisłości.
+        Opis wygenerowany automatycznie na podstawie danych o zapachu i ocen społeczności. Może zawierać nieścisłości.
       </p>
     </section>
   );

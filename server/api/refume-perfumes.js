@@ -77,12 +77,33 @@ const simplify = f => ({
     base: toNoteList(f.Notes?.Base),
     general: toNoteList(f['General Notes']),
   },
+  // Community data, used by the AI description ("O tym zapachu")
+  facts: {
+    perfumers: f.perfumers || '',
+    rating: f.rating || '',
+    longevity: f.Longevity || '',
+    sillage: f.Sillage || '',
+    popularity: f.Popularity || '',
+    seasons: topRanked(f['Season Ranking']),
+    occasions: topRanked(f['Occasion Ranking']),
+  },
 });
 
-const searchFragella = async query => {
+// Two best-scored names from a ranking: [{ name, score }] → ['spring', 'summer']
+function topRanked(list) {
+  return Array.isArray(list)
+    ? list
+        .filter(r => r && r.name && Number.isFinite(Number(r.score)))
+        .sort((a, b) => Number(b.score) - Number(a.score))
+        .slice(0, 2)
+        .map(r => String(r.name))
+    : [];
+}
+
+const searchFragella = async (query, { force = false } = {}) => {
   const key = query.toLowerCase();
   const hit = cache.get(key);
-  if (hit && Date.now() - hit.at < CACHE_TTL_MS) {
+  if (!force && hit && Date.now() - hit.at < CACHE_TTL_MS) {
     return hit.data;
   }
   const url = `${BASE_URL}/fragrances?search=${encodeURIComponent(query)}&limit=10`;
@@ -183,4 +204,30 @@ const searchPerfumes = (req, res) => {
     .catch(e => handleError(res, e));
 };
 
-module.exports = { searchPerfumes, simplify };
+/**
+ * Fragella data of one perfume for the AI description: from the cache by id, otherwise one
+ * search by name (cached like any other search). Returns null when not found.
+ */
+const findFragellaPerfume = async ({ fragellaId, query, title }) => {
+  const byId = item => fragellaId && item.id === fragellaId;
+  let cachedWithoutFacts = null;
+  for (const { data } of cache.values()) {
+    const hit = (data || []).find(byId);
+    if (hit && hit.facts) return hit;
+    if (hit) cachedWithoutFacts = hit;
+  }
+  if (!process.env.FRAGELLA_API_KEY || !query) return cachedWithoutFacts;
+  // Results saved before community data was kept: ask Fragella again once
+  const results = await searchFragella(query, { force: !!cachedWithoutFacts }).catch(() => []);
+  const wanted = normalizeCatalogText(title || query);
+  return (
+    results.find(byId) ||
+    results.find(item => {
+      const name = normalizeCatalogText(item.name);
+      return name && ` ${wanted} `.includes(` ${name} `);
+    }) ||
+    null
+  );
+};
+
+module.exports = { searchPerfumes, simplify, findFragellaPerfume };

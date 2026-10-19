@@ -1,6 +1,8 @@
 /**
- * Refume: short AI description of a perfume ("O tym zapachu"), 3–4 sentences in Polish,
- * written only from the listing's brand, name, concentration, notes and accords.
+ * Refume: short AI description of a perfume ("O tym zapachu"), 3–4 sentences in Polish:
+ * what it is (year, perfumer, standing), how the notes work together, when to wear it and
+ * what users say. Based on the listing (brand, name, notes, accords) and Fragella community
+ * data (year, perfumer, rating, longevity, sillage, popularity, seasons, occasions).
  *
  * GET /api/opis-ai?listingId=…
  *
@@ -20,11 +22,12 @@ const {
   updateListing,
 } = require('../api-util/refumeIntegrationApi');
 const { aiInputOf, aiInputKey, hasEnoughForAi } = require('../api-util/refumeAiInput');
+const { findFragellaPerfume } = require('./refume-perfumes');
 
 const META_KEY = 'refumeOpisAI';
 const DEFAULT_MODELS = ['gemini-3.5-flash-lite', 'gemini-flash-latest'];
 const MAX_PER_MINUTE = 8; // stay well inside the free tier
-const MAX_LENGTH = 700;
+const MAX_LENGTH = 800;
 const CACHE_FILE = path.join(__dirname, '..', 'data', 'ai-descriptions.json');
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -83,22 +86,46 @@ const writeCache = (key, value) => {
 // ---------- Gemini ----------
 
 const SYSTEM_PROMPT = [
-  'Jesteś redaktorem polskiego serwisu z perfumami. Piszesz krótki, rzeczowy opis zapachu',
-  'dla kupujących na podstawie podanych danych.',
-  'Zasady:',
-  '- Dokładnie 3 albo 4 zdania, razem najwyżej 600 znaków, po polsku, zwykłym tekstem',
-  '  (bez nagłówków, list, cudzysłowów i emoji).',
-  '- Opisz charakter zapachu i jak się rozwija (otwarcie, serce, baza), komu i na jaką porę',
-  '  roku lub okazję może pasować.',
-  '- Opieraj się wyłącznie na podanych nutach i akordach. Nie wymyślaj faktów: nie podawaj',
-  '  trwałości, projekcji, roku premiery, perfumiarza, ceny ani porównań do innych perfum.',
-  '- Bez przesadnych zachwytów i słów typu „idealny”, „najlepszy”, „must-have”.',
-  '- Nie wspominaj o stanie flakonu, sprzedającym ani o tym, że to oferta.',
+  'Jesteś redaktorem polskiego serwisu z perfumami. Piszesz krótką notkę o perfumach dla',
+  'kupujących, konkretnie i ciekawie, jak w dobrym magazynie o zapachach.',
+  '',
+  'Struktura: 4 zdania, razem najwyżej 650 znaków, po polsku, zwykłym tekstem.',
+  '1. Czym jest ten zapach: rok premiery, perfumiarz i jego pozycja (np. klasyk, bestseller).',
+  '2. Kompozycja: jak połączenie konkretnych nut tworzy charakter zapachu',
+  '   (np. „połączenie bergamotki i ambroksanu daje…”).',
+  '3. Kiedy i dla kogo: pory roku i okazje.',
+  '4. Co mówią użytkownicy: odbiór na podstawie oceny społeczności, trwałości i projekcji',
+  '   (np. „Użytkownicy szczególnie doceniają jego trwałość…”).',
+  '',
+  'Zasady dotyczące faktów:',
+  '- Dane w sekcji „Dane” są sprawdzone, korzystaj z nich.',
+  '- Nagrody, historię powstania i ciekawostki dodawaj tylko wtedy, gdy to powszechnie znany',
+  '  fakt o bardzo znanym zapachu i masz co do niego pewność. W razie wątpliwości pomiń.',
+  '  Nigdy nie zgaduj lat, nazwisk ani nagród.',
+  '- Słów „kultowy” lub „ikoniczny” używaj tylko przy wysokiej popularności albo dla',
+  '  powszechnie uznanego klasyka.',
+  '- Jeśli brakuje danych do któregoś zdania, pomiń je zamiast zmyślać (wtedy 3 zdania).',
+  '- Nie podawaj ceny, nie porównuj z innymi perfumami, nie wspominaj o ofercie, sprzedającym,',
+  '  stanie flakonu ani o źródłach danych.',
+  '- Bez emoji, nagłówków, list, cudzysłowów wokół całego tekstu i wykrzykników.',
 ].join('\n');
 
-const buildPrompt = (title, input) => {
+const buildPrompt = (title, input, perfume) => {
   const list = ids => (ids.length ? ids.map(noteName).join(', ') : '—');
+  const f = perfume?.facts || {};
+  const facts = [
+    perfume?.year ? `Rok premiery: ${perfume.year}` : null,
+    f.perfumers ? `Perfumiarz: ${f.perfumers.replace(/;\s*/g, ', ')}` : null,
+    perfume?.gender ? `Dla: ${perfume.gender}` : null,
+    f.popularity ? `Popularność (dane społeczności, po angielsku): ${f.popularity}` : null,
+    f.rating ? `Średnia ocena społeczności: ${f.rating}/5` : null,
+    f.longevity ? `Trwałość wg użytkowników (po angielsku): ${f.longevity}` : null,
+    f.sillage ? `Projekcja wg użytkowników (po angielsku): ${f.sillage}` : null,
+    f.seasons?.length ? `Najlepsze pory roku (po angielsku): ${f.seasons.join(', ')}` : null,
+    f.occasions?.length ? `Najlepsze okazje (po angielsku): ${f.occasions.join(', ')}` : null,
+  ].filter(Boolean);
   return [
+    'Dane:',
     `Perfumy: ${title}`,
     input.marka ? `Marka: ${input.marka}` : null,
     input.stezenie ? `Stężenie: ${input.stezenie}` : null,
@@ -106,6 +133,7 @@ const buildPrompt = (title, input) => {
     `Nuty serca: ${list(input.nuty.serca)}`,
     `Nuty bazy: ${list(input.nuty.bazy)}`,
     `Główne akordy: ${input.akordy.length ? input.akordy.join(', ') : '—'}`,
+    ...facts,
   ]
     .filter(Boolean)
     .join('\n');
@@ -133,7 +161,7 @@ const callGemini = async (model, prompt) => {
       body: JSON.stringify({
         systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
         contents: [{ role: 'user', parts: [{ text: prompt }] }],
-        generationConfig: { temperature: 0.6, maxOutputTokens: 2048 },
+        generationConfig: { temperature: 0.5, maxOutputTokens: 2048 },
       }),
     }
   );
@@ -208,7 +236,13 @@ const getAiDescription = (req, res) => {
           return res.status(200).json({ data: null });
         }
         if (!running.has(key)) {
-          const job = generate(buildPrompt(title, input))
+          const job = findFragellaPerfume({
+            fragellaId: publicData.fragellaId,
+            query: title,
+            title,
+          })
+            .catch(() => null)
+            .then(perfume => generate(buildPrompt(title, input, perfume)))
             .then(({ text, model }) => {
               const value = { tekst: text, klucz: key, model, utworzono: new Date().toISOString() };
               writeCache(key, value);

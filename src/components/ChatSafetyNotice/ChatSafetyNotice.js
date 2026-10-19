@@ -30,15 +30,13 @@ const ChatSafetyNotice = props => {
 
   const lines = [];
   if (variant === 'outgoing') {
-    if (risks.payment) {
+    if (risks.contact || risks.payment) {
       lines.push(
-        'Płatności poza Refume (przelew, BLIK, inne aplikacje) nie są objęte Ochroną Kupującego. Kupujący płaci tylko przyciskiem „Kup teraz”.'
+        'Kontaktowanie się i płatności poza Refume są niezgodne z regulaminem. Naruszenia mogą skutkować blokadą konta.'
       );
     }
     if (risks.contact) {
-      lines.push(
-        'Nie podawaj numeru telefonu ani e-maila. Odbiorca zobaczy je zakryte, a wiadomość trafi do sprawdzenia przez moderatora.'
-      );
+      lines.push('Numer telefonu i e-mail będą u odbiorcy zakryte.');
     }
     if (risks.links.length) {
       lines.push('Linki do innych stron będą u odbiorcy nieaktywne.');
@@ -51,7 +49,7 @@ const ChatSafetyNotice = props => {
     }
     if (risks.contact || masked) {
       lines.push(
-        'Ukryliśmy dane kontaktowe z tej wiadomości. Rozmawiaj i płać przez Refume, tylko wtedy działa Ochrona Kupującego. Moderator został powiadomiony.'
+        'Ukryliśmy dane kontaktowe z tej wiadomości. Rozmawiaj i płać przez Refume, tylko wtedy działa Ochrona Kupującego.'
       );
     }
     if (risks.links.length) {

@@ -148,10 +148,22 @@
 
 /* Refume: own message with contact details */
 .ownMessageFlagged {
-  margin: 4px 0 0 auto;
+  margin: 6px 0 0 auto;
   max-width: 420px;
   font-size: 12px;
   line-height: 16px;
-  color: hsl(28 60% 30%);
+  font-weight: var(--fontWeightMedium);
+  color: hsl(0 65% 38%);
   text-align: right;
+}
+
+/* Own message with contact details or payment outside Refume: red */
+.ownMessageContentFlagged {
+  background-color: hsl(0 80% 96%);
+  border: 1.5px solid hsl(0 65% 50%);
+  color: hsl(0 65% 28%);
+
+  & a {
+    color: hsl(0 65% 28%);
+  }
 }

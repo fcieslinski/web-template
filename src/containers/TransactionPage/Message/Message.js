@@ -162,6 +162,7 @@ export const OwnMessage = props => {
 
   const bubbleClass = classNames(css.ownMessageContent, {
     [css.ownMessageContentUnverified]: isUnverified,
+    [css.ownMessageContentFlagged]: ownFlagged && !isUnverified,
   });
 
   return (
@@ -198,9 +199,9 @@ export const OwnMessage = props => {
         </p>
       ) : null}
       {ownFlagged ? (
-        <p className={css.ownMessageFlagged}>
-          Dane kontaktowe są ukryte u odbiorcy, a wiadomość została przekazana do sprawdzenia
-          moderatorowi.
+        <p className={css.ownMessageFlagged} role="note">
+          Kontaktowanie się i płatności poza Refume są niezgodne z regulaminem. Naruszenia mogą
+          skutkować blokadą konta. Dane kontaktowe są u odbiorcy zakryte.
         </p>
       ) : null}
       <p className={css.ownMessageDate}>{formattedDate}</p>

@@ -17,9 +17,9 @@
 
 .outgoing {
   margin: 8px 0 0 0;
-  border: 1px solid hsl(35 70% 82%);
-  background-color: hsl(42 100% 97%);
-  color: hsl(28 60% 26%);
+  border: 1px solid hsl(0 65% 80%);
+  background-color: hsl(0 80% 97%);
+  color: hsl(0 60% 32%);
 }
 
 .icon {

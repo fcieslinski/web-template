@@ -222,6 +222,31 @@ const organizedItems = (messages, transitions, hideOldTransitions) => {
  * @param {Object} [props.fileDownloads] - Map of file attachment uuid to download state
  * @returns {JSX.Element} The ActivityFeed component
  */
+
+// Refume: put team messages (transaction metadata) between chat items by date. When older
+// messages are not loaded yet, team messages older than the first shown item are left out.
+const itemDate = item =>
+  new Date(item?.attributes?.createdAt || item?.createdAt || 0).getTime();
+const withTeamMessages = (items, spor, hideOld) => {
+  const team = [
+    ...(Array.isArray(spor?.wiadomosci) ? spor.wiadomosci : []).map(m => ({
+      refumeTeam: true,
+      id: m.id,
+      at: m.at,
+      text: m.tresc,
+    })),
+    ...(spor?.decyzja
+      ? [{ refumeTeam: true, id: 'decyzja', at: spor.decyzja.at, text: spor.decyzja.uzasadnienie, decision: spor.decyzja.wynik }]
+      : []),
+  ].filter(t => t.at && t.text);
+  if (!team.length) return items;
+  const first = items.length ? itemDate(items[0]) : 0;
+  const shownTeam = hideOld ? team.filter(t => new Date(t.at).getTime() >= first) : team;
+  return [...items, ...shownTeam].sort(
+    (a, b) => (a.refumeTeam ? new Date(a.at).getTime() : itemDate(a)) - (b.refumeTeam ? new Date(b.at).getTime() : itemDate(b))
+  );
+};
+
 export const ActivityFeed = props => {
   const intl = props.intl || useIntl();
   const config = useConfiguration();
@@ -402,6 +427,32 @@ export const ActivityFeed = props => {
     );
   };
 
+  // Refume: messages and decisions from "Zespół Refume" (disputes), in their place in time
+  const teamListItem = item => (
+    <li key={`team-${item.id}`} className={css.messageItem}>
+      <div className={item.decision ? css.teamDecision : css.teamMessage}>
+        <span className={css.teamAvatar} aria-hidden="true">
+          R
+        </span>
+        <div className={css.teamBody}>
+          <span className={css.teamName}>
+            {item.decision
+              ? item.decision === 'zwrot'
+                ? 'Zespół Refume · decyzja: zwrot pieniędzy dla kupującego'
+                : 'Zespół Refume · decyzja: zamówienie zrealizowane'
+              : 'Zespół Refume'}
+          </span>
+          <p className={css.teamText}>{item.text}</p>
+          <span className={css.teamDate}>
+            {formatDateWithProximity(new Date(item.at), intl, todayString, {
+              firstDayOfWeek: config.localization.firstDayOfWeek,
+            })}
+          </span>
+        </div>
+      </div>
+    </li>
+  );
+
   return (
     <ul className={classes}>
       {hasOlderMessages ? (
@@ -412,8 +463,10 @@ export const ActivityFeed = props => {
         </li>
       ) : null}
       <ChatFlagReporter txId={transaction?.id?.uuid} riskyKey={riskyKey} />
-      {items.map(item => {
-        if (isMessage(item)) {
+      {withTeamMessages(items, transaction?.attributes?.metadata?.refumeSpor, hideOldTransitions).map(item => {
+        if (item.refumeTeam) {
+          return teamListItem(item);
+        } else if (isMessage(item)) {
           return messageListItem(item);
         } else {
           return transitionListItem(item);

@@ -164,3 +164,72 @@
     margin: 16px 0;
   }
 }
+
+/* Refume: messages from Zespół Refume */
+.teamMessage,
+.teamDecision {
+  display: flex;
+  gap: 10px;
+  max-width: min(620px, 92%);
+  margin: 4px auto;
+  padding: 12px 14px;
+  border-radius: 16px;
+}
+
+.teamMessage {
+  border: 1px solid hsl(256 60% 85%);
+  background-color: hsl(256 80% 97%);
+}
+
+.teamDecision {
+  background-color: #18181b;
+  color: #ffffff;
+
+  & .teamName {
+    color: #e9d5ff;
+  }
+
+  & .teamDate {
+    color: #d6d3d1;
+  }
+}
+
+.teamAvatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background-color: #6d28d9;
+  color: #ffffff;
+  font-weight: var(--fontWeightBold);
+  font-size: 14px;
+}
+
+.teamBody {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.teamName {
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: var(--fontWeightBold);
+  color: #5b21b6;
+}
+
+.teamText {
+  margin: 0;
+  font-size: 15px;
+  line-height: 22px;
+  white-space: pre-line;
+}
+
+.teamDate {
+  font-size: 12px;
+  color: #78716c;
+}

@@ -599,3 +599,109 @@
   line-height: 16px;
   font-weight: var(--fontWeightSemiBold);
 }
+
+/* ---------- Refume: card look (list and conversation in rounded, bordered cards) ---------- */
+.inbox {
+  gap: 0;
+  padding: 0;
+  border-left: none;
+  border-right: none;
+  background-color: var(--colorGrey50);
+
+  @media (--viewportMedium) {
+    padding: 16px;
+  }
+
+  @media (--viewportLarge) {
+    grid-template-columns: 360px minmax(0, 1fr);
+    gap: 20px;
+    padding: 24px;
+    border-left: none;
+    border-right: none;
+    align-items: start;
+  }
+}
+
+.inboxList {
+  border: 1px solid var(--colorGrey200);
+  border-radius: 0;
+  overflow: hidden;
+
+  @media (--viewportMedium) {
+    border-radius: 16px;
+  }
+
+  @media (--viewportLarge) {
+    position: sticky;
+    top: 24px;
+    max-height: calc(100vh - 48px);
+  }
+}
+
+.inboxListHeader {
+  padding: 18px 16px 12px 16px;
+}
+
+.itemList {
+  flex: 1;
+  margin: 0;
+  padding: 8px;
+  overflow-y: auto;
+}
+
+.inboxList .listItem {
+  margin: 0 0 4px 0;
+  border-bottom: none;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.conv {
+  padding: 12px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+}
+
+.convActive {
+  border-color: color-mix(in srgb, var(--marketplaceColor) 35%, white);
+}
+
+.convAvatar {
+  width: 44px;
+  height: 44px;
+}
+
+.inboxChat {
+  border: 1px solid var(--colorGrey200);
+  border-radius: 0;
+  min-height: 60vh;
+
+  @media (--viewportMedium) {
+    border-radius: 16px;
+  }
+
+  @media (--viewportLarge) {
+    padding: 24px;
+  }
+}
+
+.backLink {
+  padding: 6px 12px;
+  border: 1px solid var(--colorGrey200);
+  border-radius: 999px;
+  font-size: 14px;
+  color: var(--colorGrey900);
+
+  &:hover {
+    text-decoration: none;
+    border-color: var(--colorGrey900);
+  }
+}
+
+.chatPlaceholder {
+  min-height: 420px;
+  border: 2px dashed var(--colorGrey200);
+  border-radius: 14px;
+}

@@ -112,3 +112,37 @@
   gap: 8px;
   align-self: stretch;
 }
+
+/* ---------- Refume: message box ---------- */
+.root {
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid var(--colorGrey200);
+  border-radius: 16px;
+  background-color: var(--colorWhite);
+  box-shadow: none;
+
+  @media (--viewportLarge) {
+    padding: 14px 16px;
+  }
+
+  & textarea {
+    min-height: 48px;
+    padding: 10px 14px;
+    border: 1px solid var(--colorGrey300);
+    border-radius: 12px;
+    background-color: var(--colorGrey50);
+    font-size: 15px;
+    line-height: 22px;
+
+    &:focus {
+      border-color: var(--colorGrey900);
+      background-color: var(--colorWhite);
+    }
+  }
+}
+
+.submitButton {
+  min-height: 44px;
+  border-radius: 10px;
+}

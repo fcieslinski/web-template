@@ -523,3 +523,67 @@
     margin: 4px 0 0 0;
   }
 }
+
+/* ---------- Refume: card look ---------- */
+.detailCard {
+  @media (--viewportLarge) {
+    border: 1px solid var(--colorGrey200);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+}
+
+.feedContainer {
+  padding: 16px;
+  border: 1px solid var(--colorGrey200);
+  border-radius: 16px;
+  background-color: var(--colorWhite);
+
+  @media (--viewportMedium) {
+    padding: 20px;
+  }
+}
+
+.orderDetailsMobileSection {
+  margin: 24px 16px 0 16px;
+  padding: 16px;
+  border: 1px solid var(--colorGrey200);
+  border-radius: 16px;
+  background-color: var(--colorWhite);
+
+  @media (--viewportMedium) {
+    margin: 24px 24px 0 24px;
+  }
+}
+
+.deliveryInfoSection {
+  margin: 16px 16px 0 16px;
+  padding: 16px;
+  border: 1px solid var(--colorGrey200);
+  border-radius: 16px;
+  background-color: var(--colorWhite);
+
+  @media (--viewportMedium) {
+    margin: 16px 24px 0 24px;
+  }
+
+  @media (--viewportLarge) {
+    margin: 16px 0 0 0;
+  }
+}
+
+.sendingMessageNotAllowed {
+  padding: 14px 16px;
+  border: 1px dashed var(--colorGrey300);
+  border-radius: 14px;
+  font-size: 14px;
+  text-align: center;
+
+  @media (--viewportMedium) {
+    margin: 16px 24px 0 24px;
+  }
+
+  @media (--viewportLarge) {
+    margin: 16px 0 0 0;
+  }
+}

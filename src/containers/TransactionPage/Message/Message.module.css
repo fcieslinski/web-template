@@ -167,3 +167,33 @@
     color: hsl(0 65% 28%);
   }
 }
+
+/* ---------- Refume: chat bubbles ---------- */
+.messageContent,
+.ownMessageContent {
+  box-shadow: none;
+  padding: 10px 14px;
+  font-size: 15px;
+  line-height: 22px;
+
+  @media (--viewportMedium) {
+    padding: 10px 16px;
+  }
+}
+
+.messageContent {
+  border: 1px solid var(--colorGrey200);
+  border-radius: 18px 18px 18px 6px;
+  background-color: var(--colorGrey50);
+}
+
+.ownMessageContent {
+  border: 1px solid transparent;
+  border-radius: 18px 18px 6px 18px;
+}
+
+.messageDate,
+.ownMessageDate {
+  margin-top: 4px;
+  font-size: 12px;
+}

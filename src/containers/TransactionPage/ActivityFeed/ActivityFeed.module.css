@@ -107,3 +107,12 @@
 
 .showOlderButton {
 }
+
+/* ---------- Refume: status updates as soft pills ---------- */
+.transition {
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background-color: var(--colorGrey50);
+}

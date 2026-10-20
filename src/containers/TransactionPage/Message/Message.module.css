@@ -168,32 +168,74 @@
   }
 }
 
-/* ---------- Refume: chat bubbles ---------- */
+/* ---------- Refume: chat bubbles (as on the mock-up) ---------- */
+.message {
+  align-items: flex-end;
+  max-width: min(560px, 78%);
+}
+
+.message .avatar {
+  width: 28px;
+  height: 28px;
+  margin: 0 8px 22px 0;
+  font-size: 12px;
+}
+
+.ownMessage {
+  float: none;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  margin-left: auto;
+  max-width: min(560px, 78%);
+}
+
+.ownMessageContentWrapper {
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
+}
+
 .messageContent,
 .ownMessageContent {
   box-shadow: none;
+  max-width: 100%;
   padding: 10px 14px;
   font-size: 15px;
   line-height: 22px;
-
-  @media (--viewportMedium) {
-    padding: 10px 16px;
-  }
+  gap: 8px;
 }
 
 .messageContent {
-  border: 1px solid var(--colorGrey200);
+  border: none;
   border-radius: 18px 18px 18px 6px;
-  background-color: var(--colorGrey50);
+  background-color: #f4f3f1;
+  color: var(--colorGrey900);
 }
 
 .ownMessageContent {
-  border: 1px solid transparent;
+  float: none;
+  border: none;
   border-radius: 18px 18px 6px 18px;
+  background-color: #6d28d9;
+  color: #ffffff;
+}
+
+.ownMessageContentUnverified {
+  background-color: var(--colorGrey600);
 }
 
 .messageDate,
 .ownMessageDate {
-  margin-top: 4px;
+  margin: 4px 4px 0 4px;
   font-size: 12px;
+  line-height: 16px;
+  color: #78716c;
+}
+
+/* Keep the red warning look for flagged own messages */
+.ownMessageContent.ownMessageContentFlagged {
+  background-color: hsl(0 80% 96%);
+  border: 1.5px solid hsl(0 65% 50%);
+  color: hsl(0 65% 28%);
 }

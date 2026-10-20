@@ -146,3 +146,21 @@
   margin: 2px 0 0 0;
   font-size: 11px;
 }
+
+/* Refume: tighter rhythm like a chat */
+.messageItem,
+.transitionItem {
+  margin-bottom: 12px;
+
+  @media (--viewportMedium) {
+    margin-bottom: 12px;
+  }
+}
+
+.transitionItem {
+  margin: 16px 0;
+
+  @media (--viewportMedium) {
+    margin: 16px 0;
+  }
+}

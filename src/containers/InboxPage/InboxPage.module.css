@@ -789,3 +789,18 @@
   background-color: hsl(140 50% 91%);
   color: hsl(140 50% 24%);
 }
+
+.inbox {
+  box-sizing: border-box;
+}
+
+.inboxList,
+.inboxChat {
+  border-color: #e7e5e4;
+}
+
+.inboxTitle {
+  font-family: var(--fontFamily);
+  font-size: 22px;
+  font-weight: var(--fontWeightBold);
+}

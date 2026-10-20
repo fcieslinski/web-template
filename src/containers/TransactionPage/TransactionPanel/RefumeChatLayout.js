@@ -148,7 +148,9 @@ const RefumeChatLayout = props => {
   const listingLink = listingDeleted ? null : { id: listing?.id?.uuid, slug: createSlug(listingTitle || 'oferta') };
 
   return (
-    <div className={classNames(css.root, { [css.embedded]: embedded }, className)}>
+    // The page passes a class with display:block — keep it on an outer wrapper so the grid stays a grid
+    <div className={className}>
+    <div className={classNames(css.root, { [css.embedded]: embedded })}>
       <div className={css.main}>
         <div className={css.chatCard}>
           <div className={css.header}>
@@ -261,6 +263,7 @@ const RefumeChatLayout = props => {
           buttonMessage={diminishedButtonMessage}
         />
       </aside>
+    </div>
     </div>
   );
 };

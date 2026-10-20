@@ -114,3 +114,16 @@
   margin: 0 !important;
   max-width: none !important;
 }
+
+/* Refume: order panel inside the side card of the conversation */
+.orderPanelRefume {
+  margin: 0;
+  padding: 0;
+  text-align: left;
+}
+
+.orderPanelTitle {
+  margin: 0 0 8px 0;
+  font-size: 17px;
+  line-height: 23px;
+}

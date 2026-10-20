@@ -1022,9 +1022,13 @@ export const TransactionPageComponent = props => {
       {...orderBreakdownMaybe}
       orderPanel={
         <OrderPanel
-          className={classNames(css.orderPanel, {
-            [css.orderPanelNextToTitle]: stateData.showDetailCardHeadings,
-          })}
+          className={
+            ['default-purchase', 'default-inquiry'].includes(processName)
+              ? css.orderPanelRefume
+              : classNames(css.orderPanel, {
+                  [css.orderPanelNextToTitle]: stateData.showDetailCardHeadings,
+                })
+          }
           titleClassName={css.orderTitle}
           listing={withNegotiatedPrice(listing, transaction, transactionRole)}
           isOwnListing={isOwnSale}

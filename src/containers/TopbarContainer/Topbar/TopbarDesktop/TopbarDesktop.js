@@ -76,14 +76,15 @@ const ProfileMenu = ({ currentPage, currentUser, onLogout, showManageListingsLin
         <Avatar className={css.avatar} user={currentUser} disableProfileLink />
       </MenuLabel>
       <MenuContent className={css.profileMenuContent}>
-        {showManageListingsLink ? (
-          <MenuItem key="ManageListingsPage">
+        {currentUser?.id ? (
+          <MenuItem key="ProfilePage">
             <NamedLink
-              className={classNames(css.menuLink, currentPageClass('ManageListingsPage'))}
-              name="ManageListingsPage"
+              className={classNames(css.menuLink, currentPageClass('ProfilePage'))}
+              name="ProfilePage"
+              params={{ id: currentUser.id.uuid }}
             >
               <span className={css.menuItemBorder} />
-              <FormattedMessage id="TopbarDesktop.yourListingsLink" />
+              Twój profil
             </NamedLink>
           </MenuItem>
         ) : null}

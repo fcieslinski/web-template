@@ -52,6 +52,9 @@ import NotFoundPage from '../../containers/NotFoundPage/NotFoundPage';
 import SellerBadges from '../../components/SellerBadges/SellerBadges';
 import ModeratorBadgeControls from '../../components/SellerBadges/ModeratorBadgeControls';
 import ReportButton from '../../components/ReportButton/ReportButton';
+import ProfileFacts from './RefumeProfile/ProfileFacts';
+import OwnerPanel from './RefumeProfile/OwnerPanel';
+import refumeCss from './RefumeProfile/RefumeProfile.module.css';
 
 import css from './ProfilePage.module.css';
 
@@ -266,6 +269,8 @@ export const MainContent = props => {
     userTypeRoles,
     refumeUserId,
     refumeIsOwnProfile,
+    refumeUser,
+    refumeConfig,
   } = props;
 
   const hasListings = listings.length > 0;
@@ -298,6 +303,12 @@ export const MainContent = props => {
       <H2 as="h1" className={css.desktopHeading}>
         <FormattedMessage id="ProfilePage.desktopHeading" values={{ name: displayName }} />
       </H2>
+      {refumeUser ? (
+        <ProfileFacts user={refumeUser} reviews={reviews} listingsCount={listings.length} />
+      ) : null}
+      {refumeIsOwnProfile && refumeUser ? (
+        <OwnerPanel user={refumeUser} listingsCount={listings.length} config={refumeConfig} />
+      ) : null}
       {refumeUserId ? <SellerBadges userId={refumeUserId} className={css.refumeBadges} /> : null}
       {refumeUserId ? <ModeratorBadgeControls userId={refumeUserId} /> : null}
       {refumeUserId && !refumeIsOwnProfile ? (
@@ -318,6 +329,11 @@ export const MainContent = props => {
         <div className={listingsContainerClasses}>
           <H4 as="h2" className={css.listingsTitle}>
             <FormattedMessage id="ProfilePage.listingsTitle" values={{ count: listings.length }} />
+            {refumeIsOwnProfile ? (
+              <NamedLink name="ManageListingsPage" className={css.refumeManageLink}>
+                Zarządzaj
+              </NamedLink>
+            ) : null}
           </H4>
           <ul className={css.listings}>
             {listings.map(l => (
@@ -327,7 +343,13 @@ export const MainContent = props => {
             ))}
           </ul>
         </div>
+      ) : refumeIsOwnProfile ? (
+        <div className={refumeCss.emptyListings}>
+          <p>Nie masz jeszcze aktywnych ofert.</p>
+          <NamedLink name="NewListingPage">Wystaw pierwsze perfumy</NamedLink>
+        </div>
       ) : null}
+      <span id="opinie" />
       {hideReviews ? null : isMobileLayout ? (
         <MobileReviews
           reviews={reviews}
@@ -498,6 +520,8 @@ export const ProfilePageComponent = props => {
           userTypeRoles={userTypeRoles}
           refumeUserId={profileUser?.id?.uuid}
           refumeIsOwnProfile={!!isCurrentUser}
+          refumeUser={profileUser}
+          refumeConfig={config}
           {...rest}
         />
       </LayoutSideNavigation>

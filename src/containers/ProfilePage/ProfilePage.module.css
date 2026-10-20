@@ -344,3 +344,9 @@
 .refumeReport {
   margin: 0 0 12px 0;
 }
+
+.refumeManageLink {
+  margin-left: 12px;
+  font-size: 15px;
+  font-weight: var(--fontWeightSemiBold);
+}

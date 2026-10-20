@@ -156,10 +156,10 @@ const TopbarMobileMenu = props => {
     return currentPage === page || isAccountSettingsPage || isInboxPage ? css.currentPage : null;
   };
 
-  const manageListingsLinkMaybe = showCreateListingsLink ? (
-    <li className={classNames(css.navigationLink, currentPageClass('ManageListingsPage'))}>
-      <NamedLink name="ManageListingsPage">
-        <FormattedMessage id="TopbarMobileMenu.yourListingsLink" />
+  const manageListingsLinkMaybe = currentUser?.id ? (
+    <li className={classNames(css.navigationLink, currentPageClass('ProfilePage'))}>
+      <NamedLink name="ProfilePage" params={{ id: currentUser.id.uuid }}>
+        Twój profil
       </NamedLink>
     </li>
   ) : null;

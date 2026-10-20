@@ -101,7 +101,11 @@ module.exports = (req, res) => {
         if (listing.relationships?.author?.data?.id?.uuid === buyer?.id?.uuid) {
           throw Object.assign(new Error('Own listing.'), { status: 400, statusText: 'Own listing.', data: {} });
         }
-        bundle = await loadBundle(sdk, listing, bundleIds);
+        const authorId = listing.relationships?.author?.data?.id?.uuid;
+        const author = (showListingResponse.data.included || []).find(
+          i => i.type === 'user' && i.id.uuid === authorId
+        );
+        bundle = await loadBundle(sdk, listing, bundleIds, author?.attributes?.profile?.publicData);
         orderData = { ...orderData, refumeBundle: bundle };
       }
       const commissionAsset = fetchAssetsResponse.data.data[0];

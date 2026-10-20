@@ -665,3 +665,99 @@
   background-color: var(--colorGrey900);
   color: var(--colorWhite);
 }
+
+/* ---------- Settings cards (bundles) ---------- */
+
+.settingsCard {
+  margin-top: 16px;
+  padding: 16px 20px;
+  border: 1px solid var(--colorGrey200);
+  border-radius: 14px;
+  background-color: var(--colorWhite);
+}
+
+.settingsHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.settingsTitle {
+  margin: 0;
+  padding: 0;
+  font-size: 18px;
+  line-height: 24px;
+  font-weight: var(--fontWeightBold);
+}
+
+.settingsSummary {
+  margin: 4px 0 0 0;
+  font-size: 15px;
+  line-height: 22px;
+  color: var(--colorGrey700);
+}
+
+.switchRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  cursor: pointer;
+
+  & input {
+    width: 18px;
+    height: 18px;
+    margin: 2px 0 0 0;
+    accent-color: var(--colorGrey900);
+  }
+
+  & > span {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+}
+
+.tiers {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border-radius: 10px;
+  background-color: var(--colorGrey50);
+}
+
+.tierList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tierRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+}
+
+.tierInput {
+  width: 72px;
+  height: 38px;
+  padding: 0 8px;
+  border: 1px solid var(--colorGrey300);
+  border-radius: 8px;
+  background-color: var(--colorWhite);
+  font: inherit;
+  font-size: 15px;
+}
+
+.percentWrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: var(--fontWeightSemiBold);
+}

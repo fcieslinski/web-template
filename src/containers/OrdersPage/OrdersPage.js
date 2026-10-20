@@ -106,7 +106,7 @@ const OrderRow = ({ tx, isSale }) => {
         <span className={css.main}>
           <span className={css.title}>
             {tx.listing?.attributes?.title || 'Oferta usunięta'}
-            {bundleCount ? <span className={css.bundle}>Pakiet · {bundleCount + 1} rzeczy</span> : null}
+            {bundleCount ? <span className={css.bundle}>Zestaw · {bundleCount + 1} rzeczy</span> : null}
           </span>
           <span className={css.meta}>
             {other ? <AvatarSmall user={other} className={css.avatar} disableProfileLink /> : null}

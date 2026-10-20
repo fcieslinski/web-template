@@ -23,7 +23,7 @@ const RefumeBundleInfo = props => {
   ];
   return (
     <div className={classNames(css.root, className)}>
-      <h3 className={css.title}>Pakiet · {all.length} rzeczy</h3>
+      <h3 className={css.title}>Zestaw · {all.length} rzeczy</h3>
       <p className={css.sub}>
         {isProvider
           ? 'Wyślij wszystkie rzeczy razem, w jednej paczce.'

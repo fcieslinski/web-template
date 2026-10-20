@@ -10,6 +10,7 @@ import { detectChatRisks } from '../../../util/refumeChatSafety';
 import { NamedLink, AvatarLarge, Reviews } from '../../../components';
 import SellerBadges from '../../../components/SellerBadges/SellerBadges';
 import ProfileFacts from './ProfileFacts';
+import BundleSettings from './BundleSettings';
 import {
   SHIPPING_SPEED_OPTIONS,
   BIO_MAX,
@@ -519,6 +520,8 @@ const OwnProfile = props => {
           </ul>
         </div>
       ) : null}
+
+      <BundleSettings currentUser={currentUser} />
 
       <nav className={css.quickLinks} aria-label="Skróty">
         <NamedLink name="OrdersPage" params={{ tab: 'sprzedane' }}>Sprzedane zamówienia</NamedLink>

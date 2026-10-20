@@ -28,10 +28,11 @@ const LineItemUnknownItemsMaybe = props => {
   const { lineItems, isProvider, intl, bundleItems } = props;
   // Refume: bundle items ("line-item/refume-pakiet-1", …) show the listing title
   const bundleLabel = code => {
+    if (code === 'line-item/refume-zestaw-rabat') return 'Rabat za zestaw';
     const match = /^line-item\/refume-pakiet-(\d+)$/.exec(code || '');
     if (!match) return null;
     const item = Array.isArray(bundleItems) ? bundleItems[Number(match[1]) - 1] : null;
-    return item?.title || 'Rzecz z pakietu';
+    return item?.title || 'Rzecz z zestawu';
   };
 
   // resolve unknown non-reversal line items

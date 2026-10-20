@@ -214,3 +214,24 @@
     cursor: not-allowed;
   }
 }
+
+.discountHint {
+  display: block;
+  margin-top: 2px;
+  color: var(--colorSuccess);
+  font-weight: var(--fontWeightSemiBold);
+}
+
+.discountRow {
+  color: var(--colorSuccess);
+  font-weight: var(--fontWeightSemiBold);
+}
+
+.nextTier {
+  margin: 6px 0 0 0;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background-color: hsl(140 50% 95%);
+  color: hsl(140 50% 25%);
+  font-size: 14px;
+}

@@ -12,6 +12,7 @@ const {
   isVerifiedBundle,
   getBundleShippingSetup,
   bundleLineItems,
+  DISCOUNT_LINE_ITEM,
 } = require('./refumeBundles');
 
 /**
@@ -63,6 +64,7 @@ const getItemQuantityAndLineItems = (orderData, publicData, currency) => {
     quantity,
     extraLineItems: deliveryLineItem,
     bundleItems: bundle ? bundleLineItems(bundle) : [],
+    bundleDiscountPercent: bundle?.discountPercent || 0,
   };
 };
 
@@ -216,7 +218,14 @@ exports.transactionLineItems = (listing, orderData, providerCommission, customer
       ? getOfferQuantityAndLineItems(orderData)
       : {};
 
-  const { quantity, units, seats, extraLineItems, bundleItems = [] } = quantityAndExtraLineItems;
+  const {
+    quantity,
+    units,
+    seats,
+    extraLineItems,
+    bundleItems = [],
+    bundleDiscountPercent = 0,
+  } = quantityAndExtraLineItems;
 
   // Throw error if there is no quantity information given
   if (!quantity && !(units && seats)) {
@@ -257,17 +266,30 @@ exports.transactionLineItems = (listing, orderData, providerCommission, customer
 
   // Let's keep the base price (order) as first line item and provider and customer commissions as last.
   // Note: the order matters only if OrderBreakdown component doesn't recognize line-item.
-  // Refume: commissions are counted from all items of a bundle (never from shipping)
+  // Refume: seller's bundle discount ("rabat za zestaw") on the items, never on shipping
+  const itemsSum = [order, ...bundleItems].reduce(
+    (sum, item) => sum + item.unitPrice.amount * (item.quantity || 1),
+    0
+  );
+  const discountAmount =
+    bundleItems.length && bundleDiscountPercent > 0
+      ? Math.round((itemsSum * bundleDiscountPercent) / 100)
+      : 0;
+  const discountLineItems = discountAmount
+    ? [
+        {
+          code: DISCOUNT_LINE_ITEM,
+          unitPrice: new Money(-discountAmount, currency),
+          quantity: 1,
+          includeFor: ['customer', 'provider'],
+        },
+      ]
+    : [];
+  // Commissions are counted from all items of a bundle after the discount (never from shipping)
   const itemsTotal = bundleItems.length
     ? {
         code,
-        unitPrice: new Money(
-          [order, ...bundleItems].reduce(
-            (sum, item) => sum + item.unitPrice.amount * (item.quantity || 1),
-            0
-          ),
-          currency
-        ),
+        unitPrice: new Money(itemsSum - discountAmount, currency),
         quantity: 1,
         includeFor: ['customer', 'provider'],
       }
@@ -280,6 +302,7 @@ exports.transactionLineItems = (listing, orderData, providerCommission, customer
   const lineItems = [
     order,
     ...bundleItems,
+    ...discountLineItems,
     ...extraLineItems,
     ...getProviderCommissionMaybe(providerCommission, itemsTotal, currency),
     // Refume: fixed buyer protection fee instead of Console's customer commission

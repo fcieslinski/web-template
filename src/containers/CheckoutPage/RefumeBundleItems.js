@@ -1,5 +1,7 @@
 import React from 'react';
 
+import { bundleDiscountPercent } from '../../util/refumeBundleSettings';
+
 import css from './RefumeBundleItems.module.css';
 
 const formatPrice = price =>
@@ -19,6 +21,11 @@ export const getBundleItems = orderData =>
 const RefumeBundleItems = props => {
   const { listing, items, hasDeliveryOptions } = props;
   if (!items?.length) return null;
+  const percent = bundleDiscountPercent(
+    listing?.author?.attributes?.profile?.publicData?.refumeZestawy,
+    items.length + 1
+  );
+  const discountText = percent ? `Sprzedawca daje −${percent}% rabatu za ten zestaw.` : '';
   const firstImage = listing?.images?.[0]?.attributes?.variants;
   const mainImage =
     firstImage?.['listing-card']?.url || firstImage?.['scaled-small']?.url || null;
@@ -32,11 +39,14 @@ const RefumeBundleItems = props => {
     ...items,
   ];
   return (
-    <section className={css.root} aria-label="Pakiet">
+    <section className={css.root} aria-label="Zestaw">
       <h2 className={css.title}>
-        Pakiet · {all.length} rzeczy
+        Zestaw · {all.length} rzeczy
       </h2>
-      <p className={css.sub}>Wszystko od jednego sprzedawcy, w jednej paczce – płacisz za jedną wysyłkę.</p>
+      <p className={css.sub}>
+        Wszystko od jednego sprzedawcy, w jednej paczce – płacisz za jedną wysyłkę.
+        {discountText ? ` ${discountText}` : ''}
+      </p>
       <ul className={css.list}>
         {all.map(item => (
           <li key={item.id} className={css.item}>
@@ -52,7 +62,7 @@ const RefumeBundleItems = props => {
       </ul>
       {!hasDeliveryOptions ? (
         <p className={css.warning}>
-          Te rzeczy nie mają wspólnego sposobu wysyłki. Wróć do oferty i zmień skład pakietu.
+          Te rzeczy nie mają wspólnego sposobu wysyłki. Wróć do oferty i zmień skład zestawu.
         </p>
       ) : null}
     </section>

@@ -9,6 +9,11 @@ import {
   getCheapestShipping,
 } from '../../util/refumeShipping';
 import { buyerFeeAmount } from '../../util/refumeFee';
+import {
+  cleanBundleSettings,
+  bundleDiscountPercent,
+  describeBundleDiscounts,
+} from '../../util/refumeBundleSettings';
 import NamedLink from '../NamedLink/NamedLink';
 
 import css from './RefumeBundleButton.module.css';
@@ -49,7 +54,7 @@ const fetchSellerListings = (authorId, exceptId) => (dispatch, getState, sdk) =>
     );
 
 /**
- * Refume: "Kup w pakiecie" on the listing page — the buyer picks more items from the same
+ * Refume: "Kup zestaw" on the listing page — the buyer picks more items from the same
  * seller and pays one shipping fee. Opens checkout with the bundle in orderData.
  */
 const RefumeBundleButton = props => {
@@ -67,7 +72,17 @@ const RefumeBundleButton = props => {
   const isPurchase = (listing?.attributes?.publicData?.transactionProcessAlias || '').startsWith(
     'default-purchase/'
   );
-  const canBundle = !isOwnListing && !!authorId && !!price?.amount && isPurchase && stock !== 0;
+  // Seller's bundle settings: can be switched off, and may give a discount by item count
+  const bundleSettings = cleanBundleSettings(
+    listing?.author?.attributes?.profile?.publicData?.refumeZestawy
+  );
+  const canBundle =
+    !isOwnListing &&
+    !!authorId &&
+    !!price?.amount &&
+    isPurchase &&
+    stock !== 0 &&
+    !bundleSettings.wylaczone;
 
   useEffect(() => {
     if (!canBundle) return;
@@ -100,7 +115,11 @@ const RefumeBundleButton = props => {
   const bundleShippingFrom = carriers.length ? Math.min(...carriers.map(c => c.priceInSubunits)) : 0;
   const separateShipping = publicDatas.reduce((sum, pd) => sum + (getCheapestShipping(pd) || 0), 0);
   const itemsTotal = price.amount + chosen.reduce((sum, l) => sum + l.attributes.price.amount, 0);
-  const fee = [price.amount, ...chosen.map(l => l.attributes.price.amount)].reduce((sum, a) => sum + buyerFeeAmount(a), 0);
+  const discountPercent = chosen.length ? bundleDiscountPercent(bundleSettings, chosen.length + 1) : 0;
+  const discount = Math.round((itemsTotal * discountPercent) / 100);
+  const fee = buyerFeeAmount(itemsTotal - discount);
+  const nextTier = bundleSettings.rabaty.find(t => t.od > chosen.length + 1);
+  const discountsText = describeBundleDiscounts(bundleSettings);
   const saving = Math.max(0, separateShipping - bundleShippingFrom);
 
   const toggle = id =>
@@ -134,17 +153,18 @@ const RefumeBundleButton = props => {
     <div className={css.root}>
       {loginNeeded ? (
         <NamedLink name="LoginPage" className={css.toggle}>
-          Kup w pakiecie – jedna wysyłka
+          Kup zestaw – jedna wysyłka
         </NamedLink>
       ) : (
         <button type="button" className={css.toggle} onClick={() => setOpen(true)}>
-          Kup w pakiecie – jedna wysyłka
+          Kup zestaw – jedna wysyłka
         </button>
       )}
       <p className={css.hint}>
         Ten sprzedawca ma jeszcze {others.length}{' '}
         {others.length === 1 ? 'rzecz' : 'rzeczy'}. Dobierz je i
         zapłać za jedną paczkę.
+        {discountsText ? <strong className={css.discountHint}> Rabat za zestaw: {discountsText}.</strong> : null}
       </p>
 
       {open ? (
@@ -159,7 +179,7 @@ const RefumeBundleButton = props => {
           >
             <div className={css.head}>
               <h2 id="refume-bundle-title" className={css.title}>
-                Stwórz pakiet
+                Stwórz zestaw
               </h2>
               <button type="button" className={css.close} onClick={() => setOpen(false)} aria-label="Zamknij">
                 ×
@@ -211,6 +231,12 @@ const RefumeBundleButton = props => {
                 <span>Rzeczy ({chosen.length + 1})</span>
                 <span>{formatPln(itemsTotal)}</span>
               </div>
+              {discount ? (
+                <div className={classNames(css.row, css.discountRow)}>
+                  <span>Rabat za zestaw (−{discountPercent}%)</span>
+                  <span>−{formatPln(discount)}</span>
+                </div>
+              ) : null}
               <div className={css.row}>
                 <span>Ochrona Kupującego</span>
                 <span>{formatPln(fee)}</span>
@@ -219,6 +245,13 @@ const RefumeBundleButton = props => {
                 <span>Wysyłka (jedna paczka)</span>
                 <span>{carriers.length ? `od ${formatPln(bundleShippingFrom)}` : '—'}</span>
               </div>
+              {nextTier ? (
+                <p className={css.nextTier}>
+                  Dobierz {nextTier.od - chosen.length - 1}{' '}
+                  {nextTier.od - chosen.length - 1 === 1 ? 'rzecz' : 'rzeczy'}, a dostaniesz −
+                  {nextTier.procent}% na cały zestaw.
+                </p>
+              ) : null}
               {chosen.length && saving > 0 ? (
                 <p className={css.saving}>Oszczędzasz ok. {formatPln(saving)} na wysyłce.</p>
               ) : null}
@@ -236,7 +269,7 @@ const RefumeBundleButton = props => {
               disabled={!chosen.length || !canShip}
               onClick={submit}
             >
-              {chosen.length ? `Kup pakiet (${chosen.length + 1})` : 'Zaznacz co najmniej jedną rzecz'}
+              {chosen.length ? `Kup zestaw (${chosen.length + 1})` : 'Zaznacz co najmniej jedną rzecz'}
             </button>
           </div>
         </div>

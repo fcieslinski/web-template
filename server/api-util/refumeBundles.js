@@ -24,6 +24,7 @@ const {
   createStockAdjustment,
 } = require('./refumeIntegrationApi');
 const { REFUME_SHIPPING_PRICES } = require('./refumeShipping');
+const { cleanBundleSettings, bundleDiscountPercent } = require('./refumeBundleSettings');
 
 const { Money } = types;
 
@@ -33,6 +34,7 @@ const SWEEP_MS = 5 * 60 * 1000;
 const SIZE_ORDER = ['S', 'M', 'L'];
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const LINE_ITEM_PREFIX = 'line-item/refume-pakiet-';
+const DISCOUNT_LINE_ITEM = 'line-item/refume-zestaw-rabat';
 
 const RELEASE_TRANSITIONS = [
   'transition/expire-payment',
@@ -64,7 +66,7 @@ const requestedBundleIds = (orderData, mainListingId) => {
     id => id !== mainListingId
   );
   if (ids.length > MAX_EXTRA_ITEMS) {
-    throw httpError(400, `Pakiet może mieć najwyżej ${MAX_EXTRA_ITEMS + 1} rzeczy.`);
+    throw httpError(400, `Zestaw może mieć najwyżej ${MAX_EXTRA_ITEMS + 1} rzeczy.`);
   }
   return ids;
 };
@@ -73,9 +75,11 @@ const requestedBundleIds = (orderData, mainListingId) => {
  * Loads and checks the extra listings: same seller, published, not hidden, in stock,
  * same currency, items for sale. Returns a verified bundle object or null.
  */
-const loadBundle = async (sdk, mainListing, ids) => {
+const loadBundle = async (sdk, mainListing, ids, sellerPublicData) => {
   if (!ids.length) return null;
-  if (!isIntegrationApiConfigured()) throw httpError(400, 'Pakiety są chwilowo niedostępne.');
+  const settings = cleanBundleSettings(sellerPublicData?.refumeZestawy);
+  if (settings.wylaczone) throw httpError(400, 'Ten sprzedawca nie przyjmuje zamówień w zestawach.');
+  if (!isIntegrationApiConfigured()) throw httpError(400, 'Zestawy są chwilowo niedostępne.');
   const mainAuthorId = mainListing.relationships?.author?.data?.id?.uuid;
   const currency = mainListing.attributes.price?.currency;
   const items = [];
@@ -86,15 +90,15 @@ const loadBundle = async (sdk, mainListing, ids) => {
     const l = res?.data?.data;
     const stock = (res?.data?.included || []).find(i => i.type === 'stock');
     const a = l?.attributes;
-    const unavailable = httpError(409, 'Jedna z rzeczy z pakietu nie jest już dostępna.');
+    const unavailable = httpError(409, 'Jedna z rzeczy z zestawu nie jest już dostępna.');
     if (!l || a.state !== 'published' || a.deleted) throw unavailable;
     if (l.relationships?.author?.data?.id?.uuid !== mainAuthorId) {
-      throw httpError(400, 'Pakiet może zawierać tylko rzeczy jednego sprzedawcy.');
+      throw httpError(400, 'Zestaw może zawierać tylko rzeczy jednego sprzedawcy.');
     }
     if (a.metadata?.moderacja?.ukryta) throw unavailable;
     if (!(stock?.attributes?.quantity >= 1)) throw unavailable;
-    if (!a.price || a.price.currency !== currency) throw httpError(400, 'Różne waluty w pakiecie.');
-    if ((a.publicData?.unitType || 'item') !== 'item') throw httpError(400, 'Ta oferta nie może być w pakiecie.');
+    if (!a.price || a.price.currency !== currency) throw httpError(400, 'Różne waluty w zestawie.');
+    if ((a.publicData?.unitType || 'item') !== 'item') throw httpError(400, 'Ta oferta nie może być w zestawie.');
     items.push({
       id: l.id.uuid,
       title: a.title || '',
@@ -102,7 +106,7 @@ const loadBundle = async (sdk, mainListing, ids) => {
       publicData: a.publicData || {},
     });
   }
-  const bundle = { items };
+  const bundle = { items, discountPercent: bundleDiscountPercent(settings, items.length + 1) };
   verified.add(bundle);
   return bundle;
 };
@@ -140,6 +144,7 @@ const bundleLineItems = bundle =>
 
 const bundleMetadata = bundle => ({
   refumePakiet: {
+    rabatProcent: bundle.discountPercent || 0,
     items: bundle.items.map(i => ({
       id: i.id,
       title: i.title,
@@ -154,9 +159,9 @@ const reserveOne = async listingId => {
   const shown = await showListing({ id: listingId, include: 'currentStock' });
   const stock = (shown.included || []).find(i => i.type === 'stock');
   const quantity = stock?.attributes?.quantity;
-  if (!(quantity >= 1)) throw httpError(409, 'Jedna z rzeczy z pakietu właśnie została sprzedana.');
+  if (!(quantity >= 1)) throw httpError(409, 'Jedna z rzeczy z zestawu właśnie została sprzedana.');
   await compareAndSetStock({ listingId, oldTotal: quantity, newTotal: quantity - 1 }).catch(() => {
-    throw httpError(409, 'Jedna z rzeczy z pakietu właśnie została kupiona. Spróbuj ponownie.');
+    throw httpError(409, 'Jedna z rzeczy z zestawu właśnie została kupiona. Spróbuj ponownie.');
   });
 };
 
@@ -253,6 +258,7 @@ const startBundleSweep = () => {
 module.exports = {
   MAX_EXTRA_ITEMS,
   LINE_ITEM_PREFIX,
+  DISCOUNT_LINE_ITEM,
   requestedBundleIds,
   loadBundle,
   isVerifiedBundle,

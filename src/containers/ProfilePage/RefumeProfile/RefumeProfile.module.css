@@ -300,3 +300,8 @@
   text-align: center;
   color: var(--colorGrey700);
 }
+
+.factBundle {
+  color: var(--colorSuccess);
+  font-weight: var(--fontWeightSemiBold);
+}

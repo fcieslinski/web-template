@@ -2,6 +2,7 @@ import React from 'react';
 
 import { REVIEW_TYPE_OF_PROVIDER } from '../../../util/types';
 import { shippingSpeedLabel, cleanCity } from './refumeProfileFields';
+import { cleanBundleSettings, describeBundleDiscounts } from '../../../util/refumeBundleSettings';
 
 import css from './RefumeProfile.module.css';
 
@@ -32,6 +33,8 @@ const ProfileFacts = props => {
   const since = memberSince(user?.attributes?.createdAt);
   const city = cleanCity(publicData.refumeMiasto);
   const speed = shippingSpeedLabel(publicData.refumeWysylka);
+  const bundles = cleanBundleSettings(publicData.refumeZestawy);
+  const bundleText = !bundles.wylaczone && bundles.rabaty.length ? describeBundleDiscounts(bundles) : null;
 
   const facts = [
     average != null ? (
@@ -49,6 +52,11 @@ const ProfileFacts = props => {
     city ? <span key="city">📍 {city}</span> : null,
     speed ? <span key="speed">📦 {speed}</span> : null,
     since ? <span key="since">Na Refume od {since}</span> : null,
+    bundleText ? (
+      <span key="bundles" className={css.factBundle}>
+        🎁 Zestawy: {bundleText}
+      </span>
+    ) : null,
   ].filter(Boolean);
 
   return (

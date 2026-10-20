@@ -719,3 +719,84 @@
   color: #57534e;
   font-size: 14px;
 }
+
+/* Private messages: only one party got them */
+.private {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-width: 75%;
+  padding: 9px 14px;
+  border: 1.5px dashed #a78bfa;
+  border-radius: 14px;
+  background-color: #ffffff;
+}
+
+.privateLeft {
+  align-self: flex-start;
+  margin-left: 36px;
+}
+
+.privateRight {
+  align-self: flex-end;
+  margin-right: 36px;
+}
+
+.privateNote {
+  font-size: 11px;
+  color: #78716c;
+}
+
+.dotPrivate {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1.5px dashed #a78bfa;
+  background-color: #ffffff;
+}
+
+.teamLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Fixed-height chat area that shows plenty of messages; the card grows instead of clipping */
+.detail {
+  @media (--viewportLarge) {
+    height: auto;
+    min-height: 0;
+  }
+}
+
+.chat {
+  flex: none;
+}
+
+.chatScroll {
+  flex: none;
+  height: 60vh;
+  min-height: 380px;
+  max-height: 900px;
+
+  @media (--viewportLarge) {
+    height: calc(100vh - 440px);
+    min-height: 380px;
+  }
+}
+
+.chatCompact .chatScroll {
+  height: auto;
+  min-height: 0;
+  max-height: 420px;
+}
+
+.detailHead {
+  gap: 10px;
+  padding: 12px 16px;
+}
+
+.problem {
+  padding: 8px 12px;
+}

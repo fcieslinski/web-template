@@ -61,7 +61,14 @@ const initials = name =>
  * @param {Object} [decision] { wynik, uzasadnienie, at }
  * @param {number} [reloadKey] change to reload
  */
-export const ChatView = ({ txId, teamMessages = [], decision = null, reloadKey = 0, compact = false }) => {
+export const ChatView = ({
+  txId,
+  teamMessages = [],
+  privateMessages = [],
+  decision = null,
+  reloadKey = 0,
+  compact = false,
+}) => {
   const [state, setState] = useState({ loading: true });
   const boxRef = useRef(null);
 
@@ -80,6 +87,13 @@ export const ChatView = ({ txId, teamMessages = [], decision = null, reloadKey =
   const items = [
     ...messages.map(m => ({ kind: m.role === 'kupujący' ? 'buyer' : 'seller', at: m.createdAt, ...m })),
     ...teamMessages.map(m => ({ kind: 'team', id: `team-${m.id}`, at: m.at, content: m.tresc })),
+    ...privateMessages.map(m => ({
+      kind: 'private',
+      id: `private-${m.id}`,
+      at: m.at,
+      content: m.tresc,
+      to: m.do,
+    })),
     ...(decision ? [{ kind: 'decision', id: 'decision', at: decision.at, content: decision.uzasadnienie, wynik: decision.wynik }] : []),
   ].sort((a, b) => new Date(a.at) - new Date(b.at));
 
@@ -107,6 +121,9 @@ export const ChatView = ({ txId, teamMessages = [], decision = null, reloadKey =
         <span>
           <i className={css.dotTeam} /> Zespół Refume
         </span>
+        <span>
+          <i className={css.dotPrivate} /> Prywatnie (jedna strona)
+        </span>
       </div>
       <div className={css.chatScroll} ref={boxRef}>
         {items.length === 0 ? <p className={css.muted}>Brak wiadomości w tej rozmowie.</p> : null}
@@ -114,6 +131,25 @@ export const ChatView = ({ txId, teamMessages = [], decision = null, reloadKey =
           const day = formatDay(item.at);
           const separator = day !== lastDay ? <div className={css.day}>{day}</div> : null;
           lastDay = day;
+          if (item.kind === 'private') {
+            return (
+              <React.Fragment key={item.id}>
+                {separator}
+                <div className={classNames(css.private, item.to === 'sprzedawca' ? css.privateRight : css.privateLeft)}>
+                  <span className={css.teamLabel}>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" aria-hidden="true">
+                      <rect x="5" y="11" width="14" height="10" rx="2"></rect>
+                      <path d="M8 11V7a4 4 0 0 1 8 0v4"></path>
+                    </svg>{' '}
+                    Zespół Refume · tylko dla {item.to === 'sprzedawca' ? 'sprzedawcy' : 'kupującego'} ·{' '}
+                    {formatTime(item.at)}
+                  </span>
+                  <p className={css.text}>{item.content}</p>
+                  <span className={css.privateNote}>Wysłane do skrzynki – druga strona tego nie widzi.</span>
+                </div>
+              </React.Fragment>
+            );
+          }
           if (item.kind === 'team' || item.kind === 'decision') {
             return (
               <React.Fragment key={item.id}>
@@ -337,6 +373,7 @@ const DisputeDetail = ({ item, onChanged, onBack }) => {
       <ChatView
         txId={item.id}
         teamMessages={item.spor?.wiadomosci || []}
+        privateMessages={item.prywatne || []}
         decision={item.spor?.decyzja || null}
         reloadKey={reloadKey}
       />

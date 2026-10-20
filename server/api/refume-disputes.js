@@ -19,6 +19,8 @@
  */
 const { handleError } = require('../api-util/sdk');
 const {
+  showUser,
+  updateUserProfile,
   queryTransactions,
   showTransaction,
   transitionTransaction,
@@ -34,6 +36,10 @@ const CLOSED = [
   'transition/auto-cancel-from-disputed',
 ];
 const KEY = 'refumeSpor';
+// Private messages (only one party sees them) are kept with the moderators, not in the
+// transaction (its metadata is readable by both parties)
+const PRIVATE_KEY = 'refumeSporyPrywatne';
+const MAX_PRIVATE = 400;
 const MAX_MESSAGES = 50;
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const httpError = (status, message) =>
@@ -44,6 +50,36 @@ const clean = (text, max) =>
     .trim()
     .slice(0, max);
 const newId = () => `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
+
+
+const moderatorOwner = () =>
+  (process.env.REFUME_MODERATOR_USER_IDS || '')
+    .split(',')
+    .map(id => id.trim())
+    .filter(Boolean)[0] || null;
+
+const readPrivate = async () => {
+  const owner = moderatorOwner();
+  if (!owner) return [];
+  const shown = await showUser({ id: owner });
+  const list = shown.data?.attributes?.profile?.privateData?.[PRIVATE_KEY];
+  return Array.isArray(list) ? list : [];
+};
+
+let privateLock = Promise.resolve();
+const addPrivate = entry => {
+  const run = privateLock.then(async () => {
+    const owner = moderatorOwner();
+    if (!owner) return;
+    const list = await readPrivate();
+    await updateUserProfile({
+      id: owner,
+      privateData: { [PRIVATE_KEY]: [...list, entry].slice(-MAX_PRIVATE) },
+    });
+  });
+  privateLock = run.catch(() => null);
+  return run;
+};
 
 const IMAGE_VARIANTS = ['square-small2x', 'square-small', 'landscape-crop', 'default'];
 const imageUrl = image => {
@@ -120,7 +156,14 @@ const query = async lastTransitions => {
 };
 
 const listDisputes = async () => {
-  const [open, closed] = await Promise.all([query(OPEN), query(CLOSED).catch(() => [])]);
+  const [open, closed, privateMessages] = await Promise.all([
+    query(OPEN),
+    query(CLOSED).catch(() => []),
+    readPrivate().catch(() => []),
+  ]);
+  [...open, ...closed].forEach(item => {
+    item.prywatne = privateMessages.filter(m => m.txId === item.id);
+  });
   open.sort((a, b) => (a.zgloszono || '').localeCompare(b.zgloszono || ''));
   return { open, closed: closed.slice(0, 30) };
 };
@@ -160,6 +203,14 @@ const disputeAction = (req, res) => {
       if (action === 'prywatna') {
         const to = req.body?.do === 'sprzedawca' ? item.provider : item.customer;
         if (!to) throw httpError(400, 'Brak odbiorcy.');
+        await addPrivate({
+          id: newId(),
+          txId,
+          do: to === item.provider ? 'sprzedawca' : 'kupujacy',
+          tresc,
+          at: now,
+          przez: moderatorId,
+        });
         await addNotification(to.id, {
           type: 'spor-wiadomosc',
           title: `Zespół Refume: zgłoszenie „${title}”`,

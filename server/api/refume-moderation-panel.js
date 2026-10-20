@@ -316,6 +316,7 @@ const getStatus = (req, res) => {
               users.reports.filter(r => r.status === 'nowe').length +
               flags.filter(f => f.status === 'nowe').length,
             odwolania: users.appeals.filter(a => a.status === 'nowe').length,
+            spory: await require('./refume-disputes').countOpenDisputes(),
           },
         },
       });

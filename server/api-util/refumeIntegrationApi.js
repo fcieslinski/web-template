@@ -90,6 +90,7 @@ module.exports = {
   queryTransactions: query => integrationRequest('GET', '/transactions/query', { query }),
   compareAndSetStock: body => integrationRequest('POST', '/stock/compare_and_set', { body }),
   createStockAdjustment: body => integrationRequest('POST', '/stock_adjustments/create', { body }),
+  transitionTransaction: body => integrationRequest('POST', '/transactions/transition', { body }),
   updateTransactionMetadata: body =>
     integrationRequest('POST', '/transactions/update_metadata', { body }),
 };

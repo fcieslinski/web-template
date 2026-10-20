@@ -894,6 +894,7 @@ export const TransactionPageComponent = props => {
       protectedData={transaction?.attributes?.protectedData}
       refumeBundle={transaction?.attributes?.metadata?.refumePakiet}
       refumeEmbedded={!!props.embedded}
+      refumeDispute={transaction?.attributes?.metadata?.refumeSpor}
       refumeActionContainer={actionButtonContainer}
       marketplaceName={config.marketplaceName}
       messages={messages}

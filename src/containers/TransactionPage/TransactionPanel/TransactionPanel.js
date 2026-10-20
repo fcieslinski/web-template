@@ -115,6 +115,7 @@ export class TransactionPanelComponent extends Component {
       refumeBundle,
       refumeEmbedded,
       refumeActionContainer,
+      refumeDispute,
       marketplaceName,
       messages,
       savePaymentMethodFailed = false,
@@ -212,6 +213,7 @@ export class TransactionPanelComponent extends Component {
           listingDeleted={listingDeleted}
           firstImage={firstImage}
           refumeBundle={refumeBundle}
+          refumeDispute={refumeDispute}
           processState={stateData.processState}
           isInquiryProcess={isInquiryProcess}
           protectedData={protectedData}

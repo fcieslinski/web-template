@@ -31,7 +31,12 @@ const STATUS = {
     customerHint: 'Gdy paczka dotrze, potwierdź odbiór albo zgłoś problem.',
   },
   received: { label: 'Odebrane', tone: 'done' },
-  disputed: { label: 'Zgłoszony problem', tone: 'problem', providerHint: 'Refume sprawdza zgłoszenie.', customerHint: 'Refume sprawdza zgłoszenie.' },
+  disputed: {
+    label: 'Zgłoszony problem',
+    tone: 'problem',
+    providerHint: 'Zespół Refume sprawdza zgłoszenie i odezwie się w tej rozmowie. Pieniądze są wstrzymane do decyzji.',
+    customerHint: 'Zespół Refume sprawdza zgłoszenie i odezwie się w tej rozmowie. Opisz problem i dodaj zdjęcia.',
+  },
   canceled: { label: 'Anulowane', tone: 'muted' },
   completed: { label: 'Zakończone', tone: 'done' },
   reviewed: { label: 'Zakończone', tone: 'done' },
@@ -62,6 +67,14 @@ const formatPrice = price =>
   price?.amount != null
     ? `${(price.amount / 100).toFixed(2).replace('.', ',')} ${price.currency === 'PLN' ? 'zł' : price.currency}`
     : '';
+
+const formatDateTime = iso => {
+  try {
+    return new Date(iso).toLocaleString('pl-PL', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+  } catch (e) {
+    return '';
+  }
+};
 
 const Progress = ({ processState }) => {
   const index = PROGRESS_INDEX[processState];
@@ -107,6 +120,7 @@ const RefumeChatLayout = props => {
     listingDeleted,
     firstImage,
     refumeBundle,
+    refumeDispute,
     processState,
     isInquiryProcess,
     protectedData,
@@ -150,6 +164,8 @@ const RefumeChatLayout = props => {
     };
   }, [messagesCount]);
 
+  const teamMessages = Array.isArray(refumeDispute?.wiadomosci) ? refumeDispute.wiadomosci : [];
+  const decision = refumeDispute?.decyzja || null;
   const status = STATUS[processState] || null;
   const statusLabel = status ? (isProvider && status.providerLabel) || status.label : null;
   const hint = status ? (isProvider ? status.providerHint : status.customerHint) : null;
@@ -209,6 +225,32 @@ const RefumeChatLayout = props => {
             {transactionFieldsComponent}
             {fileAttachments}
             {refumeOffersPanel ? <div className={css.offers}>{refumeOffersPanel}</div> : null}
+            {teamMessages.length || decision ? (
+              <div className={css.team} aria-label="Wiadomości od Zespołu Refume">
+                {teamMessages.map(m => (
+                  <div key={m.id} className={css.teamMessage}>
+                    <span className={css.teamAvatar} aria-hidden="true">
+                      R
+                    </span>
+                    <div className={css.teamBody}>
+                      <span className={css.teamName}>Zespół Refume</span>
+                      <p className={css.teamText}>{m.tresc}</p>
+                      <span className={css.teamDate}>{formatDateTime(m.at)}</span>
+                    </div>
+                  </div>
+                ))}
+                {decision ? (
+                  <div className={css.teamDecision}>
+                    <strong>
+                      {decision.wynik === 'zwrot'
+                        ? 'Decyzja: zwrot pieniędzy dla kupującego'
+                        : 'Decyzja: zamówienie zrealizowane, wypłata dla sprzedawcy'}
+                    </strong>
+                    <span>{decision.uzasadnienie}</span>
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
             {fetchMessagesError ? (
               <p className={css.error}>
                 <FormattedMessage id="TransactionPanel.messageLoadingFailed" />

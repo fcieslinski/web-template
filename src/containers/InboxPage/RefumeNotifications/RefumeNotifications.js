@@ -183,7 +183,16 @@ const RefumeNotificationsPanel = () => {
                     <p className={css.messageBody}>{n.body}</p>
                   </div>
                 </div>
-                {n.editListingId ? (
+                {n.txId ? (
+                  <NamedLink
+                    name="InboxPage"
+                    params={{ tab: n.tab === 'sales' ? 'sales' : 'orders' }}
+                    to={{ search: `?tx=${n.txId}` }}
+                    className={css.cta}
+                  >
+                    Otwórz rozmowę
+                  </NamedLink>
+                ) : n.editListingId ? (
                   <NamedLink
                     name="EditListingPage"
                     params={{ id: n.editListingId, slug: 'ogloszenie', type: 'edit', tab: 'details' }}

@@ -48,6 +48,7 @@ const {
   createAppeal,
   decideAppeal: moderationDecideAppeal,
 } = require('./api/refume-moderation-users');
+const { getDisputes, disputeAction } = require('./api/refume-disputes');
 const { requestPhotoCheck } = require('./api/refume-photo-check');
 const { checkConversation } = require('./api/refume-chat-flags');
 
@@ -121,6 +122,8 @@ router.get('/moderacja/szukaj', moderationSearch);
 router.get('/moderacja/karta', moderationUserCard);
 router.post('/moderacja/odwolanie', moderationDecideAppeal);
 router.post('/odwolania', createAppeal);
+router.get('/moderacja/spory', getDisputes);
+router.post('/moderacja/spor', disputeAction);
 router.post('/czat/sprawdz', checkConversation);
 router.post('/oferty/zloz', makeOffer);
 router.post('/oferty/odpowiedz', respondToOffer);

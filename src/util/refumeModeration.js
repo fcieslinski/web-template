@@ -42,7 +42,8 @@ export const useModerationStatus = userId => {
           (counts.dowody || 0) +
           (counts.oferty || 0) +
           (counts.zgloszenia || 0) +
-          (counts.odwolania || 0),
+          (counts.odwolania || 0) +
+          (counts.spory || 0),
       });
     });
     return () => {

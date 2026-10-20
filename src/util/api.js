@@ -192,6 +192,8 @@ export const searchModeration = q =>
   request(`/api/moderacja/szukaj?q=${encodeURIComponent(q)}`, { method: methods.GET });
 export const fetchUserCard = id =>
   request(`/api/moderacja/karta?id=${encodeURIComponent(id)}`, { method: methods.GET });
+export const fetchDisputes = () => request('/api/moderacja/spory', { method: methods.GET });
+export const disputeAction = body => post('/api/moderacja/spor', body);
 export const decideAppeal = body => post('/api/moderacja/odwolanie', body);
 export const createAppeal = body => post('/api/odwolania', body);
 export const fetchReportedConversation = txId =>

@@ -42,6 +42,7 @@ import {
   Reviews,
   ButtonTabNavHorizontal,
   LayoutSideNavigation,
+  LayoutSingleColumn,
   NamedRedirect,
   CustomExtendedDataSection,
 } from '../../components';
@@ -53,7 +54,7 @@ import SellerBadges from '../../components/SellerBadges/SellerBadges';
 import ModeratorBadgeControls from '../../components/SellerBadges/ModeratorBadgeControls';
 import ReportButton from '../../components/ReportButton/ReportButton';
 import ProfileFacts from './RefumeProfile/ProfileFacts';
-import OwnerPanel from './RefumeProfile/OwnerPanel';
+import OwnProfile from './RefumeProfile/OwnProfile';
 import refumeCss from './RefumeProfile/RefumeProfile.module.css';
 
 import css from './ProfilePage.module.css';
@@ -270,7 +271,6 @@ export const MainContent = props => {
     refumeUserId,
     refumeIsOwnProfile,
     refumeUser,
-    refumeConfig,
   } = props;
 
   const hasListings = listings.length > 0;
@@ -305,9 +305,6 @@ export const MainContent = props => {
       </H2>
       {refumeUser ? (
         <ProfileFacts user={refumeUser} reviews={reviews} listingsCount={listings.length} />
-      ) : null}
-      {refumeIsOwnProfile && refumeUser ? (
-        <OwnerPanel user={refumeUser} listingsCount={listings.length} config={refumeConfig} />
       ) : null}
       {refumeUserId ? <SellerBadges userId={refumeUserId} className={css.refumeBadges} /> : null}
       {refumeUserId ? <ModeratorBadgeControls userId={refumeUserId} /> : null}
@@ -481,6 +478,21 @@ export const ProfilePageComponent = props => {
     return null;
   }
 
+  // Refume: your own profile — everything editable in one place
+  if (mounted && isCurrentUser && !isPreview && currentUser?.attributes?.profile) {
+    return (
+      <Page scrollingDisabled={scrollingDisabled} title={`Twój profil | ${config.marketplaceName}`}>
+        <LayoutSingleColumn topbar={<TopbarContainer />} footer={<FooterContainer />}>
+          <OwnProfile
+            currentUser={currentUser}
+            reviews={rest.reviews}
+            queryReviewsError={rest.queryReviewsError}
+          />
+        </LayoutSingleColumn>
+      </Page>
+    );
+  }
+
   // This is rendering normal profile page (not preview for pending-approval)
   return (
     <Page
@@ -521,7 +533,6 @@ export const ProfilePageComponent = props => {
           refumeUserId={profileUser?.id?.uuid}
           refumeIsOwnProfile={!!isCurrentUser}
           refumeUser={profileUser}
-          refumeConfig={config}
           {...rest}
         />
       </LayoutSideNavigation>

@@ -456,3 +456,26 @@
   font-size: 14px;
   line-height: 21px;
 }
+
+/* Scrolling middle part: never squeezes out the message box */
+.feed {
+  min-height: 0;
+
+  @media (--viewportLarge) {
+    min-height: 0;
+  }
+}
+
+.chatCard > .header,
+.chatCard > .product,
+.chatCard > .composer {
+  flex-shrink: 0;
+}
+
+.offers {
+  margin: 0 0 16px 0;
+
+  @media (--viewportMedium) {
+    margin: 0 0 16px 0;
+  }
+}

@@ -135,9 +135,19 @@ const RefumeChatLayout = props => {
   } = props;
 
   const feedRef = useRef(null);
+  // Show the newest messages (again after images and late styles have settled)
   useEffect(() => {
-    const el = feedRef.current;
-    if (el) el.scrollTop = el.scrollHeight;
+    const toBottom = () => {
+      const el = feedRef.current;
+      if (el) el.scrollTop = el.scrollHeight;
+    };
+    toBottom();
+    const raf = typeof window !== 'undefined' ? window.requestAnimationFrame(toBottom) : null;
+    const t = setTimeout(toBottom, 400);
+    return () => {
+      if (raf) window.cancelAnimationFrame(raf);
+      clearTimeout(t);
+    };
   }, [messagesCount]);
 
   const status = STATUS[processState] || null;
@@ -192,13 +202,13 @@ const RefumeChatLayout = props => {
             {showActionButtons ? <div className={css.productActions}>{actionButtons(actionContainer || 'desktop', css.actionsRoot)}</div> : null}
           </div>
 
-          {requestQuote}
-          {offer}
-          {transactionFieldsComponent}
-          {fileAttachments}
-          {refumeOffersPanel ? <div className={css.offers}>{refumeOffersPanel}</div> : null}
-
+          {/* Everything between the item box and the message box scrolls, so the box stays visible */}
           <div className={css.feed} ref={feedRef}>
+            {requestQuote}
+            {offer}
+            {transactionFieldsComponent}
+            {fileAttachments}
+            {refumeOffersPanel ? <div className={css.offers}>{refumeOffersPanel}</div> : null}
             {fetchMessagesError ? (
               <p className={css.error}>
                 <FormattedMessage id="TransactionPanel.messageLoadingFailed" />

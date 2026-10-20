@@ -130,6 +130,7 @@ class SendMessageFormComponent extends Component {
             onRemoveFile,
             onDownloadFile,
             marketplaceName,
+            quickReplies,
           } = formRenderProps;
 
           const classes = classNames(rootClassName || css.root, className);
@@ -163,6 +164,29 @@ class SendMessageFormComponent extends Component {
 
           return (
             <Form className={classes} onSubmit={values => handleSubmit(values, formApi)}>
+              {/* Refume: one-click replies that fill the message box */}
+              {Array.isArray(quickReplies) && quickReplies.length ? (
+                <div className={css.quickReplies}>
+                  {quickReplies.map(text => (
+                    <button
+                      key={text}
+                      type="button"
+                      className={css.quickReply}
+                      onClick={() => {
+                        const current = (formState.values.message || '').trim();
+                        formApi.change('message', current ? `${current} ${text}` : text);
+                        const el =
+                          typeof document !== 'undefined'
+                            ? document.getElementById(formId ? `${formId}.message` : 'message')
+                            : null;
+                        if (el) el.focus();
+                      }}
+                    >
+                      {text}
+                    </button>
+                  ))}
+                </div>
+              ) : null}
               <FieldTextInput
                 inputRootClass={css.textarea}
                 type="textarea"

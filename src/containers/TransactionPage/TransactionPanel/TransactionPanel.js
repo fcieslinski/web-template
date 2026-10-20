@@ -20,6 +20,7 @@ import BookingLocationMaybe from './BookingLocationMaybe';
 import FeedSection from './FeedSection';
 import DiminishedActionButtonMaybe from './DiminishedActionButtonMaybe';
 import PanelHeading from './PanelHeading';
+import RefumeChatLayout from './RefumeChatLayout';
 
 import ReportButton from '../../../components/ReportButton/ReportButton';
 
@@ -112,6 +113,8 @@ export class TransactionPanelComponent extends Component {
       processName,
       protectedData,
       refumeBundle,
+      refumeEmbedded,
+      refumeActionContainer,
       marketplaceName,
       messages,
       savePaymentMethodFailed = false,
@@ -193,6 +196,50 @@ export class TransactionPanelComponent extends Component {
     ) : (
       <FormattedMessage id="TransactionPanel.disputeOrder" />
     );
+
+    // Refume: new conversation layout for purchases and inquiries
+    if (['default-purchase', 'default-inquiry'].includes(stateData.processName)) {
+      const otherUser = isProvider ? customer : provider;
+      return (
+        <RefumeChatLayout
+          className={className}
+          embedded={refumeEmbedded}
+          isProvider={isProvider}
+          otherUser={otherUser}
+          otherUserName={otherUserDisplayNameString}
+          listing={listing}
+          listingTitle={listingTitle}
+          listingDeleted={listingDeleted}
+          firstImage={firstImage}
+          refumeBundle={refumeBundle}
+          processState={stateData.processState}
+          isInquiryProcess={isInquiryProcess}
+          protectedData={protectedData}
+          config={config}
+          transactionId={this.props.transactionId?.uuid}
+          messagesCount={messages.length}
+          fetchMessagesError={fetchMessagesError}
+          activityFeed={activityFeed}
+          sendMessageForm={sendMessageForm}
+          actionButtons={actionButtons}
+          actionContainer={refumeActionContainer}
+          showActionButtons={!!stateData.showActionButtons}
+          requestQuote={requestQuote}
+          offer={offer}
+          transactionFieldsComponent={transactionFieldsComponent}
+          fileAttachments={fileAttachments}
+          refumeOffersPanel={refumeOffersPanel}
+          orderBreakdown={orderBreakdown}
+          showBreakDown={showBreakDown}
+          orderPanel={orderPanel}
+          showOrderPanel={showOrderPanel}
+          savePaymentMethodFailed={savePaymentMethodFailed}
+          showDiminishedButton={showDiminishedButton}
+          onOpenDiminishedModal={onOpenDiminishedModal}
+          diminishedButtonMessage={diminishedButtonMessage}
+        />
+      );
+    }
 
     return (
       <div className={classes}>

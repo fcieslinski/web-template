@@ -1,0 +1,372 @@
+@import '../../../styles/customMediaQueries.css';
+
+/* Standalone order page: centred; in the inbox: fills the chat column */
+.root {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+  width: 100%;
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 12px 12px 32px 12px;
+  box-sizing: border-box;
+  background-color: var(--colorGrey50);
+
+  @media (--viewportMedium) {
+    padding: 20px 24px 40px 24px;
+  }
+
+  @media (--viewportLarge) {
+    grid-template-columns: minmax(0, 1fr) 320px;
+    align-items: start;
+  }
+}
+
+.embedded {
+  max-width: none;
+  padding: 0;
+  background: none;
+
+  @media (--viewportLarge) {
+    grid-template-columns: minmax(0, 1fr) 300px;
+  }
+}
+
+.main {
+  min-width: 0;
+}
+
+/* ---------- Chat card ---------- */
+
+.chatCard {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  border: 1px solid var(--colorGrey200);
+  border-radius: 18px;
+  background-color: var(--colorWhite);
+  overflow: hidden;
+
+  @media (--viewportLarge) {
+    height: calc(100vh - 120px);
+    min-height: 560px;
+  }
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--colorGrey100);
+
+  @media (--viewportMedium) {
+    padding: 14px 20px;
+  }
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+}
+
+.headerText {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.name {
+  font-size: 16px;
+  line-height: 22px;
+  font-weight: var(--fontWeightBold);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.role {
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--colorGrey700);
+}
+
+.report {
+  flex-shrink: 0;
+  font-size: 13px;
+}
+
+/* Item with status and the next step */
+.product {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 14px;
+  margin: 12px 12px 0 12px;
+  padding: 12px;
+  border: 1px solid var(--colorGrey200);
+  border-radius: 14px;
+  background-color: var(--colorGrey50);
+
+  @media (--viewportMedium) {
+    margin: 14px 20px 0 20px;
+  }
+}
+
+.productImage {
+  display: block;
+  width: 52px;
+  height: 52px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  object-fit: cover;
+  background-color: var(--colorGrey200);
+}
+
+.productText {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1 1 220px;
+  min-width: 0;
+}
+
+.productTitle {
+  font-size: 15px;
+  line-height: 20px;
+  font-weight: var(--fontWeightBold);
+  color: var(--colorGrey900);
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.productMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+  font-size: 14px;
+}
+
+.bundle {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background-color: var(--colorWhite);
+  border: 1px solid var(--colorGrey200);
+  font-size: 12px;
+  font-weight: var(--fontWeightSemiBold);
+  color: var(--colorGrey700);
+}
+
+.chip {
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: var(--fontWeightBold);
+}
+
+.tone_todo {
+  background-color: hsl(45 100% 90%);
+  color: hsl(30 80% 26%);
+}
+
+.tone_info {
+  background-color: hsl(210 90% 93%);
+  color: hsl(210 70% 30%);
+}
+
+.tone_done {
+  background-color: hsl(140 50% 91%);
+  color: hsl(140 50% 24%);
+}
+
+.tone_problem {
+  background-color: hsl(0 80% 94%);
+  color: hsl(0 60% 34%);
+}
+
+.tone_muted {
+  background-color: var(--colorGrey100);
+  color: var(--colorGrey700);
+}
+
+.hint {
+  margin: 0;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--colorGrey700);
+}
+
+.productActions {
+  flex: 1 1 100%;
+
+  @media (--viewportMedium) {
+    flex: 0 0 auto;
+    min-width: 200px;
+  }
+}
+
+/* ActionButtons inside the item box (no fixed bar on phones) */
+.actionsRoot {
+  position: static;
+  width: auto;
+  margin: 0;
+  padding: 0;
+  box-shadow: none;
+  background: none;
+  transform: none;
+}
+
+.offers {
+  margin: 12px 12px 0 12px;
+
+  @media (--viewportMedium) {
+    margin: 12px 20px 0 20px;
+  }
+}
+
+/* Messages */
+.feed {
+  flex: 1;
+  min-height: 240px;
+  padding: 16px 12px;
+  overflow-y: auto;
+
+  @media (--viewportMedium) {
+    padding: 20px;
+  }
+}
+
+.error {
+  margin: 0 0 12px 0;
+  color: var(--colorFail);
+  font-size: 14px;
+}
+
+/* Message box */
+.composer {
+  padding: 10px 12px 12px 12px;
+  border-top: 1px solid var(--colorGrey100);
+  background-color: var(--colorWhite);
+
+  @media (--viewportMedium) {
+    padding: 12px 16px 14px 16px;
+  }
+
+  & form {
+    margin: 0;
+    padding: 0;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    gap: 10px;
+  }
+}
+
+.notAllowed {
+  margin: 0;
+  padding: 12px;
+  border: 1px dashed var(--colorGrey300);
+  border-radius: 12px;
+  font-size: 14px;
+  color: var(--colorGrey700);
+  text-align: center;
+}
+
+.safety {
+  margin: 8px 0 0 0;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--colorGrey700);
+  text-align: center;
+}
+
+/* ---------- Side column ---------- */
+
+.aside {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+
+  @media (--viewportLarge) {
+    position: sticky;
+    top: 24px;
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+  }
+}
+
+.card,
+.deliveryCard {
+  padding: 16px 18px;
+  border: 1px solid var(--colorGrey200);
+  border-radius: 18px;
+  background-color: var(--colorWhite);
+}
+
+.cardTitle {
+  margin: 0 0 10px 0;
+  padding: 0;
+  font-size: 16px;
+  line-height: 22px;
+  font-weight: var(--fontWeightBold);
+}
+
+.breakdown > * {
+  margin: 0 !important;
+}
+
+.progress {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 14px;
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--colorGrey700);
+}
+
+.stepDot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  border: 2px solid var(--colorGrey300);
+  border-radius: 50%;
+  font-size: 11px;
+  color: var(--colorWhite);
+}
+
+.stepDone {
+  color: var(--colorGrey900);
+
+  & .stepDot {
+    border-color: var(--colorSuccess);
+    background-color: var(--colorSuccess);
+  }
+}
+
+.stepCurrent {
+  color: var(--colorGrey900);
+  font-weight: var(--fontWeightBold);
+
+  & .stepDot {
+    border-color: var(--marketplaceColor);
+  }
+}

@@ -343,6 +343,26 @@ const withNegotiatedPrice = (listing, transaction, role) => {
   };
 };
 
+
+// Refume: one-click replies above the message box, by role and order state
+const refumeQuickReplies = (role, processState) => {
+  const isProvider = role === 'provider';
+  if (processState === 'purchased') {
+    return isProvider
+      ? ['Dziękuję za zakup!', 'Wyślę jutro rano.', 'Paczka nadana ✓']
+      : ['Dziękuję!', 'Kiedy możesz wysłać?'];
+  }
+  if (processState === 'delivered') {
+    return isProvider ? ['Paczka jest w drodze.', 'Daj znać, gdy dotrze.'] : ['Paczka doszła, dziękuję!'];
+  }
+  if (processState === 'inquiry' || !processState) {
+    return isProvider
+      ? ['Tak, oferta jest aktualna.', 'Wysyłam w ciągu 24 h.', 'Mam paragon / dowód zakupu.']
+      : ['Czy oferta jest aktualna?', 'Ile zostało w flakonie?', 'Czy masz pudełko?'];
+  }
+  return [];
+};
+
 export const TransactionPageComponent = props => {
   const [isDisputeModalOpen, setDisputeModalOpen] = useState(false);
   const [disputeSubmitted, setDisputeSubmitted] = useState(false);
@@ -873,6 +893,8 @@ export const TransactionPageComponent = props => {
       processName={processName}
       protectedData={transaction?.attributes?.protectedData}
       refumeBundle={transaction?.attributes?.metadata?.refumePakiet}
+      refumeEmbedded={!!props.embedded}
+      refumeActionContainer={actionButtonContainer}
       marketplaceName={config.marketplaceName}
       messages={messages}
       savePaymentMethodFailed={savePaymentMethodFailed}
@@ -908,6 +930,7 @@ export const TransactionPageComponent = props => {
             onFocus={onSendMessageFormFocus}
             onSubmit={onMessageSubmit}
             showAttachFiles={showAttachFiles}
+            quickReplies={refumeQuickReplies(transactionRole, stateData?.processState)}
             showDisabledFilesError={listingTypeHasFileAttachments && !allowFiles}
             marketplaceName={config.marketplaceName}
             files={fileUploads}
@@ -917,9 +940,10 @@ export const TransactionPageComponent = props => {
           />
         ) : null
       }
-      actionButtons={containerId => (
+      actionButtons={(containerId, refumeRootClassName) => (
         <ActionButtons
           containerId={containerId}
+          rootClassName={refumeRootClassName}
           listingTypeConfig={foundListingTypeConfig}
           showButtons={stateData.showActionButtons}
           primaryButtonProps={stateData?.primaryButtonProps}

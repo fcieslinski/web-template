@@ -70,6 +70,7 @@ const loadDataPayloadCreator = ({ params, search }, { dispatch, rejectWithValue,
     processNames,
     include: [
       'listing',
+      'listing.images',
       'provider',
       'provider.profileImage',
       'customer',

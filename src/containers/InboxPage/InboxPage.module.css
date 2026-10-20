@@ -705,3 +705,87 @@
   border: 2px dashed var(--colorGrey200);
   border-radius: 14px;
 }
+
+/* Refume: an open conversation brings its own cards (chat + order details) */
+.inboxChatBare {
+  padding: 0;
+  border: none;
+  background: none;
+  min-height: 0;
+
+  @media (--viewportLarge) {
+    padding: 0;
+  }
+
+  & .backLink {
+    margin: 12px 12px 0 12px;
+  }
+}
+
+.inbox {
+  @media (--viewportLarge) {
+    grid-template-columns: 340px minmax(0, 1fr);
+    gap: 16px;
+  }
+}
+
+.inboxList {
+  @media (--viewportLarge) {
+    height: calc(100vh - 120px);
+    max-height: none;
+  }
+}
+
+/* Refume: conversation row details */
+.convAvatarWrap {
+  position: relative;
+  flex-shrink: 0;
+  align-self: flex-start;
+}
+
+.convThumb {
+  position: absolute;
+  right: -5px;
+  bottom: -5px;
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--colorWhite);
+  border-radius: 7px;
+  object-fit: cover;
+  background-color: var(--colorGrey100);
+}
+
+.convTop {
+  justify-content: space-between;
+}
+
+.convName {
+  flex: 1;
+  min-width: 0;
+}
+
+.convTime {
+  flex-shrink: 0;
+  font-size: 12px;
+  color: var(--colorGrey700);
+}
+
+.convState {
+  align-self: flex-start;
+  margin-top: 6px;
+  padding: 2px 9px;
+  border-radius: 999px;
+  background-color: var(--colorGrey100);
+  font-size: 11px;
+  line-height: 17px;
+}
+
+.convState.stateActionNeeded {
+  background-color: hsl(45 100% 90%);
+  color: hsl(30 80% 26%);
+}
+
+.convState.stateConcluded {
+  background-color: hsl(140 50% 91%);
+  color: hsl(140 50% 24%);
+}

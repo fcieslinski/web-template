@@ -157,6 +157,20 @@ const handleSortSelect = (tab, routeConfiguration, history) => urlParam => {
  * @param {stateDataShape} props.stateData - The state data
  * @returns {JSX.Element} inbox item component
  */
+
+// Refume: "14:20" today, "wczoraj", otherwise a short date
+const shortTime = date => {
+  if (!date) return '';
+  const d = new Date(date);
+  if (Number.isNaN(d.getTime())) return '';
+  const now = new Date();
+  const sameDay = d.toDateString() === now.toDateString();
+  const yesterday = new Date(now.getTime() - 24 * 3600 * 1000).toDateString() === d.toDateString();
+  if (sameDay) return d.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
+  if (yesterday) return 'wczoraj';
+  return d.toLocaleDateString('pl-PL', { day: 'numeric', month: 'short' });
+};
+
 export const InboxItem = props => {
   const {
     transactionRole,
@@ -188,6 +202,9 @@ export const InboxItem = props => {
   const otherUserDisplayName = <UserDisplayName user={otherUser} intl={intl} />;
   const isOtherUserBanned = otherUser.attributes.banned;
 
+  const thumbVariants = listing?.images?.[0]?.attributes?.variants || {};
+  const listingThumb = (thumbVariants['square-small2x'] || thumbVariants['square-small'])?.url || null;
+
   const rowNotificationDot =
     isSaleNotification || isOrderNotification ? <div className={css.notificationDot} /> : null;
 
@@ -211,10 +228,14 @@ export const InboxItem = props => {
       params={{ tab: isCustomer ? 'orders' : 'sales' }}
       to={{ search: `?tx=${tx.id.uuid}` }}
     >
-      <Avatar user={otherUser} className={css.convAvatar} disableProfileLink />
+      <span className={css.convAvatarWrap}>
+        <Avatar user={otherUser} className={css.convAvatar} disableProfileLink />
+        {listingThumb ? <img src={listingThumb} alt="" className={css.convThumb} /> : null}
+      </span>
       <span className={css.convText}>
         <span className={css.convTop}>
           <span className={css.convName}>{otherUserDisplayName}</span>
+          <span className={css.convTime}>{shortTime(tx.attributes?.lastTransitionedAt)}</span>
           {rowNotificationDot ? <span className={css.convDot} aria-label="Nowe" /> : null}
         </span>
         <span className={css.convPreview}>{listing?.attributes?.title}</span>
@@ -460,7 +481,12 @@ export const InboxPageComponent = props => {
             ) : null}
           </aside>
 
-          <section className={css.inboxChat} aria-label="Rozmowa">
+          <section
+            className={classNames(css.inboxChat, {
+              [css.inboxChatBare]: !!selectedTxId && selectedTxId !== 'refume',
+            })}
+            aria-label="Rozmowa"
+          >
             {selectedTxId === 'refume' ? (
               <>
                 <NamedLink name="InboxPage" params={{ tab }} className={css.backLink}>

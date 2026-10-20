@@ -116,3 +116,33 @@
   border-radius: 12px;
   background-color: var(--colorGrey50);
 }
+
+/* Refume: status updates as centred pills between messages */
+.transition {
+  justify-content: center;
+  padding: 0;
+  background: none;
+
+  & .bullet {
+    display: none;
+  }
+
+  & > div:last-child {
+    max-width: 90%;
+    padding: 6px 14px;
+    border-radius: 14px;
+    background-color: var(--colorGrey50);
+    border: 1px solid var(--colorGrey100);
+    text-align: center;
+  }
+}
+
+.transitionContent {
+  font-size: 13px;
+  line-height: 18px;
+}
+
+.transitionDate {
+  margin: 2px 0 0 0;
+  font-size: 11px;
+}

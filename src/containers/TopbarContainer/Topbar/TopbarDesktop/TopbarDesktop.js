@@ -87,6 +87,22 @@ const ProfileMenu = ({ currentPage, currentUser, onLogout, showManageListingsLin
             </NamedLink>
           </MenuItem>
         ) : null}
+        <MenuItem key="OrdersPage:kupione">
+          <NamedLink
+            className={classNames(css.menuLink, currentPageClass('OrdersPage'))}
+            name="OrdersPage"
+            params={{ tab: 'kupione' }}
+          >
+            <span className={css.menuItemBorder} />
+            Zamówienia
+          </NamedLink>
+        </MenuItem>
+        <MenuItem key="OrdersPage:sprzedane">
+          <NamedLink className={css.menuLink} name="OrdersPage" params={{ tab: 'sprzedane' }}>
+            <span className={css.menuItemBorder} />
+            Sprzedane
+          </NamedLink>
+        </MenuItem>
         <MenuItem key="ProfileSettingsPage">
           <NamedLink
             className={classNames(css.menuLink, currentPageClass('ProfileSettingsPage'))}

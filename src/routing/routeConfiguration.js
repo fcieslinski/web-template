@@ -39,6 +39,7 @@ const StripePayoutPage = loadable(() => import(/* webpackChunkName: "StripePayou
 const TermsOfServicePage = loadable(() => import(/* webpackChunkName: "TermsOfServicePage" */ '../containers/TermsOfServicePage/TermsOfServicePage'));
 const TransactionPage = loadable(() => import(/* webpackChunkName: "TransactionPage" */ '../containers/TransactionPage/TransactionPage'));
 const ScentRequestsPage = loadable(() => import(/* webpackChunkName: "ScentRequestsPage" */ '../containers/ScentRequestsPage/ScentRequestsPage'));
+const OrdersPage = loadable(() => import(/* webpackChunkName: "OrdersPage" */ '../containers/OrdersPage/OrdersPage'));
 const FavoritesPage = loadable(() => import(/* webpackChunkName: "FavoritesPage" */ '../containers/FavoritesPage/FavoritesPage'));
 const ModerationPage = loadable(() => import(/* webpackChunkName: "ModerationPage" */ '../containers/ModerationPage/ModerationPage'));
 const ModeratorUserPage = loadable(() => import(/* webpackChunkName: "ModeratorUserPage" */ '../containers/ModerationPage/ModeratorUserPage'));
@@ -408,6 +409,19 @@ const routeConfiguration = (layoutConfig, accessControlConfig) => {
       path: '/poszukiwane',
       name: 'ScentRequestsPage',
       component: ScentRequestsPage,
+    },
+    {
+      // Refume: what the user bought / sold
+      path: '/zamowienia',
+      name: 'OrdersBasePage',
+      component: () => <NamedRedirect name="OrdersPage" params={{ tab: 'kupione' }} />,
+    },
+    {
+      path: '/zamowienia/:tab',
+      name: 'OrdersPage',
+      auth: true,
+      authPage: 'LoginPage',
+      component: OrdersPage,
     },
     {
       // Refume: the user's favourite listings

@@ -15,7 +15,7 @@ import {
 } from '../../util/userHelpers';
 import { isScrollingDisabled } from '../../ducks/ui.duck';
 
-import { H3, Page, UserNav, NamedLink, LayoutSingleColumn } from '../../components';
+import { H3, Page, UserNav, NamedLink, NamedRedirect, LayoutSingleColumn } from '../../components';
 
 import TopbarContainer from '../../containers/TopbarContainer/TopbarContainer';
 import FooterContainer from '../../containers/FooterContainer/FooterContainer';
@@ -156,6 +156,11 @@ export const ProfileSettingsPageComponent = props => {
   ) : null;
 
   const title = intl.formatMessage({ id: 'ProfileSettingsPage.title' });
+
+  // Refume: the profile is edited on "Twój profil" now
+  if (currentUser?.id?.uuid) {
+    return <NamedRedirect name="ProfilePage" params={{ id: currentUser.id.uuid }} />;
+  }
 
   const showManageListingsLink = showCreateListingLinkForUser(config, currentUser);
 

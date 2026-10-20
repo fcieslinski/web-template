@@ -4,7 +4,7 @@ import { useParams } from 'react-router-dom';
 import classNames from 'classnames';
 
 import { denormalisedResponseEntities } from '../../util/data';
-import { Page, LayoutSingleColumn, NamedLink, AvatarSmall } from '../../components';
+import { Page, LayoutSingleColumn, NamedLink, AvatarSmall, UserNav } from '../../components';
 import TopbarContainer from '../TopbarContainer/TopbarContainer';
 import FooterContainer from '../FooterContainer/FooterContainer';
 
@@ -169,7 +169,15 @@ const OrdersPage = () => {
 
   return (
     <Page title={isSale ? 'Sprzedane' : 'Moje zamówienia'} scrollingDisabled={false}>
-      <LayoutSingleColumn topbar={<TopbarContainer />} footer={<FooterContainer />}>
+      <LayoutSingleColumn
+        topbar={
+          <>
+            <TopbarContainer />
+            <UserNav currentPage="OrdersPage" />
+          </>
+        }
+        footer={<FooterContainer />}
+      >
         <div className={css.root}>
           <h1 className={css.heading}>Zamówienia</h1>
           <nav className={css.tabs} aria-label="Rodzaj zamówień">

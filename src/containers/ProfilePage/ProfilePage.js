@@ -43,6 +43,7 @@ import {
   ButtonTabNavHorizontal,
   LayoutSideNavigation,
   LayoutSingleColumn,
+  UserNav,
   NamedRedirect,
   CustomExtendedDataSection,
 } from '../../components';
@@ -482,7 +483,15 @@ export const ProfilePageComponent = props => {
   if (mounted && isCurrentUser && !isPreview && currentUser?.attributes?.profile) {
     return (
       <Page scrollingDisabled={scrollingDisabled} title={`Twój profil | ${config.marketplaceName}`}>
-        <LayoutSingleColumn topbar={<TopbarContainer />} footer={<FooterContainer />}>
+        <LayoutSingleColumn
+          topbar={
+            <>
+              <TopbarContainer />
+              <UserNav currentPage="ProfilePage" />
+            </>
+          }
+          footer={<FooterContainer />}
+        >
           <OwnProfile
             currentUser={currentUser}
             reviews={rest.reviews}

@@ -1,66 +1,66 @@
 import React from 'react';
-import { FormattedMessage, useIntl } from '../../util/reactIntl';
+import { useSelector } from 'react-redux';
 import classNames from 'classnames';
+
 import { ACCOUNT_SETTINGS_PAGES } from '../../routing/routeConfiguration';
-import { LinkTabNavHorizontal } from '../../components';
+import NamedLink from '../NamedLink/NamedLink';
 
 import css from './UserNav.module.css';
 
 /**
- * A component that renders a navigation bar for a user-specific pages.
+ * Refume: light navigation bar on account pages — back to your profile, orders and settings.
  *
- * @component
  * @param {Object} props
- * @param {string} [props.className] - Custom class that extends the default class for the root element
- * @param {string} [props.rootClassName] - Custom class that overrides the default class for the root element
- * @param {string} props.currentPage - The current page (e.g. 'ManageListingsPage')
- * @returns {JSX.Element} User navigation component
+ * @param {string} [props.className]
+ * @param {string} [props.rootClassName]
+ * @param {string} props.currentPage e.g. 'ManageListingsPage'
  */
 const UserNav = props => {
-  const { className, rootClassName, currentPage, showManageListingsLink } = props;
-  const intl = useIntl();
+  const { className, rootClassName, currentPage } = props;
+  const userId = useSelector(state => state.user?.currentUser?.id?.uuid);
   const classes = classNames(rootClassName || css.root, className);
 
-  const manageListingsTabMaybe = showManageListingsLink
-    ? [
-        {
-          text: <FormattedMessage id="UserNav.yourListings" />,
-          selected: currentPage === 'ManageListingsPage',
-          linkProps: {
-            name: 'ManageListingsPage',
-          },
-        },
-      ]
-    : [];
-
   const tabs = [
-    ...manageListingsTabMaybe,
+    userId
+      ? {
+          key: 'profile',
+          text: 'Twój profil',
+          selected: currentPage === 'ProfilePage' || currentPage === 'ManageListingsPage',
+          name: 'ProfilePage',
+          params: { id: userId },
+        }
+      : null,
     {
-      text: <FormattedMessage id="UserNav.profileSettings" />,
-      selected: currentPage === 'ProfileSettingsPage',
-      disabled: false,
-      linkProps: {
-        name: 'ProfileSettingsPage',
-      },
+      key: 'orders',
+      text: 'Zamówienia',
+      selected: currentPage === 'OrdersPage',
+      name: 'OrdersPage',
+      params: { tab: 'kupione' },
     },
     {
-      text: <FormattedMessage id="UserNav.accountSettings" />,
+      key: 'account',
+      text: 'Ustawienia konta',
       selected: ACCOUNT_SETTINGS_PAGES.includes(currentPage),
-      disabled: false,
-      linkProps: {
-        name: 'ContactDetailsPage',
-      },
+      name: 'ContactDetailsPage',
     },
-  ];
+  ].filter(Boolean);
 
   return (
-    <LinkTabNavHorizontal
-      className={classes}
-      tabRootClassName={css.tab}
-      tabs={tabs}
-      skin="dark"
-      ariaLabel={intl.formatMessage({ id: 'UserNav.screenreader.userNav' })}
-    />
+    <nav className={classes} aria-label="Twoje konto">
+      <div className={css.inner}>
+        {tabs.map(t => (
+          <NamedLink
+            key={t.key}
+            name={t.name}
+            params={t.params}
+            className={classNames(css.tab, { [css.tabSelected]: t.selected })}
+            aria-current={t.selected ? 'page' : undefined}
+          >
+            {t.text}
+          </NamedLink>
+        ))}
+      </div>
+    </nav>
   );
 };
 

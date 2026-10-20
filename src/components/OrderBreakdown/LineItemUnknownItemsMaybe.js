@@ -25,7 +25,14 @@ import css from './OrderBreakdown.module.css';
  * @returns {JSX.Element}
  */
 const LineItemUnknownItemsMaybe = props => {
-  const { lineItems, isProvider, intl } = props;
+  const { lineItems, isProvider, intl, bundleItems } = props;
+  // Refume: bundle items ("line-item/refume-pakiet-1", …) show the listing title
+  const bundleLabel = code => {
+    const match = /^line-item\/refume-pakiet-(\d+)$/.exec(code || '');
+    if (!match) return null;
+    const item = Array.isArray(bundleItems) ? bundleItems[Number(match[1]) - 1] : null;
+    return item?.title || 'Rzecz z pakietu';
+  };
 
   // resolve unknown non-reversal line items
   const allItems = lineItems.filter(item => LINE_ITEMS.indexOf(item.code) === -1 && !item.reversal);
@@ -39,8 +46,9 @@ const LineItemUnknownItemsMaybe = props => {
       {items.map((item, i) => {
         const quantity = item.quantity;
 
-        const label =
-          quantity && quantity > 1
+        const label = bundleLabel(item.code)
+          ? bundleLabel(item.code)
+          : quantity && quantity > 1
             ? `${humanizeLineItemCode(item.code)} x ${quantity}`
             : humanizeLineItemCode(item.code);
 

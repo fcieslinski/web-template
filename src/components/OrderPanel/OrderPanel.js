@@ -328,6 +328,7 @@ const OrderPanel = props => {
     author,
     authorLink,
     refumeOfferAction,
+    refumeBundleAction,
     refumeTitleExtra,
     refumeTrustBox,
     onManageDisableScrolling,
@@ -596,6 +597,7 @@ const OrderPanel = props => {
             displayDeliveryMethod={false}
             onContactUser={onContactUser}
             refumeOfferAction={refumeOfferAction}
+            refumeBundleAction={refumeBundleAction}
             {...sharedProps}
           />
         ) : showDownloadForm ? (

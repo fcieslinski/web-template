@@ -183,6 +183,7 @@ const renderForm = formRenderProps => {
     price,
     payoutDetailsWarning,
     refumeOfferAction,
+    refumeBundleAction,
     marketplaceName,
     values,
     sectionHeadingAs = 'h3',
@@ -350,6 +351,8 @@ const renderForm = formRenderProps => {
       {hasStock && refumeOfferAction ? (
         <div className={css.offerAction}>{refumeOfferAction}</div>
       ) : null}
+      {/* Refume: more items from the same seller, one shipping */}
+      {hasStock && refumeBundleAction ? refumeBundleAction : null}
       <p className={css.finePrint}>
         {payoutDetailsWarning ? (
           payoutDetailsWarning

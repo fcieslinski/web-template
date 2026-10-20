@@ -8,6 +8,11 @@ const { REFUME_BUYER_COMMISSION } = require('./refumeFee');
 const { types } = require('sharetribe-flex-sdk');
 const { Money } = types;
 const { getCarrierShippingFee, getShippingSetup } = require('./refumeShipping');
+const {
+  isVerifiedBundle,
+  getBundleShippingSetup,
+  bundleLineItems,
+} = require('./refumeBundles');
 
 /**
  * Get quantity and add extra line-items that are related to delivery method
@@ -27,7 +32,11 @@ const getItemQuantityAndLineItems = (orderData, publicData, currency) => {
   // size (publicData.gabaryt) and the carrier the buyer chose, limited to the carriers the
   // seller enabled (publicData.shippingCarriers). Seller-set shipping prices
   // (publicData.shippingPriceInSubunits*) are no longer used.
-  const { size, carriers } = getShippingSetup(publicData);
+  // Refume: a bundle travels as one parcel (biggest size, carriers every item allows)
+  const bundle = isVerifiedBundle(orderData?.refumeBundle) ? orderData.refumeBundle : null;
+  const { size, carriers } = bundle
+    ? getBundleShippingSetup([publicData, ...bundle.items.map(i => i.publicData)])
+    : getShippingSetup(publicData);
   const shippingFee = isShipping
     ? getCarrierShippingFee({
         carrier: orderData && orderData.shippingCarrier,
@@ -50,7 +59,11 @@ const getItemQuantityAndLineItems = (orderData, publicData, currency) => {
       ]
     : [];
 
-  return { quantity, extraLineItems: deliveryLineItem };
+  return {
+    quantity,
+    extraLineItems: deliveryLineItem,
+    bundleItems: bundle ? bundleLineItems(bundle) : [],
+  };
 };
 
 const getOfferQuantityAndLineItems = orderData => {
@@ -203,7 +216,7 @@ exports.transactionLineItems = (listing, orderData, providerCommission, customer
       ? getOfferQuantityAndLineItems(orderData)
       : {};
 
-  const { quantity, units, seats, extraLineItems } = quantityAndExtraLineItems;
+  const { quantity, units, seats, extraLineItems, bundleItems = [] } = quantityAndExtraLineItems;
 
   // Throw error if there is no quantity information given
   if (!quantity && !(units && seats)) {
@@ -244,12 +257,33 @@ exports.transactionLineItems = (listing, orderData, providerCommission, customer
 
   // Let's keep the base price (order) as first line item and provider and customer commissions as last.
   // Note: the order matters only if OrderBreakdown component doesn't recognize line-item.
+  // Refume: commissions are counted from all items of a bundle (never from shipping)
+  const itemsTotal = bundleItems.length
+    ? {
+        code,
+        unitPrice: new Money(
+          [order, ...bundleItems].reduce(
+            (sum, item) => sum + item.unitPrice.amount * (item.quantity || 1),
+            0
+          ),
+          currency
+        ),
+        quantity: 1,
+        includeFor: ['customer', 'provider'],
+      }
+    : order;
+  if (bundleItems.length && quantity !== 1) {
+    const error = new Error('A bundle can contain one piece of each item.');
+    Object.assign(error, { status: 400, statusText: error.message, data: {} });
+    throw error;
+  }
   const lineItems = [
     order,
+    ...bundleItems,
     ...extraLineItems,
-    ...getProviderCommissionMaybe(providerCommission, order, currency),
+    ...getProviderCommissionMaybe(providerCommission, itemsTotal, currency),
     // Refume: fixed buyer protection fee instead of Console's customer commission
-    ...getCustomerCommissionMaybe(REFUME_BUYER_COMMISSION, order, currency),
+    ...getCustomerCommissionMaybe(REFUME_BUYER_COMMISSION, itemsTotal, currency),
   ];
 
   return lineItems;

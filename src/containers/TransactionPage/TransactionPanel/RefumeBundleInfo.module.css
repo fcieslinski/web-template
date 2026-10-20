@@ -1,0 +1,51 @@
+.root {
+  padding: 16px;
+  border: 1px solid var(--colorGrey200);
+  border-radius: 12px;
+  background-color: var(--colorWhite);
+}
+
+.title {
+  margin: 0;
+  padding: 0;
+  font-size: 16px;
+  line-height: 22px;
+  font-weight: var(--fontWeightBold);
+}
+
+.sub {
+  margin: 2px 0 8px 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--colorGrey700);
+}
+
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 0;
+  border-top: 1px solid var(--colorGrey100);
+  font-size: 15px;
+  line-height: 20px;
+
+  &:first-child {
+    border-top: none;
+  }
+}
+
+.link {
+  min-width: 0;
+  color: var(--colorGrey900);
+}
+
+.price {
+  font-weight: var(--fontWeightSemiBold);
+  white-space: nowrap;
+}

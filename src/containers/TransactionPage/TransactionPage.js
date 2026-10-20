@@ -872,6 +872,7 @@ export const TransactionPageComponent = props => {
       transitions={txTransitions}
       processName={processName}
       protectedData={transaction?.attributes?.protectedData}
+      refumeBundle={transaction?.attributes?.metadata?.refumePakiet}
       marketplaceName={config.marketplaceName}
       messages={messages}
       savePaymentMethodFailed={savePaymentMethodFailed}

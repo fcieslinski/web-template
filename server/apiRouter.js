@@ -56,7 +56,12 @@ const createUserWithIdp = require('./api/auth/createUserWithIdp');
 const { authenticateFacebook, authenticateFacebookCallback } = require('./api/auth/facebook');
 const { authenticateGoogle, authenticateGoogleCallback } = require('./api/auth/google');
 
+const { startBundleSweep } = require('./api-util/refumeBundles');
+
 const router = express.Router();
+
+// Refume: gives back stock of bundle items when an order expires or is cancelled
+startBundleSweep();
 
 // ================ API router middleware: ================ //
 

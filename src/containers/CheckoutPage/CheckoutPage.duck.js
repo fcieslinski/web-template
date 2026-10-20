@@ -29,6 +29,7 @@ const initiateOrderPayloadCreator = (
     quantity,
     bookingDates,
     expectedPayinTotal,
+    refumePakiet,
     ...otherOrderParams
   } = orderParams;
   const quantityMaybe = quantity ? { stockReservationQuantity: quantity } : {};
@@ -40,6 +41,8 @@ const initiateOrderPayloadCreator = (
     ...(deliveryMethod ? { deliveryMethod } : {}),
     ...(shippingCarrier ? { shippingCarrier } : {}),
     ...(expectedPayinTotal ? { expectedPayinTotal } : {}),
+    // Refume: ids of the other listings in a bundle (checked again on the server)
+    ...(refumePakiet?.length ? { refumePakiet } : {}),
   };
 
   // Parameters for Marketplace API
@@ -311,6 +314,7 @@ const speculateTransactionPayloadCreator = (
     priceVariantName,
     quantity,
     bookingDates,
+    refumePakiet,
     ...otherOrderParams
   } = orderParams;
   const quantityMaybe = quantity ? { stockReservationQuantity: quantity } : {};
@@ -322,6 +326,7 @@ const speculateTransactionPayloadCreator = (
     ...(deliveryMethod ? { deliveryMethod } : {}),
     ...(shippingCarrier ? { shippingCarrier } : {}),
     ...(priceVariantName ? { priceVariantName } : {}),
+    ...(refumePakiet?.length ? { refumePakiet } : {}),
   };
 
   // Parameters for Marketplace API

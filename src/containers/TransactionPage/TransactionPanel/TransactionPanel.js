@@ -15,6 +15,7 @@ import BreakdownMaybe from './BreakdownMaybe';
 import DetailCardHeadingsMaybe from './DetailCardHeadingsMaybe';
 import DetailCardImage from './DetailCardImage';
 import DeliveryInfoMaybe from './DeliveryInfoMaybe';
+import RefumeBundleInfo from './RefumeBundleInfo';
 import BookingLocationMaybe from './BookingLocationMaybe';
 import FeedSection from './FeedSection';
 import DiminishedActionButtonMaybe from './DiminishedActionButtonMaybe';
@@ -110,6 +111,7 @@ export class TransactionPanelComponent extends Component {
       transitions,
       processName,
       protectedData,
+      refumeBundle,
       marketplaceName,
       messages,
       savePaymentMethodFailed = false,
@@ -267,6 +269,12 @@ export class TransactionPanelComponent extends Component {
                     />
                   </p>
                 ) : null}
+                <RefumeBundleInfo
+                  className={css.deliveryInfoSection}
+                  bundle={refumeBundle}
+                  listing={listing}
+                  isProvider={isProvider}
+                />
                 <DeliveryInfoMaybe
                   className={css.deliveryInfoSection}
                   protectedData={protectedData}

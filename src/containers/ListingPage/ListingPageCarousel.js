@@ -57,6 +57,7 @@ import CustomListingFields from './CustomListingFields';
 import ListingPageAccessWrapper from './ListingPageAccessWrapper';
 
 import MakeOfferButton from '../../components/RefumePriceOffer/MakeOfferButton';
+import RefumeBundleButton from '../../components/RefumeBundle/RefumeBundleButton';
 import SellerCard from './RefumeListingExtras/SellerCard';
 import MoreListings from './RefumeListingExtras/MoreListings';
 import TrustBox from './RefumeListingExtras/TrustBox';
@@ -365,6 +366,14 @@ export const ListingPageComponent = props => {
                   listing={currentListing}
                   isOwnListing={isOwnListing}
                   currentUser={currentUser}
+                />
+              }
+              refumeBundleAction={
+                <RefumeBundleButton
+                  listing={currentListing}
+                  isOwnListing={isOwnListing}
+                  currentUser={currentUser}
+                  onSubmit={handleOrderSubmit}
                 />
               }
               refumeTrustBox={<TrustBox />}

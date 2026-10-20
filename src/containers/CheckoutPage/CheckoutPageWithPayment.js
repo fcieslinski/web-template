@@ -48,6 +48,8 @@ import MobileListingImage from './MobileListingImage';
 import MobileOrderBreakdown from './MobileOrderBreakdown';
 
 import RefumeDeliveryPicker, { getDeliveryOptions, isDeliveryChosen } from './RefumeDeliveryPicker';
+import RefumeBundleItems, { getBundleItems } from './RefumeBundleItems';
+import { getBundleShippingPublicData } from '../../util/refumeShipping';
 import deliveryCss from './RefumeDeliveryPicker.module.css';
 import { storeData } from './CheckoutPageSessionHelpers';
 import css from './CheckoutPage.module.css';
@@ -164,8 +166,13 @@ const getOrderParams = (
 
   // These are the order parameters for the first payment-related transition
   // which is either initiate-transition or initiate-transition-after-enquiry
+  // Refume: other listings of a bundle (only for a new order, not one started from a chat)
+  const bundleItems = pageData?.transaction?.id ? [] : getBundleItems(pageData.orderData);
+  const bundleMaybe = bundleItems.length ? { refumePakiet: bundleItems.map(i => i.id) } : {};
+
   const orderParams = {
     listingId: pageData?.listing?.id,
+    ...bundleMaybe,
     ...deliveryMethodMaybe,
     ...shippingCarrierMaybe,
     ...quantityMaybe,
@@ -646,11 +653,20 @@ export const CheckoutPageWithPayment = props => {
     );
   }
 
+  const bundleItems = existingTransaction?.id ? [] : getBundleItems(orderData);
+
   // Refume: the buyer picks the carrier / pickup point here (not on the listing page).
   // Changing the carrier re-prices the order through a new speculative transaction.
   const deliveryOptions =
     isPurchase && !hasTransactionPassedPendingPayment(existingTransaction, process)
-      ? getDeliveryOptions(listing?.attributes?.publicData)
+      ? getDeliveryOptions(
+          bundleItems.length
+            ? getBundleShippingPublicData([
+                listing?.attributes?.publicData,
+                ...bundleItems.map(i => i.shipping),
+              ])
+            : listing?.attributes?.publicData
+        )
       : [];
   const deliveryChosen = isDeliveryChosen(orderData, deliveryOptions);
   const handleDeliveryChange = (changes, { reprice }) => {
@@ -698,6 +714,12 @@ export const CheckoutPageWithPayment = props => {
             {errorMessages.speculateErrorMessage}
             {errorMessages.retrievePaymentIntentErrorMessage}
             {errorMessages.paymentExpiredMessage}
+
+            <RefumeBundleItems
+              listing={listing}
+              items={bundleItems}
+              hasDeliveryOptions={deliveryOptions.length > 0}
+            />
 
             <RefumeDeliveryPicker
               options={deliveryOptions}

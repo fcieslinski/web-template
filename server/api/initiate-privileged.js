@@ -4,6 +4,14 @@ const { transactionLineItems } = require('../api-util/lineItems');
 const { isIntentionToMakeOffer } = require('../api-util/negotiation');
 const { stripOfferPrice } = require('../api-util/refumeOffers');
 const {
+  requestedBundleIds,
+  loadBundle,
+  bundleMetadata,
+  reserveBundle,
+  releaseBundle,
+  trackBundle,
+} = require('../api-util/refumeBundles');
+const {
   createCookieTokenStore,
   getSdk,
   getTrustedSdk,
@@ -14,10 +22,13 @@ const {
 
 const { Money } = sharetribeSdk.types;
 
-const listingPromise = (sdk, id) => sdk.listings.show({ id });
+const listingPromise = (sdk, id) => sdk.listings.show({ id, include: ['author'] });
 
 const getFullOrderData = (orderData, bodyParams, currency) => {
   const { offerInSubunits } = orderData || {};
+  // Refume: the bundle must come from the server-checked orderData, never from the params
+  const { refumeBundle, refumePakiet, ...params } = bodyParams.params || {};
+  bodyParams = { ...bodyParams, params };
   const transitionName = bodyParams.transition;
 
   return isIntentionToMakeOffer(offerInSubunits, transitionName)
@@ -53,7 +64,11 @@ const getMetadata = (orderData, transition) => {
 
 module.exports = (req, res) => {
   const { isSpeculative, bodyParams, queryParams } = req.body || {};
-  const orderData = stripOfferPrice(req.body?.orderData);
+  // Refume: refumeBundle is only ever set below, from listings checked on the server
+  const { refumeBundle: _ignored, ...clientOrderData } = stripOfferPrice(req.body?.orderData) || {};
+  let orderData = clientOrderData;
+  let bundle = null;
+  let reserved = false;
   const transitionName = bodyParams.transition;
   // Share one cookie token store so a refresh during listings.show is reused for exchangeToken.
   const tokenStore = createCookieTokenStore(req, res);
@@ -66,7 +81,7 @@ module.exports = (req, res) => {
     fetchCommission(sdk),
     sdk.currentUser.show().catch(() => null),
   ])
-    .then(([showListingResponse, fetchAssetsResponse, currentUserResponse]) => {
+    .then(async ([showListingResponse, fetchAssetsResponse, currentUserResponse]) => {
       const listing = showListingResponse.data.data;
       // Refume: blocked accounts can't buy, hidden listings can't be bought
       const buyer = currentUserResponse?.data?.data;
@@ -79,6 +94,15 @@ module.exports = (req, res) => {
         const e = new Error('Listing hidden by a moderator.');
         Object.assign(e, { status: 403, statusText: 'Listing hidden.', data: {} });
         throw e;
+      }
+      // Refume: bundle — more items from the same seller in this order
+      const bundleIds = requestedBundleIds(orderData, listing.id.uuid);
+      if (bundleIds.length) {
+        if (listing.relationships?.author?.data?.id?.uuid === buyer?.id?.uuid) {
+          throw Object.assign(new Error('Own listing.'), { status: 400, statusText: 'Own listing.', data: {} });
+        }
+        bundle = await loadBundle(sdk, listing, bundleIds);
+        orderData = { ...orderData, refumeBundle: bundle };
       }
       const commissionAsset = fetchAssetsResponse.data.data[0];
 
@@ -97,6 +121,16 @@ module.exports = (req, res) => {
       assertExpectedPayinTotal(lineItems, orderData?.expectedPayinTotal);
 
       metadataMaybe = getMetadata(orderData, transitionName);
+      if (bundle) {
+        metadataMaybe = {
+          metadata: { ...(metadataMaybe.metadata || {}), ...bundleMetadata(bundle) },
+        };
+        if (!isSpeculative) {
+          // Reserve the other items before the order exists, so nobody else can buy them
+          await reserveBundle(bundle);
+          reserved = true;
+        }
+      }
 
       return getTrustedSdk(req, res, tokenStore);
     })
@@ -120,6 +154,10 @@ module.exports = (req, res) => {
     })
     .then(apiResponse => {
       const { status, statusText, data } = apiResponse;
+      if (bundle && reserved) {
+        const txId = data?.data?.id?.uuid;
+        if (txId) trackBundle(txId, bundle);
+      }
       res
         .status(status)
         .set('Content-Type', 'application/transit+json')
@@ -133,6 +171,7 @@ module.exports = (req, res) => {
         .end();
     })
     .catch(e => {
+      if (bundle && reserved) releaseBundle(bundle);
       handleError(res, e);
     });
 };

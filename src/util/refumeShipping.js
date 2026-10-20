@@ -96,3 +96,32 @@ export const formatCarrierOption = (carrier, intl, currency = 'PLN') => {
   });
   return `${carrier.label} – ${price}`;
 };
+
+/**
+ * Refume bundles: one parcel for several listings — the biggest parcel size, only carriers
+ * every listing allows, pickup only when all allow it. Returns publicData-like shipping
+ * settings. Keep in sync with getBundleShippingSetup in server/api-util/refumeBundles.js.
+ */
+const SIZE_ORDER = ['S', 'M', 'L'];
+export const getBundleShippingPublicData = publicDatas => {
+  const setups = publicDatas.map(pd => getShippingSetup(pd));
+  const size = setups.reduce(
+    (max, s) => (SIZE_ORDER.indexOf(s.size) > SIZE_ORDER.indexOf(max) ? s.size : max),
+    'S'
+  );
+  const shippingCarriers = Object.keys(REFUME_SHIPPING_PRICES[size]).filter(c =>
+    setups.every(s => s.carriers.includes(c))
+  );
+  return {
+    gabaryt: size,
+    // [] would mean "all carriers" for a single listing, so keep a marker for "none"
+    shippingCarriers: shippingCarriers.length ? shippingCarriers : ['__brak__'],
+    pickupEnabled: publicDatas.every(pd => !!pd?.pickupEnabled),
+  };
+};
+
+/** Cheapest shipping price for a listing (subunits), or null. */
+export const getCheapestShipping = publicData => {
+  const prices = getAvailableCarriers(publicData).map(c => c.priceInSubunits);
+  return prices.length ? Math.min(...prices) : null;
+};

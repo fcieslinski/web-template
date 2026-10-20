@@ -11,6 +11,7 @@ import { NamedLink, AvatarLarge, Reviews } from '../../../components';
 import SellerBadges from '../../../components/SellerBadges/SellerBadges';
 import ProfileFacts from './ProfileFacts';
 import BundleSettings from './BundleSettings';
+import RefumeModal from './RefumeModal';
 import {
   SHIPPING_SPEED_OPTIONS,
   BIO_MAX,
@@ -181,7 +182,7 @@ const ProfileEditForm = ({ user, onDone }) => {
   };
 
   return (
-    <form className={css.form} onSubmit={submit}>
+    <form className={css.modalForm} onSubmit={submit}>
       <div className={css.row2}>
         <label className={css.field}>
           <span className={css.label}>Imię</span>
@@ -461,18 +462,16 @@ const OwnProfile = props => {
         <div className={css.headerMain}>
           <div className={css.nameRow}>
             <h1 className={css.name}>{profile.displayName}</h1>
-            {!editing ? (
-              <button
-                type="button"
-                className={css.secondaryBtn}
-                onClick={() => {
-                  setEditing(true);
-                  setSaved(false);
-                }}
-              >
-                Edytuj profil
-              </button>
-            ) : null}
+            <button
+              type="button"
+              className={css.secondaryBtn}
+              onClick={() => {
+                setEditing(true);
+                setSaved(false);
+              }}
+            >
+              Edytuj profil
+            </button>
           </div>
           <ProfileFacts
             user={currentUser}
@@ -481,14 +480,22 @@ const OwnProfile = props => {
           />
           <SellerBadges userId={currentUser.id.uuid} />
           {editing ? (
-            <ProfileEditForm
-              user={currentUser}
-              onDone={didSave => {
-                setEditing(false);
-                setSaved(didSave);
-              }}
-            />
-          ) : profile.bio ? (
+            <RefumeModal
+              id="profile-edit"
+              title="Edytuj profil"
+              subtitle="To widzą kupujący na Twoim profilu."
+              onClose={() => setEditing(false)}
+            >
+              <ProfileEditForm
+                user={currentUser}
+                onDone={didSave => {
+                  setEditing(false);
+                  setSaved(didSave);
+                }}
+              />
+            </RefumeModal>
+          ) : null}
+          {profile.bio ? (
             <p className={css.bio}>{profile.bio}</p>
           ) : (
             <button type="button" className={css.emptyBio} onClick={() => setEditing(true)}>

@@ -1,0 +1,371 @@
+@import '../../../styles/customMediaQueries.css';
+
+/* ---------- Card on the profile ---------- */
+
+.card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 16px;
+  padding: 16px 20px;
+  border: 1px solid var(--colorGrey200);
+  border-radius: 14px;
+  background-color: var(--colorWhite);
+}
+
+.cardIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  background-color: hsl(140 50% 94%);
+  font-size: 22px;
+}
+
+.cardText {
+  flex: 1;
+  min-width: 0;
+}
+
+.cardTitle {
+  margin: 0;
+  padding: 0;
+  font-size: 17px;
+  line-height: 22px;
+  font-weight: var(--fontWeightBold);
+}
+
+.cardSummary {
+  margin: 2px 0 0 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--colorGrey700);
+}
+
+.saved {
+  margin: 4px 0 0 0;
+  font-size: 13px;
+  font-weight: var(--fontWeightSemiBold);
+  color: var(--colorSuccess);
+}
+
+/* ---------- Buttons ---------- */
+
+.primaryBtn,
+.secondaryBtn {
+  min-height: 42px;
+  padding: 8px 18px;
+  border-radius: 10px;
+  font: inherit;
+  font-size: 15px;
+  font-weight: var(--fontWeightSemiBold);
+  white-space: nowrap;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: default;
+  }
+}
+
+.primaryBtn {
+  border: none;
+  background-color: var(--colorGrey900);
+  color: var(--colorWhite);
+}
+
+.secondaryBtn {
+  flex-shrink: 0;
+  border: 1px solid var(--colorGrey300);
+  background-color: var(--colorWhite);
+  color: var(--colorGrey900);
+
+  &:hover {
+    border-color: var(--colorGrey900);
+  }
+}
+
+.footerError {
+  margin-right: auto;
+  font-size: 14px;
+  color: var(--colorFail);
+}
+
+/* ---------- Modal content ---------- */
+
+.switchCard {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 16px;
+  border: 1px solid var(--colorGrey200);
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.switchText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  font-size: 15px;
+  line-height: 21px;
+
+  & span {
+    font-size: 14px;
+    color: var(--colorGrey700);
+  }
+}
+
+.switchInput {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}
+
+.switch {
+  position: relative;
+  flex-shrink: 0;
+  width: 48px;
+  height: 28px;
+  border-radius: 999px;
+  background-color: var(--colorGrey300);
+  transition: background-color 0.15s;
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background-color: var(--colorWhite);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+    transition: transform 0.15s;
+  }
+}
+
+.switchInput:checked + .switch {
+  background-color: var(--colorSuccess);
+}
+
+.switchInput:checked + .switch::after {
+  transform: translateX(20px);
+}
+
+.switchInput:focus-visible + .switch {
+  outline: 2px solid var(--colorGrey900);
+  outline-offset: 2px;
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 24px 0 12px 0;
+  padding: 0;
+  font-size: 16px;
+  line-height: 22px;
+  font-weight: var(--fontWeightBold);
+}
+
+.stepNo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: var(--colorGrey900);
+  color: var(--colorWhite);
+  font-size: 13px;
+}
+
+.presets {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.preset {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px;
+  border: 1px solid var(--colorGrey200);
+  border-radius: 12px;
+  background-color: var(--colorWhite);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  & strong {
+    font-size: 15px;
+  }
+
+  & span {
+    font-size: 13px;
+    line-height: 18px;
+    color: var(--colorGrey700);
+  }
+
+  &:hover {
+    border-color: var(--colorGrey500);
+  }
+}
+
+.presetActive {
+  border: 2px solid var(--colorGrey900);
+  padding: 11px;
+  background-color: var(--colorGrey50);
+}
+
+.tiers {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tier {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background-color: var(--colorGrey50);
+}
+
+.tierText {
+  font-size: 15px;
+  color: var(--colorGrey700);
+}
+
+.stepper {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--colorGrey300);
+  border-radius: 999px;
+  background-color: var(--colorWhite);
+  overflow: hidden;
+}
+
+.stepBtn {
+  width: 34px;
+  height: 34px;
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: 18px;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background-color: var(--colorGrey100);
+  }
+
+  &:disabled {
+    opacity: 0.3;
+    cursor: default;
+  }
+}
+
+.stepValue {
+  min-width: 40px;
+  text-align: center;
+  font-weight: var(--fontWeightBold);
+  font-size: 15px;
+}
+
+.remove {
+  width: 30px;
+  height: 30px;
+  margin-left: auto;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  font-size: 20px;
+  color: var(--colorGrey500);
+  cursor: pointer;
+
+  &:hover {
+    background-color: var(--colorGrey100);
+    color: var(--colorFail);
+  }
+}
+
+.addTier {
+  margin-top: 10px;
+  padding: 8px 14px;
+  border: 1px dashed var(--colorGrey400);
+  border-radius: 999px;
+  background: none;
+  font: inherit;
+  font-size: 14px;
+  font-weight: var(--fontWeightSemiBold);
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--colorGrey900);
+  }
+}
+
+.error {
+  margin: 10px 0 0 0;
+  font-size: 14px;
+  color: var(--colorFail);
+}
+
+.preview {
+  margin-top: 24px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background-color: hsl(140 50% 96%);
+}
+
+.previewLabel {
+  font-size: 12px;
+  font-weight: var(--fontWeightSemiBold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: hsl(140 40% 30%);
+}
+
+.previewTiers {
+  margin: 6px 0 0 0;
+  font-weight: var(--fontWeightSemiBold);
+  color: hsl(140 50% 25%);
+}
+
+.previewExample {
+  margin: 4px 0 0 0;
+  font-size: 15px;
+  line-height: 22px;
+
+  & s {
+    color: var(--colorGrey500);
+  }
+}
+
+.previewNote {
+  margin: 8px 0 0 0;
+  font-size: 13px;
+  color: var(--colorGrey700);
+}
+
+.offNote {
+  margin: 16px 0 0 0;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background-color: var(--colorGrey50);
+  font-size: 14px;
+  color: var(--colorGrey700);
+}

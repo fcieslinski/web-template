@@ -842,3 +842,7 @@
   gap: 4px;
   min-width: 0;
 }
+
+.rootWide {
+  max-width: 1360px;
+}

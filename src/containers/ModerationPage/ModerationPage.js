@@ -9,17 +9,15 @@ import {
   moderateUser,
   undoProofDecision,
   resolveReport,
-  fetchReportedConversation,
   moderateChatFlag,
   setUserBadgesAsModerator,
   markPhotosOk,
   decideAppeal,
   fetchDisputes,
-  disputeAction,
 } from '../../util/api';
-import { detectChatRisks } from '../../util/refumeChatSafety';
 import { Page, LayoutSingleColumn, NamedLink } from '../../components';
 import ModerationSearch from './ModerationSearch';
+import { DisputesTab, ChatView } from './ModerationDisputes';
 import TopbarContainer from '../TopbarContainer/TopbarContainer';
 import FooterContainer from '../FooterContainer/FooterContainer';
 
@@ -507,42 +505,7 @@ const PhotoFlagCard = ({ item, onChanged, openImage }) => {
 
 // ---------- Reports ----------
 
-const Conversation = ({ txId }) => {
-  const [state, setState] = useState({ loading: true });
-  useEffect(() => {
-    let cancelled = false;
-    fetchReportedConversation(txId)
-      .then(r => !cancelled && setState({ data: r?.data }))
-      .catch(e => !cancelled && setState({ error: errorMessage(e) }));
-    return () => {
-      cancelled = true;
-    };
-  }, [txId]);
-  if (state.loading) return <p className={css.muted}>Ładowanie rozmowy…</p>;
-  if (state.error) return <ErrorLine error={state.error} />;
-  const messages = state.data?.messages || [];
-  return (
-    <div className={css.conversation}>
-      <p className={css.metaSmall}>
-        {state.data?.listingTitle ? `Oferta: ${state.data.listingTitle} · ` : ''}
-        {messages.length} wiadomości. Wiadomości z ostrzeżeniem są podświetlone.
-      </p>
-      <ol className={css.messages}>
-        {messages.map(m => {
-          const flagged = detectChatRisks(m.content).any;
-          return (
-            <li key={m.id} className={classNames(css.chatMessage, { [css.chatFlagged]: flagged })}>
-              <span className={css.chatMeta}>
-                <strong>{m.senderName || '—'}</strong> ({m.role}) · {formatDate(m.createdAt)}
-              </span>
-              <span className={css.chatText}>{m.content}</span>
-            </li>
-          );
-        })}
-      </ol>
-    </div>
-  );
-};
+const Conversation = ({ txId }) => <ChatView txId={txId} compact />;
 
 const ReportCard = ({ item, onChanged, openImage }) => {
   const [mode, setMode] = useState(null);
@@ -825,244 +788,6 @@ const HistoryRow = ({ item, onChanged }) => {
   );
 };
 
-// ---------- Disputes ----------
-
-const DISPUTE_TEMPLATES = [
-  {
-    label: 'Prosimy o zdjęcia',
-    text: 'Dzień dobry, zajmujemy się tym zgłoszeniem. Prosimy kupującego o zdjęcia otrzymanej paczki i produktu (z widocznym kodem batch), a sprzedawcę o potwierdzenie nadania. Zdjęcia można dodać tutaj w rozmowie.',
-  },
-  {
-    label: 'Sprawdzamy',
-    text: 'Dziękujemy za informacje. Sprawdzamy sprawę i wrócimy z decyzją najpóźniej w ciągu 3 dni roboczych.',
-  },
-  {
-    label: 'Prośba o odesłanie',
-    text: 'Proponujemy rozwiązanie: kupujący odsyła produkt sprzedawcy, a po potwierdzeniu odbioru zwrócimy pieniądze. Prosimy o potwierdzenie w rozmowie.',
-  },
-];
-const DECISION_REASONS = [
-  'Produkt zgodny z opisem',
-  'Brak dowodów na problem',
-  'Produkt niezgodny z opisem',
-  'Paczka nie dotarła',
-  'Podejrzenie podróbki',
-];
-
-const DisputeCard = ({ item, onChanged }) => {
-  const [showChat, setShowChat] = useState(false);
-  const [mode, setMode] = useState(null); // 'wiadomosc' | 'prywatna' | 'dla-sprzedawcy' | 'zwrot'
-  const [text, setText] = useState('');
-  const [to, setTo] = useState('kupujacy');
-  const { busy, error, run } = useAction(onChanged);
-  const decided = item.spor?.decyzja;
-  const send = action =>
-    run(
-      () => disputeAction({ txId: item.id, action, tresc: text.trim(), do: to }),
-      () => {
-        setMode(null);
-        setText('');
-      }
-    );
-  return (
-    <li className={classNames(css.card, { [css.cardMuted]: !item.open })}>
-      <div className={css.reportHead}>
-        <span className={item.open ? css.pillDanger : css.pill}>
-          {item.open
-            ? 'Otwarty spór'
-            : item.lastTransition === 'transition/mark-received-from-disputed'
-            ? 'Zamknięty – dla sprzedawcy'
-            : 'Zamknięty – zwrot'}
-        </span>
-        <span className={css.metaSmall}>
-          zgłoszono {formatDate(item.zgloszono)}
-          {item.przezOperatora ? ' (przez operatora)' : ''}
-        </span>
-      </div>
-      <div className={css.row}>
-        {item.listing?.image ? <img src={item.listing.image} alt="" className={css.thumb} /> : null}
-        <div className={css.details}>
-          {item.listing ? (
-            <NamedLink name="ListingPageCanonical" params={{ id: item.listing.id }} className={css.listingTitle}>
-              {item.listing.title}
-            </NamedLink>
-          ) : null}
-          <p className={css.meta}>
-            Kupujący:{' '}
-            {item.customer ? (
-              <NamedLink name="ModeratorUserPage" params={{ id: item.customer.id }}>
-                {item.customer.name || '—'}
-              </NamedLink>
-            ) : '—'}{' '}
-            · Sprzedawca:{' '}
-            {item.provider ? (
-              <NamedLink name="ModeratorUserPage" params={{ id: item.provider.id }}>
-                {item.provider.name || '—'}
-              </NamedLink>
-            ) : '—'}
-          </p>
-          <p className={css.meta}>
-            Zapłacono {formatPrice(item.payinTotal)} · wypłata sprzedawcy {formatPrice(item.payoutTotal)}
-            {item.bundle ? ` · zestaw (${item.bundle + 1} rzeczy)` : ''}
-          </p>
-        </div>
-      </div>
-      <div className={css.appealText}>
-        <span className={css.label}>Opis problemu od kupującego</span>
-        <p className={css.quote}>{item.powod || '(bez opisu)'}</p>
-      </div>
-      {(item.spor?.wiadomosci || []).length ? (
-        <div className={css.appealText}>
-          <span className={css.label}>Wiadomości Zespołu Refume w rozmowie</span>
-          {item.spor.wiadomosci.map(m => (
-            <p key={m.id} className={css.metaSmall}>
-              {formatDate(m.at)}: {m.tresc}
-            </p>
-          ))}
-        </div>
-      ) : null}
-      {decided ? (
-        <p className={css.metaSmall}>
-          Decyzja ({formatDate(decided.at)}): {decided.uzasadnienie}
-        </p>
-      ) : null}
-
-      <button type="button" className={css.linkButton} onClick={() => setShowChat(v => !v)}>
-        {showChat ? 'Ukryj rozmowę' : 'Pokaż rozmowę kupującego ze sprzedawcą'}
-      </button>
-      {showChat ? <Conversation txId={item.id} /> : null}
-
-      {mode ? (
-        <div className={css.reasonBox}>
-          <span className={css.label}>
-            {mode === 'wiadomosc'
-              ? 'Wiadomość w rozmowie (zobaczą ją obie strony)'
-              : mode === 'prywatna'
-              ? 'Prywatna wiadomość (tylko w skrzynce odbiorcy)'
-              : mode === 'dla-sprzedawcy'
-              ? 'Zamknij na korzyść sprzedawcy – uzasadnienie dla obu stron'
-              : 'Zwróć pieniądze kupującemu – uzasadnienie dla obu stron'}
-          </span>
-          {mode === 'prywatna' ? (
-            <div className={css.chips}>
-              {[['kupujacy', 'Do kupującego'], ['sprzedawca', 'Do sprzedawcy']].map(([k, l]) => (
-                <button key={k} type="button" className={classNames(css.chip, { [css.chipActive]: to === k })} onClick={() => setTo(k)}>
-                  {l}
-                </button>
-              ))}
-            </div>
-          ) : null}
-          <div className={css.chips}>
-            {(mode === 'dla-sprzedawcy' || mode === 'zwrot'
-              ? DECISION_REASONS.map(r => ({ label: r, text: r }))
-              : DISPUTE_TEMPLATES
-            ).map(t => (
-              <button key={t.label} type="button" className={classNames(css.chip, { [css.chipActive]: text === t.text })} onClick={() => setText(t.text)}>
-                {t.label}
-              </button>
-            ))}
-          </div>
-          <textarea className={css.textarea} rows={4} maxLength={1500} value={text} onChange={e => setText(e.target.value)} />
-          {mode === 'dla-sprzedawcy' || mode === 'zwrot' ? (
-            <p className={css.metaSmall}>
-              {mode === 'zwrot'
-                ? 'Kupujący dostanie zwrot całej kwoty, zamówienie zostanie anulowane. Tego nie da się cofnąć.'
-                : 'Zamówienie zostanie uznane za odebrane i sprzedawca dostanie wypłatę. Tego nie da się cofnąć.'}
-            </p>
-          ) : null}
-          <div className={css.actions}>
-            <button
-              type="button"
-              className={mode === 'zwrot' || mode === 'dla-sprzedawcy' ? css.dangerButton : css.primaryButton}
-              disabled={busy || !text.trim()}
-              onClick={() => send(mode)}
-            >
-              {mode === 'wiadomosc' || mode === 'prywatna' ? 'Wyślij' : 'Zatwierdź decyzję'}
-            </button>
-            <button type="button" className={css.secondaryButton} disabled={busy} onClick={() => setMode(null)}>
-              Anuluj
-            </button>
-          </div>
-        </div>
-      ) : (
-        <div className={css.actions}>
-          <button type="button" className={css.primaryButton} onClick={() => setMode('wiadomosc')}>
-            Napisz w rozmowie
-          </button>
-          <button type="button" className={css.secondaryButton} onClick={() => setMode('prywatna')}>
-            Prywatna wiadomość
-          </button>
-          {item.open ? (
-            <>
-              <button type="button" className={css.secondaryButton} onClick={() => setMode('dla-sprzedawcy')}>
-                Zamknij dla sprzedawcy
-              </button>
-              <button type="button" className={css.dangerButton} onClick={() => setMode('zwrot')}>
-                Zwróć pieniądze
-              </button>
-            </>
-          ) : null}
-        </div>
-      )}
-      <ErrorLine error={error} />
-    </li>
-  );
-};
-
-const DisputesTab = ({ onCount }) => {
-  const [state, setState] = useState({ loading: true });
-  const [showClosed, setShowClosed] = useState(false);
-  const load = useCallback(
-    () =>
-      fetchDisputes()
-        .then(r => {
-          setState({ data: r?.data });
-          if (onCount) onCount(r?.data?.open?.length || 0);
-        })
-        .catch(e => setState({ error: errorMessage(e) })),
-    []
-  );
-  useEffect(() => {
-    load();
-  }, [load]);
-  if (state.loading) return <p className={css.muted}>Ładowanie sporów…</p>;
-  if (state.error) return <ErrorLine error={state.error} />;
-  const { open = [], closed = [] } = state.data || {};
-  return (
-    <>
-      <p className={css.intro}>
-        Kupujący zgłosił problem z otrzymanym zamówieniem. Pieniądze są wstrzymane do decyzji (bez
-        decyzji po 60 dniach wracają automatycznie do kupującego). Kupujący i sprzedawca nie widzą
-        się nawzajem z nami w czacie Sharetribe, więc nasze wiadomości pokazujemy w ich rozmowie jako
-        „Zespół Refume” i wysyłamy do skrzynki.
-      </p>
-      {open.length ? (
-        <ul className={css.list}>
-          {open.map(item => (
-            <DisputeCard key={item.id} item={item} onChanged={load} />
-          ))}
-        </ul>
-      ) : (
-        <p className={css.empty}>Nie ma otwartych sporów.</p>
-      )}
-      {closed.length ? (
-        <div className={css.closedBlock}>
-          <button type="button" className={css.linkButton} onClick={() => setShowClosed(v => !v)}>
-            {showClosed ? 'Ukryj zamknięte' : `Pokaż zamknięte (${closed.length})`}
-          </button>
-          {showClosed ? (
-            <ul className={css.list}>
-              {closed.map(item => (
-                <DisputeCard key={item.id} item={item} onChanged={load} />
-              ))}
-            </ul>
-          ) : null}
-        </div>
-      ) : null}
-    </>
-  );
-};
-
 // ---------- Appeals ----------
 
 const APPEAL_TYPES = {
@@ -1225,7 +950,7 @@ const ModerationPage = () => {
   return (
     <Page title="Panel moderatora" scrollingDisabled={!!image}>
       <LayoutSingleColumn topbar={<TopbarContainer />} footer={<FooterContainer />}>
-        <div className={css.root}>
+        <div className={classNames(css.root, { [css.rootWide]: tab === 'spory' })}>
           <div className={css.header}>
             <h1 className={css.title}>Panel moderatora</h1>
             <button type="button" className={css.secondaryButton} onClick={load}>

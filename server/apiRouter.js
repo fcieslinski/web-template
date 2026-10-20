@@ -38,7 +38,17 @@ const {
   getUserBadges: moderationGetUserBadges,
   setUserBadges: moderationSetUserBadges,
   setListingVerified: moderationSetListingVerified,
+  photosOk: moderationPhotosOk,
 } = require('./api/refume-moderation-panel');
+const {
+  sendMessage: moderationSendMessage,
+  saveNote: moderationSaveNote,
+  search: moderationSearch,
+  getUserCard: moderationUserCard,
+  createAppeal,
+  decideAppeal: moderationDecideAppeal,
+} = require('./api/refume-moderation-users');
+const { requestPhotoCheck } = require('./api/refume-photo-check');
 const { checkConversation } = require('./api/refume-chat-flags');
 
 const createUserWithIdp = require('./api/auth/createUserWithIdp');
@@ -98,6 +108,14 @@ router.post('/moderacja/oferta-edycja', moderationEditListing);
 router.get('/moderacja/uzytkownik', moderationGetUserBadges);
 router.post('/moderacja/odznaki-konta', moderationSetUserBadges);
 router.post('/moderacja/znacznik-oferty', moderationSetListingVerified);
+router.post('/moderacja/zdjecia-ok', moderationPhotosOk);
+router.post('/zdjecia/sprawdz', requestPhotoCheck);
+router.post('/moderacja/wiadomosc', moderationSendMessage);
+router.post('/moderacja/notatka', moderationSaveNote);
+router.get('/moderacja/szukaj', moderationSearch);
+router.get('/moderacja/karta', moderationUserCard);
+router.post('/moderacja/odwolanie', moderationDecideAppeal);
+router.post('/odwolania', createAppeal);
 router.post('/czat/sprawdz', checkConversation);
 router.post('/oferty/zloz', makeOffer);
 router.post('/oferty/odpowiedz', respondToOffer);

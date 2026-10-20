@@ -171,6 +171,7 @@ const flagAction = async ({ flagId, action, moderatorId }) => {
   if (action === 'ostrzez' && flag?.senderId) {
     await addNotification(flag.senderId, {
       type: 'ostrzezenie-czat',
+      odwolanie: true,
       dedupeKey: `ostrzezenie:${flag.messageId}`,
       title: 'Ostrzeżenie od moderatora',
       body:

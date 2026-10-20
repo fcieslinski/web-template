@@ -182,6 +182,7 @@ const decideProof = (req, res) => {
               }
             : {
                 type: 'dowod-odrzucony',
+                odwolanie: true,
                 dedupeKey: `dowod:${listingId}:${proof.uploadedAt}`,
                 title: 'Dowód zakupu odrzucony',
                 body: `Moderator nie zatwierdził dowodu zakupu do ogłoszenia „${title}”. Powód: ${trimmedReason}. Możesz wysłać nowe zdjęcie w edycji ogłoszenia.`,

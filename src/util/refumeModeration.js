@@ -38,7 +38,11 @@ export const useModerationStatus = userId => {
       const counts = value?.counts || {};
       setStatus({
         isModerator: !!value?.isModerator,
-        total: (counts.dowody || 0) + (counts.oferty || 0) + (counts.zgloszenia || 0),
+        total:
+          (counts.dowody || 0) +
+          (counts.oferty || 0) +
+          (counts.zgloszenia || 0) +
+          (counts.odwolania || 0),
       });
     });
     return () => {

@@ -41,6 +41,7 @@ const TransactionPage = loadable(() => import(/* webpackChunkName: "TransactionP
 const ScentRequestsPage = loadable(() => import(/* webpackChunkName: "ScentRequestsPage" */ '../containers/ScentRequestsPage/ScentRequestsPage'));
 const FavoritesPage = loadable(() => import(/* webpackChunkName: "FavoritesPage" */ '../containers/FavoritesPage/FavoritesPage'));
 const ModerationPage = loadable(() => import(/* webpackChunkName: "ModerationPage" */ '../containers/ModerationPage/ModerationPage'));
+const ModeratorUserPage = loadable(() => import(/* webpackChunkName: "ModeratorUserPage" */ '../containers/ModerationPage/ModeratorUserPage'));
 const ModeratorListingEditPage = loadable(() => import(/* webpackChunkName: "ModeratorListingEditPage" */ '../containers/ModerationPage/ModeratorListingEditPage'));
 const NoAccessPage = loadable(() => import(/* webpackChunkName: "NoAccessPage" */ '../containers/NoAccessPage/NoAccessPage'));
 
@@ -431,6 +432,14 @@ const routeConfiguration = (layoutConfig, accessControlConfig) => {
       auth: true,
       authPage: 'LoginPage',
       component: ModeratorListingEditPage,
+    },
+    {
+      // Refume: everything about one user for moderators (access checked on the server)
+      path: '/moderacja/uzytkownik/:id',
+      name: 'ModeratorUserPage',
+      auth: true,
+      authPage: 'LoginPage',
+      component: ModeratorUserPage,
     },
     {
       path: '/styleguide',

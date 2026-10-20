@@ -187,3 +187,91 @@
   font-size: 12px;
   color: var(--colorGrey700);
 }
+
+/* Appeals */
+.appealOpen {
+  align-self: flex-start;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--colorGrey700);
+  font-size: 14px;
+  text-decoration: underline;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--colorGrey900);
+  }
+}
+
+.appealStatus {
+  margin: 0;
+  font-size: 14px;
+  color: var(--colorGrey700);
+  font-style: italic;
+}
+
+.appealForm {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 10px;
+  background-color: var(--colorWhite);
+}
+
+.appealLabel {
+  font-size: 14px;
+  font-weight: var(--fontWeightSemiBold);
+}
+
+.appealTextarea {
+  padding: 8px 10px;
+  border: 1px solid var(--colorGrey300);
+  border-radius: 8px;
+  font-size: 15px;
+  line-height: 22px;
+  resize: vertical;
+}
+
+.appealHint {
+  margin: 0;
+  font-size: 13px;
+  color: var(--colorGrey700);
+}
+
+.appealError {
+  margin: 0;
+  font-size: 14px;
+  color: var(--colorFail);
+}
+
+.appealActions {
+  display: flex;
+  gap: 8px;
+}
+
+.appealSend,
+.appealCancel {
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: var(--fontWeightSemiBold);
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+}
+
+.appealSend {
+  border: none;
+  background-color: var(--colorGrey900);
+  color: var(--colorWhite);
+}
+
+.appealCancel {
+  border: 1px solid var(--colorGrey300);
+  background-color: var(--colorWhite);
+}

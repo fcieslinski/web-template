@@ -185,7 +185,7 @@ const ModeratorListingEditPage = () => {
                 <p className={css.meta}>
                   Sprzedawca:{' '}
                   {listing.author?.id ? (
-                    <NamedLink name="ProfilePage" params={{ id: listing.author.id }}>
+                    <NamedLink name="ModeratorUserPage" params={{ id: listing.author.id }}>
                       {listing.author.name || '—'}
                     </NamedLink>
                   ) : (

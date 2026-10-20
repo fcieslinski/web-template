@@ -38,6 +38,8 @@ const { addNotification } = require('../api-util/refumeNotifications');
 const { isWaitingForReview } = require('./refume-moderation');
 const { readQueue, flagAction } = require('./refume-chat-flags');
 const { forgetUser, OVERRIDE_KEY, BADGE_KEYS } = require('./refume-badges');
+const { checkListingPhotos } = require('./refume-photo-check');
+const { hammingDistance, SAME_PHOTO_MAX_DISTANCE } = require('../api-util/refumeImageHash');
 
 const MAX_LISTING_PAGES = 20;
 const MAX_USER_PAGES = 50;
@@ -137,6 +139,11 @@ const scanListings = async () => {
         weryfikacja: a.metadata?.weryfikacja || null,
         moderacja: a.metadata?.moderacja || null,
         waitingForProof: isWaitingForReview(a),
+        imageUrlById: Object.fromEntries(
+          (l.relationships?.images?.data || []).map(ref => [ref.id, imageUrl(byId.get(`image/${ref.id}`))])
+        ),
+        imagesKey: (l.relationships?.images?.data || []).slice(0, 8).map(ref => ref.id).join(','),
+        photos: a.metadata?.refumeZdjecia || null,
       });
     });
     if (page >= (result.meta?.totalPages || 1)) break;
@@ -151,11 +158,27 @@ const scanUsers = async () => {
   const reports = [];
   const blocked = [];
   const badgeOverrides = [];
+  const users = [];
+  const appeals = [];
   for (let page = 1; page <= MAX_USER_PAGES; page++) {
     const result = await queryUsers({ page, perPage: 100 });
     (result.data || []).forEach(u => {
       const profile = u.attributes?.profile || {};
       const name = profile.displayName || '';
+      users.push({
+        id: u.id,
+        name,
+        firstName: profile.firstName || '',
+        lastName: profile.lastName || '',
+        email: u.attributes?.email || '',
+        createdAt: u.attributes?.createdAt,
+        banned: !!u.attributes?.banned,
+        deleted: !!u.attributes?.deleted,
+        blocked: profile.metadata?.refumeBlokada || null,
+      });
+      (Array.isArray(profile.privateData?.refumeOdwolania) ? profile.privateData.refumeOdwolania : [])
+        .filter(a => a && a.id)
+        .forEach(a => appeals.push({ ...a, userId: u.id, userName: name }));
       (Array.isArray(profile.privateData?.[REPORTS_KEY]) ? profile.privateData[REPORTS_KEY] : [])
         .filter(r => r && r.id)
         .forEach(r => reports.push({ ...r, reporterId: u.id, reporterName: name }));
@@ -168,7 +191,7 @@ const scanUsers = async () => {
     });
     if (page >= (result.meta?.totalPages || 1)) break;
   }
-  userScan = { at: Date.now(), data: { reports, blocked, badgeOverrides } };
+  userScan = { at: Date.now(), data: { reports, blocked, badgeOverrides, users, appeals } };
   return userScan.data;
 };
 
@@ -182,6 +205,92 @@ const isNewToReview = l =>
   !l.moderacja?.przejrzano &&
   !l.moderacja?.ukryta &&
   Date.now() - new Date(l.createdAt).getTime() < NEW_LISTING_DAYS * 24 * 3600 * 1000;
+
+// ---------- Photo checks (same photo in several listings, photos from the internet) ----------
+
+const brief = l => ({
+  id: l.id,
+  title: l.title,
+  state: l.state,
+  author: l.author,
+  images: l.images,
+  price: l.price,
+  brand: l.brand,
+  createdAt: l.createdAt,
+  description: l.description,
+  moderacja: l.moderacja,
+});
+
+const findPhotoFlags = listings => {
+  const withHashes = listings.filter(l => (l.photos?.hashes || []).length);
+  const flags = [];
+  withHashes.forEach(l => {
+    if (l.state !== 'published' || l.moderacja?.ukryta) return;
+    if (l.photos.ok && l.photos.ok >= (l.photos.sprawdzono || '')) return;
+    const matches = [];
+    withHashes.forEach(other => {
+      if (other.id === l.id) return;
+      let best = null;
+      l.photos.hashes.forEach(h => {
+        other.photos.hashes.forEach(oh => {
+          const d = hammingDistance(h.hash, oh.hash);
+          if (d <= SAME_PHOTO_MAX_DISTANCE && (!best || d < best.distance)) {
+            best = { distance: d, mine: l.imageUrlById[h.imageId], theirs: other.imageUrlById[oh.imageId] };
+          }
+        });
+      });
+      if (best) {
+        matches.push({ listing: brief(other), sameAuthor: other.author.id === l.author.id, ...best });
+      }
+    });
+    // Only the newer listing of a pair is flagged (the copy is usually the later one)
+    const earlier = matches.filter(m => (m.listing.createdAt || '') <= (l.createdAt || ''));
+    const web = l.photos.web && (l.photos.web.strony?.length || l.photos.web.pelne) ? l.photos.web : null;
+    if (earlier.length || web) {
+      flags.push({
+        listing: brief(l),
+        matches: matches.sort((a, b) => a.sameAuthor - b.sameAuthor || a.distance - b.distance).slice(0, 6),
+        // Whoever used the photo first decides: the seller's own older listing = a duplicate
+        reason: earlier.length
+          ? [...earlier].sort((a, b) => (a.listing.createdAt || '').localeCompare(b.listing.createdAt || ''))[0]
+              .sameAuthor
+            ? 'ten-sam-sprzedawca'
+            : 'inni-sprzedawcy'
+          : 'internet',
+        web,
+      });
+    }
+  });
+  const order = { 'inni-sprzedawcy': 0, internet: 1, 'ten-sam-sprzedawca': 2 };
+  return flags.sort((a, b) => order[a.reason] - order[b.reason]);
+};
+
+// Older listings get their photos checked a few at a time while moderators use the panel
+const checkSomeUncheckedPhotos = listings => {
+  listings
+    .filter(l => l.state === 'published' && l.imagesKey && l.photos?.obrazy !== l.imagesKey)
+    .slice(0, 3)
+    .forEach(l =>
+      checkListingPhotos(l.id).catch(e => console.error('[refume-photos] background check:', e.message))
+    );
+};
+
+const photosOk = (req, res) => {
+  const listingId = uuidOf(req.body?.listingId);
+  requireModerator(req, res)
+    .then(async () => {
+      if (!UUID_RE.test(listingId || '')) throw httpError(400, 'Invalid listingId.');
+      const listing = (await showListing({ id: listingId })).data;
+      const current = listing.attributes.metadata?.refumeZdjecia || {};
+      await updateListing({
+        id: listingId,
+        metadata: { refumeZdjecia: { ...current, ok: new Date().toISOString() } },
+      });
+      invalidate();
+      res.status(200).json({ data: { ok: true } });
+    })
+    .catch(e => handleError(res, e));
+};
 
 // ---------- Endpoints ----------
 
@@ -202,10 +311,11 @@ const getStatus = (req, res) => {
           isModerator: true,
           counts: {
             dowody: listings.filter(l => l.waitingForProof).length,
-            oferty: listings.filter(isNewToReview).length,
+            oferty: listings.filter(isNewToReview).length + findPhotoFlags(listings).length,
             zgloszenia:
               users.reports.filter(r => r.status === 'nowe').length +
               flags.filter(f => f.status === 'nowe').length,
+            odwolania: users.appeals.filter(a => a.status === 'nowe').length,
           },
         },
       });
@@ -265,7 +375,12 @@ const getPanel = (req, res) => {
         .sort((a, b) => (b.at || '').localeCompare(a.at || ''))
         .slice(0, 150);
 
-      res.status(200).json({ data: { proofs, newListings, reports, history, chatFlags } });
+      const photoFlags = findPhotoFlags(listings);
+      checkSomeUncheckedPhotos(listings);
+      const appeals = users.appeals.sort((a, b) => (b.utworzono || '').localeCompare(a.utworzono || ''));
+      res.status(200).json({
+        data: { proofs, newListings, reports, history, chatFlags, photoFlags, appeals },
+      });
     })
     .catch(e => handleError(res, e));
 };
@@ -303,9 +418,10 @@ const listingAction = (req, res) => {
         if (authorId) {
           await addNotification(authorId, {
             type: 'oferta-ukryta',
+            odwolanie: true,
             dedupeKey: `ukryta:${listingId}:${now}`,
             title: 'Oferta została ukryta',
-            body: `Moderator ukrył Twoją ofertę „${title}”. Powód: ${reason}. Jeśli to pomyłka, odpowiedz na tę wiadomość przez formularz kontaktowy.`,
+            body: `Moderator ukrył Twoją ofertę „${title}”. Powód: ${reason}. Jeśli się nie zgadzasz, możesz się odwołać.`,
             editListingId: listingId,
           }).catch(() => null);
         }
@@ -371,6 +487,7 @@ const userAction = (req, res) => {
         }
         await addNotification(userId, {
           type: 'konto-zablokowane',
+          odwolanie: true,
           dedupeKey: `blokada:${now}`,
           title: 'Konto zostało zablokowane',
           body: `Moderator zablokował Twoje konto. Powód: ${reason}. Nie możesz teraz kupować ani wystawiać ofert.`,
@@ -632,6 +749,7 @@ const editListing = (req, res) => {
       if (authorId) {
         await addNotification(authorId, {
           type: 'oferta-edytowana',
+          odwolanie: true,
           dedupeKey: `edycja:${listingId}:${now}`,
           title: 'Moderator poprawił Twoją ofertę',
           body: `W ofercie „${title}” zmieniono: ${changed.join(', ')}.${note ? ` ${note}` : ''}`,
@@ -697,6 +815,7 @@ const setUserBadges = (req, res) => {
       forgetUser(userId);
       await addNotification(userId, {
         type: 'odznaki-zmienione',
+        odwolanie: true,
         dedupeKey: `odznaki:${next.zmieniono}`,
         title: 'Zmiana odznak na Twoim profilu',
         body: `Moderator poprawił odznaki: ${changes.join('; ')}. Powód: ${reason}.`,
@@ -738,6 +857,7 @@ const setListingVerified = (req, res) => {
       if (authorId) {
         await addNotification(authorId, {
           type: verified ? 'znacznik-przyznany' : 'znacznik-odebrany',
+          odwolanie: !verified,
           dedupeKey: `znacznik:${listingId}:${now}`,
           title: verified ? 'Oferta oznaczona jako zweryfikowana' : 'Znacznik weryfikacji usunięty',
           body: verified
@@ -806,6 +926,12 @@ const getConversation = (req, res) => {
 };
 
 module.exports = {
+  // shared with refume-moderation-users.js
+  scanListings,
+  scanUsers,
+  invalidate,
+  requireModerator,
+  photosOk,
   getUserBadges,
   setUserBadges,
   setListingVerified,

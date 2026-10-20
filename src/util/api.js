@@ -184,6 +184,16 @@ export const fetchUserForModeration = id =>
   request(`/api/moderacja/uzytkownik?id=${encodeURIComponent(id)}`, { method: methods.GET });
 export const setUserBadgesAsModerator = body => post('/api/moderacja/odznaki-konta', body);
 export const setListingVerifiedAsModerator = body => post('/api/moderacja/znacznik-oferty', body);
+export const markPhotosOk = body => post('/api/moderacja/zdjecia-ok', body);
+export const requestPhotoCheck = body => post('/api/zdjecia/sprawdz', body);
+export const sendTeamMessage = body => post('/api/moderacja/wiadomosc', body);
+export const saveModeratorNote = body => post('/api/moderacja/notatka', body);
+export const searchModeration = q =>
+  request(`/api/moderacja/szukaj?q=${encodeURIComponent(q)}`, { method: methods.GET });
+export const fetchUserCard = id =>
+  request(`/api/moderacja/karta?id=${encodeURIComponent(id)}`, { method: methods.GET });
+export const decideAppeal = body => post('/api/moderacja/odwolanie', body);
+export const createAppeal = body => post('/api/odwolania', body);
 export const fetchReportedConversation = txId =>
   request(`/api/moderacja/rozmowa?txId=${encodeURIComponent(txId)}`, { method: methods.GET });
 

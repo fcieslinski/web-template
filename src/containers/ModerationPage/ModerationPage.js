@@ -12,9 +12,12 @@ import {
   fetchReportedConversation,
   moderateChatFlag,
   setUserBadgesAsModerator,
+  markPhotosOk,
+  decideAppeal,
 } from '../../util/api';
 import { detectChatRisks } from '../../util/refumeChatSafety';
 import { Page, LayoutSingleColumn, NamedLink } from '../../components';
+import ModerationSearch from './ModerationSearch';
 import TopbarContainer from '../TopbarContainer/TopbarContainer';
 import FooterContainer from '../FooterContainer/FooterContainer';
 
@@ -22,7 +25,7 @@ import css from './ModerationPage.module.css';
 
 // ---------- Helpers ----------
 
-const formatDate = iso => {
+export const formatDate = iso => {
   if (!iso) return '';
   try {
     return new Date(iso).toLocaleString('pl-PL', { dateStyle: 'medium', timeStyle: 'short' });
@@ -31,12 +34,12 @@ const formatDate = iso => {
   }
 };
 
-const formatPrice = price =>
+export const formatPrice = price =>
   price?.amount != null
     ? `${(price.amount / 100).toFixed(2).replace('.', ',')} ${price.currency === 'PLN' ? 'zł' : price.currency}`
     : '';
 
-const errorMessage = e =>
+export const errorMessage = e =>
   e?.status === 401
     ? 'Zaloguj się na konto moderatora.'
     : e?.status === 403
@@ -59,7 +62,7 @@ const HIDE_REASONS = [
   'Powielona oferta',
   'Kontakt lub płatność poza Refume',
 ];
-const BLOCK_REASONS = [
+export const BLOCK_REASONS = [
   'Sprzedaż podróbek',
   'Próba oszustwa',
   'Obraźliwe zachowanie',
@@ -70,12 +73,13 @@ const TABS = [
   { key: 'dowody', label: 'Dowody zakupu' },
   { key: 'oferty', label: 'Nowe oferty' },
   { key: 'zgloszenia', label: 'Zgłoszenia' },
+  { key: 'odwolania', label: 'Odwołania' },
   { key: 'historia', label: 'Historia' },
 ];
 
 // ---------- Small building blocks ----------
 
-const Lightbox = ({ src, alt, onClose }) => {
+export const Lightbox = ({ src, alt, onClose }) => {
   const [zoomed, setZoomed] = useState(false);
   const [rotation, setRotation] = useState(0);
   useEffect(() => {
@@ -120,7 +124,7 @@ const Lightbox = ({ src, alt, onClose }) => {
 };
 
 /** Preset reasons as chips + free text. Calls onConfirm(reason). */
-const ReasonForm = ({ id, label, presets, confirmLabel, danger, busy, onConfirm, onCancel }) => {
+export const ReasonForm = ({ id, label, presets, confirmLabel, danger, busy, onConfirm, onCancel }) => {
   const [reason, setReason] = useState('');
   return (
     <div className={css.reasonBox}>
@@ -166,7 +170,7 @@ const ReasonForm = ({ id, label, presets, confirmLabel, danger, busy, onConfirm,
   );
 };
 
-const useAction = onDone => {
+export const useAction = onDone => {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
   const run = (promiseFn, after) => {
@@ -186,7 +190,7 @@ const useAction = onDone => {
   return { busy, error, run };
 };
 
-const ErrorLine = ({ error }) =>
+export const ErrorLine = ({ error }) =>
   error ? (
     <p className={css.error} role="alert">
       {error}
@@ -209,7 +213,7 @@ const ListingFacts = ({ listing }) => (
     <p className={css.meta}>
       Sprzedawca:{' '}
       {listing.author?.id ? (
-        <NamedLink name="ProfilePage" params={{ id: listing.author.id }}>
+        <NamedLink name="ModeratorUserPage" params={{ id: listing.author.id }}>
           {listing.author.name || '—'}
         </NamedLink>
       ) : (
@@ -368,6 +372,136 @@ const NewListingCard = ({ item, onChanged, openImage }) => {
   );
 };
 
+// ---------- Suspicious photos ----------
+
+const PHOTO_REASONS = {
+  'inni-sprzedawcy': ['Te same zdjęcia u innego sprzedawcy', css.pillDanger],
+  internet: ['Zdjęcie znalezione w internecie', css.pillWarning],
+  'ten-sam-sprzedawca': ['Powtórzone zdjęcia w ofertach tego sprzedawcy', css.pill],
+};
+
+const PhotoFlagCard = ({ item, onChanged, openImage }) => {
+  const [mode, setMode] = useState(null);
+  const { busy, error, run } = useAction(onChanged);
+  const [label, pill] = PHOTO_REASONS[item.reason] || ['Podejrzane zdjęcia', css.pill];
+  const listing = item.listing;
+  return (
+    <li className={css.card}>
+      <div className={css.reportHead}>
+        <span className={pill} style={{ marginLeft: 0 }}>
+          {label}
+        </span>
+      </div>
+      <div className={css.row}>
+        {listing.images?.[0] ? (
+          <button type="button" className={css.rowImageButton} onClick={() => openImage(listing.images[0], listing.title)}>
+            <img src={listing.images[0]} alt="" className={css.rowImage} />
+          </button>
+        ) : null}
+        <div className={css.rowBody}>
+          <ListingFacts listing={listing} />
+        </div>
+      </div>
+
+      {item.matches.length ? (
+        <div className={css.matches}>
+          <span className={css.columnLabel}>To samo zdjęcie w innych ofertach</span>
+          <ul className={css.matchList}>
+            {item.matches.map(m => (
+              <li key={m.listing.id} className={css.match}>
+                <div className={css.matchImages}>
+                  {m.mine ? (
+                    <button type="button" className={css.thumbButton} onClick={() => openImage(m.mine, 'Ta oferta')}>
+                      <img src={m.mine} alt="Zdjęcie z tej oferty" className={css.matchThumb} />
+                    </button>
+                  ) : null}
+                  <span aria-hidden="true" className={css.matchEq}>=</span>
+                  {m.theirs ? (
+                    <button type="button" className={css.thumbButton} onClick={() => openImage(m.theirs, m.listing.title)}>
+                      <img src={m.theirs} alt="Zdjęcie z innej oferty" className={css.matchThumb} />
+                    </button>
+                  ) : null}
+                </div>
+                <div className={css.matchInfo}>
+                  <NamedLink name="ListingPageCanonical" params={{ id: m.listing.id }}>
+                    {m.listing.title}
+                  </NamedLink>
+                  <span className={css.metaSmall}>
+                    {m.sameAuthor ? 'ten sam sprzedawca' : `sprzedawca: ${m.listing.author?.name || '—'}`} · dodano{' '}
+                    {formatDate(m.listing.createdAt)}
+                    {m.listing.state !== 'published' ? ' · nieaktywna' : ''}
+                  </span>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+
+      {item.web ? (
+        <div className={css.matches}>
+          <span className={css.columnLabel}>
+            Znalezione w internecie{item.web.pelne ? ` (${item.web.pelne} identycznych kopii)` : ''}
+          </span>
+          <ul className={css.webList}>
+            {(item.web.strony || []).map(p => (
+              <li key={p.url}>
+                <a href={p.url} target="_blank" rel="noopener noreferrer nofollow">
+                  {p.title || p.url}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+
+      {mode === 'hide' ? (
+        <ReasonForm
+          id={`phide-${listing.id}`}
+          label="Dlaczego ukrywasz ofertę? (zobaczy to sprzedawca)"
+          presets={['Zdjęcia skopiowane z innej oferty lub z internetu', ...HIDE_REASONS]}
+          confirmLabel="Ukryj ofertę"
+          danger
+          busy={busy}
+          onConfirm={reason => run(() => moderateListing({ listingId: listing.id, action: 'ukryj', reason }))}
+          onCancel={() => setMode(null)}
+        />
+      ) : mode === 'block' ? (
+        <ReasonForm
+          id={`pblock-${listing.id}`}
+          label={`Zablokować konto ${listing.author?.name || ''}? Wszystkie jego oferty zostaną ukryte.`}
+          presets={['Oferty ze skradzionymi zdjęciami', ...BLOCK_REASONS]}
+          confirmLabel="Zablokuj konto"
+          danger
+          busy={busy}
+          onConfirm={reason => run(() => moderateUser({ userId: listing.author.id, action: 'zablokuj', reason }))}
+          onCancel={() => setMode(null)}
+        />
+      ) : (
+        <div className={css.actions}>
+          <button
+            type="button"
+            className={css.approveButton}
+            disabled={busy}
+            onClick={() => run(() => markPhotosOk({ listingId: listing.id }))}
+          >
+            Zdjęcia w porządku
+          </button>
+          <button type="button" className={css.secondaryButton} disabled={busy} onClick={() => setMode('hide')}>
+            Ukryj ofertę…
+          </button>
+          {listing.author?.id && !listing.author.blocked ? (
+            <button type="button" className={css.dangerLink} disabled={busy} onClick={() => setMode('block')}>
+              Zablokuj sprzedawcę…
+            </button>
+          ) : null}
+        </div>
+      )}
+      <ErrorLine error={error} />
+    </li>
+  );
+};
+
 // ---------- Reports ----------
 
 const Conversation = ({ txId }) => {
@@ -436,7 +570,7 @@ const ReportCard = ({ item, onChanged, openImage }) => {
         <span className={css.metaSmall}>
           {item.typ === 'oferta' ? 'Oferta' : item.typ === 'rozmowa' ? 'Rozmowa' : 'Użytkownik'} ·
           zgłosił(a){' '}
-          <NamedLink name="ProfilePage" params={{ id: item.reporterId }}>
+          <NamedLink name="ModeratorUserPage" params={{ id: item.reporterId }}>
             {item.reporterName || '—'}
           </NamedLink>{' '}
           · {formatDate(item.utworzono)}
@@ -466,7 +600,7 @@ const ReportCard = ({ item, onChanged, openImage }) => {
               {item.celUzytkownikId ? (
                 <p className={css.meta}>
                   Zgłoszona osoba:{' '}
-                  <NamedLink name="ProfilePage" params={{ id: item.celUzytkownikId }}>
+                  <NamedLink name="ModeratorUserPage" params={{ id: item.celUzytkownikId }}>
                     zobacz profil
                   </NamedLink>
                 </p>
@@ -476,7 +610,7 @@ const ReportCard = ({ item, onChanged, openImage }) => {
               </button>
             </>
           ) : (
-            <NamedLink name="ProfilePage" params={{ id: item.celId }} className={css.listingTitle}>
+            <NamedLink name="ModeratorUserPage" params={{ id: item.celId }} className={css.listingTitle}>
               {item.celNazwa || 'Profil użytkownika'}
             </NamedLink>
           )}
@@ -575,7 +709,7 @@ const ChatFlagCard = ({ item, onChanged }) => {
         ))}
         <span className={css.metaSmall}>
           Wysłał(a){' '}
-          <NamedLink name="ProfilePage" params={{ id: item.senderId }}>
+          <NamedLink name="ModeratorUserPage" params={{ id: item.senderId }}>
             {item.senderName || '—'}
           </NamedLink>{' '}
           · {formatDate(item.wyslano || item.utworzono)}
@@ -645,7 +779,7 @@ const HistoryRow = ({ item, onChanged }) => {
             {item.listing.title}
           </NamedLink>
         ) : (
-          <NamedLink name="ProfilePage" params={{ id: item.user.id }} className={css.historyTitle}>
+          <NamedLink name="ModeratorUserPage" params={{ id: item.user.id }} className={css.historyTitle}>
             {item.user.name || 'Użytkownik'}
           </NamedLink>
         )}
@@ -688,6 +822,118 @@ const HistoryRow = ({ item, onChanged }) => {
   );
 };
 
+// ---------- Appeals ----------
+
+const APPEAL_TYPES = {
+  'dowod-odrzucony': 'Odrzucony dowód zakupu',
+  'oferta-ukryta': 'Ukryta oferta',
+  'konto-zablokowane': 'Blokada konta',
+  'znacznik-odebrany': 'Odebrany znacznik weryfikacji',
+  'ostrzezenie-czat': 'Ostrzeżenie za czat',
+  'oferta-edytowana': 'Edycja oferty przez moderatora',
+  'odznaki-zmienione': 'Zmiana odznak',
+};
+
+export const AppealCard = ({ item, userId, onChanged, hideUser }) => {
+  const [mode, setMode] = useState(null);
+  const [answer, setAnswer] = useState('');
+  const { busy, error, run } = useAction(onChanged);
+  const isOpen = item.status === 'nowe';
+  const ownerId = item.userId || userId;
+  return (
+    <li className={classNames(css.card, { [css.cardMuted]: !isOpen })}>
+      <div className={css.reportHead}>
+        <span
+          className={
+            isOpen ? css.pillWarning : item.status === 'uwzglednione' ? css.pillSuccess : css.pill
+          }
+        >
+          {isOpen ? 'Nowe' : item.status === 'uwzglednione' ? 'Uwzględnione' : 'Odrzucone'}
+        </span>
+        <span className={css.reportReason}>{APPEAL_TYPES[item.typ] || item.tytul}</span>
+        <span className={css.metaSmall}>
+          {hideUser ? null : (
+            <>
+              <NamedLink name="ModeratorUserPage" params={{ id: ownerId }}>
+                {item.userName || 'Użytkownik'}
+              </NamedLink>{' '}
+              ·{' '}
+            </>
+          )}
+          {formatDate(item.utworzono)}
+        </span>
+      </div>
+      <div className={css.appealDecision}>
+        <span className={css.label}>Decyzja ({formatDate(item.decyzjaData)})</span>
+        <p className={css.meta}>{item.decyzja}</p>
+        {item.listingId ? (
+          <p className={css.metaSmall}>
+            <NamedLink name="ListingPageCanonical" params={{ id: item.listingId }}>
+              Zobacz ofertę
+            </NamedLink>{' '}
+            ·{' '}
+            <NamedLink name="ModeratorListingEditPage" params={{ id: item.listingId }}>
+              Edytuj
+            </NamedLink>
+          </p>
+        ) : null}
+      </div>
+      <div className={css.appealText}>
+        <span className={css.label}>Odwołanie</span>
+        <p className={css.quote}>{item.tresc}</p>
+      </div>
+      {!isOpen ? (
+        <p className={css.metaSmall}>
+          Odpowiedź ({formatDate(item.rozpatrzono)}): {item.odpowiedz}
+        </p>
+      ) : mode ? (
+        <div className={css.reasonBox}>
+          <label className={css.label} htmlFor={`appeal-${item.id}`}>
+            {mode === 'uwzglednione'
+              ? 'Uzasadnienie uwzględnienia (zobaczy je użytkownik)'
+              : 'Dlaczego decyzja zostaje utrzymana (zobaczy to użytkownik)'}
+          </label>
+          <textarea
+            id={`appeal-${item.id}`}
+            className={css.textarea}
+            rows={3}
+            maxLength={1000}
+            value={answer}
+            onChange={e => setAnswer(e.target.value)}
+          />
+          <div className={css.actions}>
+            <button
+              type="button"
+              className={mode === 'uwzglednione' ? css.primaryButton : css.dangerButton}
+              disabled={busy || !answer.trim()}
+              onClick={() =>
+                run(() =>
+                  decideAppeal({ userId: ownerId, appealId: item.id, decision: mode, odpowiedz: answer.trim() })
+                )
+              }
+            >
+              {mode === 'uwzglednione' ? 'Uwzględnij' : 'Odrzuć odwołanie'}
+            </button>
+            <button type="button" className={css.secondaryButton} disabled={busy} onClick={() => setMode(null)}>
+              Anuluj
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className={css.actions}>
+          <button type="button" className={css.primaryButton} onClick={() => setMode('uwzglednione')}>
+            Uwzględnij
+          </button>
+          <button type="button" className={css.secondaryButton} onClick={() => setMode('odrzucone')}>
+            Odrzuć
+          </button>
+        </div>
+      )}
+      <ErrorLine error={error} />
+    </li>
+  );
+};
+
 // ---------- Page ----------
 
 /**
@@ -722,8 +968,9 @@ const ModerationPage = () => {
   const closedReports = (data?.reports || []).filter(r => r.status !== 'nowe');
   const counts = {
     dowody: data?.proofs?.length || 0,
-    oferty: data?.newListings?.length || 0,
+    oferty: (data?.newListings?.length || 0) + (data?.photoFlags?.length || 0),
     zgloszenia: openReports.length + openFlags.length,
+    odwolania: (data?.appeals || []).filter(a => a.status === 'nowe').length,
     historia: null,
   };
 
@@ -739,6 +986,7 @@ const ModerationPage = () => {
               Odśwież
             </button>
           </div>
+          <ModerationSearch />
 
           <div className={css.tabs} role="tablist" aria-label="Sekcje moderacji">
             {TABS.map(t => (
@@ -774,6 +1022,21 @@ const ModerationPage = () => {
             )
           ) : tab === 'oferty' ? (
             <>
+              {data.photoFlags?.length ? (
+                <div className={css.flagBlock}>
+                  <h2 className={css.sectionTitle}>Podejrzane zdjęcia</h2>
+                  <p className={css.intro}>
+                    Oferty, których zdjęcia są w innych ofertach na Refume
+                    {' '}albo w internecie. Zwykle to kradzione zdjęcia albo powielona oferta.
+                  </p>
+                  <ul className={css.list}>
+                    {data.photoFlags.map(item => (
+                      <PhotoFlagCard key={item.listing.id} item={item} onChanged={load} openImage={openImage} />
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+              {data.photoFlags?.length ? <h2 className={css.sectionTitle}>Nowe oferty</h2> : null}
               <p className={css.intro}>
                 Opublikowane w ostatnich 30 dniach i jeszcze nieprzejrzane. „W porządku” usuwa ofertę z
                 tej listy, „Ukryj” zamyka ją i wysyła sprzedawcy powód.
@@ -824,6 +1087,43 @@ const ModerationPage = () => {
                       {closedReports.map(item => (
                         <ReportCard key={`${item.reporterId}-${item.id}`} item={item} onChanged={load} openImage={openImage} />
                       ))}
+                    </ul>
+                  ) : null}
+                </div>
+              ) : null}
+            </>
+          ) : tab === 'odwolania' ? (
+            <>
+              <p className={css.intro}>
+                Użytkownik może odwołać się od decyzji moderatora w ciągu 30 dni. Rozpatruje je ktoś
+                inny niż autor decyzji, jeśli to możliwe. Uwzględnienie odwołania od ukrycia oferty lub
+                blokady konta cofa je automatycznie; w pozostałych przypadkach popraw decyzję ręcznie.
+              </p>
+              {(data.appeals || []).filter(a => a.status === 'nowe').length ? (
+                <ul className={css.list}>
+                  {data.appeals
+                    .filter(a => a.status === 'nowe')
+                    .map(item => (
+                      <AppealCard key={`${item.userId}-${item.id}`} item={item} onChanged={load} />
+                    ))}
+                </ul>
+              ) : (
+                empty('Nie ma odwołań do rozpatrzenia.')
+              )}
+              {(data.appeals || []).some(a => a.status !== 'nowe') ? (
+                <div className={css.closedBlock}>
+                  <button type="button" className={css.linkButton} onClick={() => setShowClosed(v => !v)}>
+                    {showClosed
+                      ? 'Ukryj rozpatrzone'
+                      : `Pokaż rozpatrzone (${data.appeals.filter(a => a.status !== 'nowe').length})`}
+                  </button>
+                  {showClosed ? (
+                    <ul className={css.list}>
+                      {data.appeals
+                        .filter(a => a.status !== 'nowe')
+                        .map(item => (
+                          <AppealCard key={`${item.userId}-${item.id}`} item={item} onChanged={load} />
+                        ))}
                     </ul>
                   ) : null}
                 </div>

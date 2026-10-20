@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import classNames from 'classnames';
 
@@ -8,6 +8,8 @@ import {
   getUnreadCount,
   markNotificationsRead,
 } from '../../../ducks/refumeNotifications';
+import { fetchCurrentUser } from '../../../ducks/user.duck';
+import { createAppeal } from '../../../util/api';
 import { timeAgoPl } from '../../../util/refumeTimeAgo';
 
 import css from './RefumeNotifications.module.css';
@@ -17,6 +19,98 @@ const TeamAvatar = ({ small }) => (
     R
   </span>
 );
+
+// Decisions a user can appeal against (checked again on the server)
+const APPEALABLE = [
+  'dowod-odrzucony',
+  'oferta-ukryta',
+  'konto-zablokowane',
+  'znacznik-odebrany',
+  'ostrzezenie-czat',
+  'oferta-edytowana',
+  'odznaki-zmienione',
+];
+const APPEAL_DAYS = 30;
+const APPEAL_STATUS = {
+  nowe: 'Odwołanie wysłane – czeka na rozpatrzenie.',
+  uwzglednione: 'Odwołanie uwzględnione.',
+  odrzucone: 'Odwołanie rozpatrzone – decyzja utrzymana.',
+};
+
+const AppealBox = ({ notification, appeal }) => {
+  const dispatch = useDispatch();
+  const [open, setOpen] = useState(false);
+  const [text, setText] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState(null);
+
+  if (appeal) {
+    return <p className={css.appealStatus}>{APPEAL_STATUS[appeal.status] || APPEAL_STATUS.nowe}</p>;
+  }
+  const tooOld =
+    Date.now() - new Date(notification.createdAt).getTime() > APPEAL_DAYS * 24 * 3600 * 1000;
+  if (tooOld) return null;
+
+  const submit = () => {
+    setBusy(true);
+    setError(null);
+    createAppeal({ notificationId: notification.id, tresc: text.trim() })
+      .then(() => dispatch(fetchCurrentUser({ enforce: true })))
+      .then(() => setBusy(false))
+      .catch(e => {
+        setBusy(false);
+        setError(
+          e?.status === 409
+            ? 'Od tej decyzji już się odwołano.'
+            : e?.status === 400 && e?.statusText
+            ? e.statusText
+            : 'Nie udało się wysłać odwołania. Spróbuj ponownie.'
+        );
+      });
+  };
+
+  return open ? (
+    <div className={css.appealForm}>
+      <label htmlFor={`appeal-${notification.id}`} className={css.appealLabel}>
+        Dlaczego nie zgadzasz się z decyzją?
+      </label>
+      <textarea
+        id={`appeal-${notification.id}`}
+        className={css.appealTextarea}
+        rows={4}
+        maxLength={2000}
+        value={text}
+        onChange={e => setText(e.target.value)}
+        placeholder="Opisz sytuację. Możesz też napisać, co poprawiłeś(-aś) w ofercie."
+      />
+      <p className={css.appealHint}>
+        Odwołanie sprawdzi moderator, a odpowiedź z uzasadnieniem dostaniesz tutaj.
+      </p>
+      {error ? (
+        <p className={css.appealError} role="alert">
+          {error}
+        </p>
+      ) : null}
+      <div className={css.appealActions}>
+        <button
+          type="button"
+          className={css.appealSend}
+          disabled={busy || text.trim().length < 10}
+          onClick={submit}
+        >
+          Wyślij odwołanie
+        </button>
+        <button type="button" className={css.appealCancel} disabled={busy} onClick={() => setOpen(false)}>
+          Anuluj
+        </button>
+      </div>
+    </div>
+  ) : (
+    <button type="button" className={css.appealOpen} onClick={() => setOpen(true)}>
+      Nie zgadzam się – odwołaj się
+    </button>
+  );
+};
 
 /** Pinned "Zespół Refume" row at the top of the inbox list. */
 export const RefumeTeamInboxItem = ({ tab, isActive }) => {
@@ -52,6 +146,8 @@ const RefumeNotificationsPanel = () => {
   const dispatch = useDispatch();
   const currentUser = useSelector(state => state.user?.currentUser);
   const list = getNotifications(currentUser);
+  const appealsList = currentUser?.attributes?.profile?.privateData?.refumeOdwolania;
+  const appeals = Array.isArray(appealsList) ? appealsList : [];
 
   useEffect(() => {
     // Give the user a moment to see what's new before the badges disappear
@@ -103,6 +199,9 @@ const RefumeNotificationsPanel = () => {
                   >
                     {n.type === 'poszukiwane' ? 'Zobacz ofertę' : 'Zobacz ogłoszenie'}
                   </NamedLink>
+                ) : null}
+                {APPEALABLE.includes(n.type) ? (
+                  <AppealBox notification={n} appeal={appeals.find(a => a.notificationId === n.id)} />
                 ) : null}
                 <time className={css.time} dateTime={n.createdAt}>
                   {timeAgoPl(n.createdAt)}

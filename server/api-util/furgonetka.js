@@ -265,6 +265,32 @@ const cancelPackage = async id => {
 };
 
 /**
+ * Pickup points near a place (POST /points/map, public). Uses the same environment as
+ * shipments, so the sandbox gets points it accepts.
+ *
+ * @param {{ service, phrase?, latitude?, longitude?, limit? }} q
+ */
+const findPoints = async ({ service, phrase, latitude, longitude, limit = 20 }) => {
+  const location =
+    latitude != null && longitude != null
+      ? { coordinates: { latitude: Number(latitude), longitude: Number(longitude) } }
+      : { search_phrase: String(phrase || '').slice(0, 120) };
+  const res = await fetch(`${baseUrl()}/points/map`, {
+    method: 'POST',
+    headers: {
+      Accept: 'application/vnd.furgonetka.v1+json',
+      'Content-Type': 'application/vnd.furgonetka.v1+json',
+      'X-Language': 'pl_PL',
+    },
+    body: JSON.stringify({ location, filters: { services: [service], limit } }),
+  });
+  const json = await res.json().catch(() => ({}));
+  if (res.status === 404) return { points: [], center: null };
+  if (!res.ok) throw httpError(res.status, json?.errors?.[0]?.message || 'Points search failed');
+  return { points: Array.isArray(json.points) ? json.points : [], center: json.coordinates || null };
+};
+
+/**
  * Checks a webhook notification. Furgonetka's checksum (not a signature):
  * md5(package_id . package_no . partner_order_id . state . description . datetime . branch . token)
  */
@@ -302,4 +328,5 @@ module.exports = {
   simulateTracking,
   cancelPackage,
   verifyWebhook,
+  findPoints,
 };

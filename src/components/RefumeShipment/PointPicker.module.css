@@ -100,3 +100,194 @@
   line-height: 17px;
   color: #78716c;
 }
+
+/* Picker dialog */
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+
+  @media (--viewportMedium) {
+    align-items: center;
+  }
+}
+
+.backdrop {
+  position: absolute;
+  inset: 0;
+  background-color: rgba(24, 24, 27, 0.45);
+}
+
+.panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-height: 88vh;
+  padding: 18px 16px 12px 16px;
+  border-radius: 20px 20px 0 0;
+  background-color: #ffffff;
+  box-sizing: border-box;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+
+  @media (--viewportMedium) {
+    width: 560px;
+    max-height: 80vh;
+    padding: 22px 22px 14px 22px;
+    border-radius: 20px;
+  }
+}
+
+.panelHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.panelTitle {
+  margin: 0;
+  padding: 0;
+  font-size: 19px;
+  line-height: 24px;
+  font-weight: var(--fontWeightBold);
+}
+
+.panelSub {
+  margin: 2px 0 0 0;
+  padding: 0;
+  font-size: 14px;
+  color: #57534e;
+}
+
+.close {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 50%;
+  background-color: #f4f3f1;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.searchRow {
+  display: flex;
+  gap: 8px;
+  margin: 14px 0 10px 0;
+}
+
+.search {
+  flex: 1;
+  min-width: 0;
+  height: 46px;
+  padding: 0 14px;
+  border: 1px solid #d6d3d1;
+  border-radius: 12px;
+  font: inherit;
+  font-size: 15px;
+  box-sizing: border-box;
+
+  &:focus {
+    border-color: var(--marketplaceColor);
+    outline: none;
+  }
+}
+
+.nearMe {
+  flex-shrink: 0;
+  height: 46px;
+  padding: 0 12px;
+  border: 1px solid #d6d3d1;
+  border-radius: 12px;
+  background-color: #ffffff;
+  font: inherit;
+  font-size: 13px;
+  font-weight: var(--fontWeightSemiBold);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.results {
+  flex: 1;
+  min-height: 160px;
+  overflow-y: auto;
+}
+
+.muted {
+  margin: 12px 2px;
+  font-size: 14px;
+  color: #78716c;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0 0 6px 0;
+  list-style: none;
+}
+
+.point,
+.pointSelected {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #e7e5e4;
+  border-radius: 12px;
+  background-color: #ffffff;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--marketplaceColor);
+    background-color: #faf8ff;
+  }
+}
+
+.pointSelected {
+  border-color: var(--marketplaceColor);
+  background-color: #faf8ff;
+}
+
+.pointMain {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  font-size: 14px;
+  line-height: 19px;
+}
+
+.pointAddr {
+  color: #44403c;
+}
+
+.pointMeta {
+  font-size: 12px;
+  color: #78716c;
+}
+
+.pointSide {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: var(--fontWeightSemiBold);
+  color: #44403c;
+}
+
+.pointCode {
+  font-size: 11px;
+  font-weight: 400;
+  color: #a8a29e;
+}

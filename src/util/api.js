@@ -195,6 +195,10 @@ export const fetchShipment = txId =>
   request(`/api/przesylka?txId=${encodeURIComponent(txId)}`, { method: methods.GET });
 export const retryShipment = body => post('/api/przesylka/ponow', body);
 export const changeShipmentPoint = body => post('/api/przesylka/punkt', body);
+export const searchPickupPoints = ({ service, q, lat, lng }) => {
+  const params = new URLSearchParams({ service, ...(q ? { q } : {}), ...(lat != null ? { lat, lng } : {}) });
+  return request(`/api/punkty?${params.toString()}`, { method: methods.GET });
+};
 export const simulateShipment = body => post('/api/przesylka/symuluj', body);
 export const shipmentLabelUrl = txId =>
   `${apiBaseUrl()}/api/przesylka/etykieta?txId=${encodeURIComponent(txId)}`;

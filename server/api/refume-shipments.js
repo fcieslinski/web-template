@@ -179,3 +179,53 @@ const webhook = (req, res) => {
 };
 
 module.exports = { getShipment, getLabel, retry, changePoint, simulate, webhook };
+
+// ---------- Pickup points (checkout and choosing again) ----------
+
+const POINT_SERVICES = ['inpost', 'orlen', 'dpd', 'poczta'];
+const pointsCache = new Map(); // key -> { at, data }
+
+const toPoint = p => {
+  const a = p.address || {};
+  const street = [a.street, a.house_number].filter(Boolean).join(' ').trim();
+  return {
+    code: String(p.code || p.point_id || ''),
+    name: String(p.name || ''),
+    address: [street, [a.postcode, a.city].filter(Boolean).join(' ')].filter(Boolean).join(', '),
+    distance: typeof p.distance === 'number' ? p.distance : p.distance != null ? Number(p.distance) : null,
+    kind: p.point_type_str || (p.type === 'parcel_machine' ? 'Automat paczkowy' : p.type === 'service_point' ? 'Punkt z obsługą' : ''),
+    description: String(p.description || '').slice(0, 200),
+    active: p.active !== false,
+  };
+};
+
+const searchPoints = (req, res) => {
+  const service = String(req.query?.service || '');
+  const phrase = String(req.query?.q || '').trim().slice(0, 120);
+  const lat = req.query?.lat != null ? Number(req.query.lat) : null;
+  const lng = req.query?.lng != null ? Number(req.query.lng) : null;
+  Promise.resolve()
+    .then(async () => {
+      if (!POINT_SERVICES.includes(service)) throw httpError(400, 'Unknown service.');
+      const useCoords = Number.isFinite(lat) && Number.isFinite(lng);
+      if (!useCoords && phrase.length < 2) return res.status(200).json({ data: [] });
+      // Signed-in users only (keeps the endpoint from being used as a free proxy)
+      await getSdk(req, res).currentUser.show();
+      const key = useCoords ? `${service}|${lat.toFixed(3)},${lng.toFixed(3)}` : `${service}|${phrase.toLowerCase()}`;
+      const hit = pointsCache.get(key);
+      if (hit && Date.now() - hit.at < 10 * 60 * 1000) return res.status(200).json({ data: hit.data });
+      const r = await furgonetka.findPoints({
+        service,
+        phrase,
+        latitude: useCoords ? lat : null,
+        longitude: useCoords ? lng : null,
+      });
+      const data = r.points.map(toPoint).filter(p => p.code && p.active);
+      if (pointsCache.size > 2000) pointsCache.clear();
+      pointsCache.set(key, { at: Date.now(), data });
+      res.status(200).json({ data });
+    })
+    .catch(e => handleError(res, e));
+};
+
+module.exports.searchPoints = searchPoints;

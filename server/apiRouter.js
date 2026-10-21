@@ -142,6 +142,7 @@ router.get('/przesylka', refumeShipmentsApi.getShipment);
 router.get('/przesylka/etykieta', refumeShipmentsApi.getLabel);
 router.post('/przesylka/ponow', refumeShipmentsApi.retry);
 router.post('/przesylka/punkt', refumeShipmentsApi.changePoint);
+router.get('/punkty', refumeShipmentsApi.searchPoints);
 router.post('/przesylka/symuluj', refumeShipmentsApi.simulate);
 router.post('/furgonetka/webhook', bodyParser.json({ limit: '64kb' }), refumeShipmentsApi.webhook);
 router.post('/statystyki/wyswietlenie', recordView);

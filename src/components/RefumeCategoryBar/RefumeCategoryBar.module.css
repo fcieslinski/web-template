@@ -42,3 +42,30 @@
     text-decoration: none;
   }
 }
+
+/* Refume: categories as pills */
+.list {
+  gap: 6px;
+  padding: 10px 12px;
+  max-width: 1344px;
+
+  @media (--viewportMedium) {
+    padding: 10px 24px;
+  }
+}
+
+.link {
+  padding: 7px 15px;
+  border: 1px solid transparent;
+  border-bottom: 1px solid transparent;
+  border-radius: 999px;
+  color: #44403c;
+  line-height: 22px;
+
+  &:hover {
+    border-color: #e7e3de;
+    border-bottom-color: #e7e3de;
+    background-color: #f6f4f1;
+    color: #1c1917;
+  }
+}

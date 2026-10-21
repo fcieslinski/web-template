@@ -229,3 +229,37 @@
 .favoriteBelowSeller {
   top: 40px;
 }
+
+/* Refume: bordered tile with the details inside the frame */
+.framed {
+  height: 100%;
+  border: 1px solid #ece8e3;
+  border-radius: 16px;
+  background-color: var(--colorWhite);
+  overflow: hidden;
+  transition: border-color 0.15s, box-shadow 0.15s;
+
+  &:hover {
+    border-color: #d6cfc8;
+    box-shadow: 0 6px 20px rgba(28, 25, 23, 0.08);
+  }
+
+  & .aspectRatioWrapper,
+  & .rootForImage {
+    border: none;
+    border-radius: 0;
+  }
+
+  & .aspectRatioWrapper:hover {
+    transform: none;
+    box-shadow: none;
+  }
+
+  & .info {
+    padding: 12px 12px 14px 12px;
+  }
+
+  & .sellerAbove {
+    padding: 10px 12px 0 12px;
+  }
+}

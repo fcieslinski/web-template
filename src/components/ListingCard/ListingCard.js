@@ -118,6 +118,7 @@ export const ListingCard = props => {
     lazyLoadImage = true,
     authorAbove = false,
     showBrand = true,
+    framed = false, // Refume: bordered tile (home page)
   } = props;
 
   const translations = getListingCardTranslations(listing, config, intl);
@@ -164,7 +165,7 @@ export const ListingCard = props => {
 
   return (
     // Refume: wrapper so the favourite button sits on the card without being inside the link
-    <div className={css.cardWrapper}>
+    <div className={classNames(css.cardWrapper, { [css.framed]: framed })}>
     <NamedLink
       className={classes}
       name="ListingPage"

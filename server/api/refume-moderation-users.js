@@ -291,6 +291,7 @@ const getUserCard = (req, res) => {
           appeals: (profile.privateData?.[APPEALS_KEY] || []).filter(a => a && a.id),
           notes: notes.filter(n => n.userId === userId),
           notifications: moderationNotifications.slice(0, 30),
+          powiazania: require('./refume-traces').linkedAccounts(userId, users.users),
         },
       });
     })

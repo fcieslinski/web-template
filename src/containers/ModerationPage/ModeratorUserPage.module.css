@@ -73,7 +73,11 @@
   margin-bottom: 24px;
 
   @media (--viewportMedium) {
-    grid-template-columns: repeat(6, 1fr);
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  @media (--viewportLarge) {
+    grid-template-columns: repeat(7, 1fr);
   }
 
   & > div {
@@ -213,4 +217,102 @@
   white-space: pre-wrap;
   font-size: 14px;
   line-height: 20px;
+}
+
+/* Linked accounts */
+.linkSummary {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  color: var(--colorGrey700);
+}
+
+.linkList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.linkRow {
+  padding: 12px 14px;
+  border: 1px solid var(--colorGrey200);
+  border-left-width: 4px;
+  border-radius: 12px;
+}
+
+.linkHigh {
+  border-left-color: hsl(0 70% 50%);
+  background: hsl(0 80% 98%);
+}
+
+.linkMid {
+  border-left-color: hsl(30 90% 50%);
+  background: hsl(40 100% 97%);
+}
+
+.linkLow {
+  border-left-color: hsl(45 90% 55%);
+}
+
+.linkWeak {
+  border-left-color: var(--colorGrey300);
+}
+
+.linkHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 2px;
+}
+
+.linkName {
+  font-weight: var(--fontWeightBold);
+}
+
+.linkStrength {
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--colorGrey100);
+  font-size: 12px;
+  font-weight: var(--fontWeightBold);
+
+  .linkHigh & {
+    background: hsl(0 80% 92%);
+    color: hsl(0 60% 34%);
+  }
+
+  .linkMid & {
+    background: hsl(40 100% 88%);
+    color: hsl(30 80% 26%);
+  }
+}
+
+.linkShared {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 8px 0 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 13px;
+  line-height: 18px;
+
+  & li {
+    display: flex;
+    flex-direction: column;
+  }
+
+  & span {
+    color: var(--colorGrey700);
+  }
+}
+
+.linkNote {
+  margin: 12px 0 0 0;
+  font-size: 12px;
+  line-height: 17px;
+  color: var(--colorGrey700);
 }

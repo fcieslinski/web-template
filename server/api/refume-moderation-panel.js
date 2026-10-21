@@ -175,6 +175,7 @@ const scanUsers = async () => {
         banned: !!u.attributes?.banned,
         deleted: !!u.attributes?.deleted,
         blocked: profile.metadata?.refumeBlokada || null,
+        slady: profile.privateData?.refumeSlady || null,
       });
       (Array.isArray(profile.privateData?.refumeOdwolania) ? profile.privateData.refumeOdwolania : [])
         .filter(a => a && a.id)

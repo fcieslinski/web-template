@@ -1,3 +1,4 @@
+import { recordTrace } from '../util/api';
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { util as sdkUtil } from '../util/sdkLoader';
 import { denormalisedResponseEntities, ensureOwnListing } from '../util/data';
@@ -247,6 +248,20 @@ const fetchCurrentUserPayloadCreator = (options, thunkAPI) => {
 
         if (!currentUser.attributes.emailVerified) {
           dispatch(fetchCurrentUserHasOrders());
+        }
+
+        // Refume: traces for linked-account checks in moderation, once per browser
+        // session; never while an operator is logged in as this user
+        if (typeof window !== 'undefined' && !getState().auth?.isLoggedInAs) {
+          try {
+            const key = `refumeSlad:${currentUser.id.uuid}`;
+            if (!window.sessionStorage.getItem(key)) {
+              window.sessionStorage.setItem(key, '1');
+              recordTrace().catch(() => {});
+            }
+          } catch (e) {
+            // storage blocked: skip
+          }
         }
       }
 

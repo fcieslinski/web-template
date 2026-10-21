@@ -190,6 +190,7 @@ export const sendTeamMessage = body => post('/api/moderacja/wiadomosc', body);
 export const saveModeratorNote = body => post('/api/moderacja/notatka', body);
 export const searchModeration = q =>
   request(`/api/moderacja/szukaj?q=${encodeURIComponent(q)}`, { method: methods.GET });
+export const recordTrace = () => post('/api/slad', {});
 export const fetchUserCard = id =>
   request(`/api/moderacja/karta?id=${encodeURIComponent(id)}`, { method: methods.GET });
 export const fetchDisputes = () => request('/api/moderacja/spory', { method: methods.GET });

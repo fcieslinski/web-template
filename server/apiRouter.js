@@ -51,6 +51,7 @@ const {
 const { getDisputes, disputeAction } = require('./api/refume-disputes');
 const { requestPhotoCheck } = require('./api/refume-photo-check');
 const { checkConversation } = require('./api/refume-chat-flags');
+const { recordTrace } = require('./api/refume-traces');
 
 const createUserWithIdp = require('./api/auth/createUserWithIdp');
 
@@ -132,6 +133,7 @@ router.get('/poszukiwane', listRequests);
 router.post('/poszukiwane/powiadom', notifyForListing);
 router.get('/odznaki', getBadges);
 router.post('/odznaki/przelicz', recomputeForTransaction);
+router.post('/slad', recordTrace);
 router.post('/statystyki/wyswietlenie', recordView);
 router.post('/statystyki/polubienie', syncLike);
 router.get('/opis-ai', getAiDescription);

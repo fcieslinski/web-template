@@ -250,6 +250,90 @@ const ReportRow = ({ r, by }) => (
  * Refume: user card for moderators (route /moderacja/uzytkownik/:id) — account, listings,
  * orders, reports, chat flags, appeals, decisions, notes, and actions.
  */
+// ---------- Linked accounts ----------
+
+const STRENGTH = {
+  wysoka: { label: 'Silne powiązanie', cls: 'linkHigh' },
+  srednia: { label: 'Prawdopodobne', cls: 'linkMid' },
+  niska: { label: 'Możliwe', cls: 'linkLow' },
+  slaba: { label: 'Słabe', cls: 'linkWeak' },
+};
+
+const sharedLabel = s =>
+  s.typ === 'urzadzenie'
+    ? 'Ta sama przeglądarka / urządzenie'
+    : s.wspolnaSiec
+    ? `Ten sam adres IP – używa go ${s.kont} kont (pewnie sieć komórkowa, firmowa lub publiczna)`
+    : s.kont > 2
+    ? `Ten sam adres IP (${s.kont} konta)`
+    : 'Ten sam adres IP';
+
+const period = p => {
+  const a = formatDate(p.od);
+  const b = formatDate(p.do);
+  return a === b ? a : `${a} – ${b}`;
+};
+
+const LinkedAccounts = ({ data }) => {
+  const summary = data?.summary || {};
+  const linked = data?.linked || [];
+  if (!summary.sieci && !summary.urzadzenia) {
+    return (
+      <p className={mcss.empty}>
+        Brak zapisanych śladów. Zbieramy je od teraz, przy każdym wejściu zalogowanej osoby (90 dni).
+      </p>
+    );
+  }
+  return (
+    <>
+      <p className={css.linkSummary}>
+        Ślady z ostatnich 90 dni: {summary.sieci} {summary.sieci === 1 ? 'adres IP' : 'adresy IP'},{' '}
+        {summary.urzadzenia} {summary.urzadzenia === 1 ? 'urządzenie' : 'urządzenia'}
+        {summary.ostatnio ? ` · ostatnio ${formatDate(summary.ostatnio)}` : ''}.
+      </p>
+      {linked.length ? (
+        <ul className={css.linkList}>
+          {linked.map(l => {
+            const strength = STRENGTH[l.sila] || STRENGTH.slaba;
+            return (
+              <li key={l.id} className={classNames(css.linkRow, css[strength.cls])}>
+                <div className={css.linkHead}>
+                  <NamedLink name="ModeratorUserPage" params={{ id: l.id }} className={css.linkName}>
+                    {l.name || 'Użytkownik'}
+                  </NamedLink>
+                  <span className={css.linkStrength}>{strength.label}</span>
+                  {l.blocked ? <span className={mcss.pillDanger}>zablokowany</span> : null}
+                  {l.banned ? <span className={mcss.pillDanger}>zbanowany</span> : null}
+                  {l.deleted ? <span className={mcss.pill}>usunięte</span> : null}
+                </div>
+                <p className={mcss.metaSmall}>
+                  {l.email} · konto od {formatDate(l.createdAt)}
+                </p>
+                <ul className={css.linkShared}>
+                  {l.wspolne.map((s, i) => (
+                    <li key={i}>
+                      <strong>{sharedLabel(s)}</strong>
+                      <span>
+                        ta osoba: {period(s.ja)} · {l.name || 'tamto konto'}: {period(s.oni)}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </li>
+            );
+          })}
+        </ul>
+      ) : (
+        <p className={mcss.empty}>Nie znaleziono kont z tym samym adresem IP ani urządzeniem.</p>
+      )}
+      <p className={css.linkNote}>
+        Wspólny adres IP nie musi oznaczać tej samej osoby (domownicy, praca, sieć komórkowa). Ta sama
+        przeglądarka to mocniejszy sygnał. Adresy nie są zapisywane wprost, tylko jako zaszyfrowane skróty.
+      </p>
+    </>
+  );
+};
+
 const ModeratorUserPage = () => {
   const { id } = useParams();
   const [data, setData] = useState(null);
@@ -339,11 +423,28 @@ const ModeratorUserPage = () => {
                   <strong>{data.reportsAgainst.length}</strong>
                   <span>zgłoszeń na</span>
                 </div>
+                <div
+                  className={
+                    (data.powiazania?.linked || []).some(l => l.sila === 'wysoka' || l.sila === 'srednia')
+                      ? css.statWarn
+                      : null
+                  }
+                >
+                  <strong>{data.powiazania?.linked?.length || 0}</strong>
+                  <span>powiązanych kont</span>
+                </div>
                 <div className={data.chatFlags.length ? css.statWarn : null}>
                   <strong>{data.chatFlags.length}</strong>
                   <span>flag z czatu</span>
                 </div>
               </div>
+
+              <Section
+                title="Powiązane konta"
+                count={data.powiazania?.linked?.length || 0}
+              >
+                <LinkedAccounts data={data.powiazania} />
+              </Section>
 
               <Section title="Działania">
                 <div className={css.actionsGrid}>

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useSelector } from 'react-redux';
 
 import { openPointMap } from '../../util/furgonetkaMap';
 
@@ -17,12 +18,17 @@ const PointPicker = ({ service, carrierLabel, value, onChange, city, placeholder
   const [failed, setFailed] = useState(false);
   const [manual, setManual] = useState(false);
   const [opening, setOpening] = useState(false);
+  // Open the map on the buyer's city (from their profile), so points show right away
+  const profileCity = useSelector(
+    state => state.user?.currentUser?.attributes?.profile?.publicData?.refumeMiasto
+  );
+  const startCity = city || (typeof profileCity === 'string' ? profileCity.trim() : '') || undefined;
 
   const open = () => {
     setOpening(true);
     openPointMap({
       service,
-      city,
+      city: startCity,
       onSelect: point => {
         setOpening(false);
         onChange(point);
@@ -57,6 +63,13 @@ const PointPicker = ({ service, carrierLabel, value, onChange, city, placeholder
           {opening ? 'Otwieranie mapy…' : `Wybierz punkt na mapie – ${carrierLabel}`}
         </button>
       )}
+
+      {!value?.code ? (
+        <p className={css.tip}>
+          Na mapie wpisz miasto i ulicę (np. „Warszawa, Bruzdowa”) albo przybliż mapę – punkty pokazują się po
+          przybliżeniu.
+        </p>
+      ) : null}
 
       {failed ? <p className={css.error}>Nie udało się wczytać mapy. Wpisz kod punktu ręcznie.</p> : null}
 

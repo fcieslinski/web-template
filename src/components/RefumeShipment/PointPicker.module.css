@@ -93,3 +93,10 @@
   font-size: 13px;
   color: #b91c1c;
 }
+
+.tip {
+  margin: 0;
+  font-size: 12px;
+  line-height: 17px;
+  color: #78716c;
+}

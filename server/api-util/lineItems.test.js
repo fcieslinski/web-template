@@ -421,7 +421,7 @@ describe('transactionLineItems', () => {
         code: 'line-item/shipping-fee',
         unitPrice: new Money(1399, 'EUR'), // Refume: Pocztex, size M, one fee per order
         quantity: 1,
-        includeFor: ['customer', 'provider'],
+        includeFor: ['customer'], // Refume keeps the shipping fee (it buys the label)
       });
     });
 
@@ -460,7 +460,7 @@ describe('transactionLineItems', () => {
         code: 'line-item/shipping-fee',
         unitPrice: new Money(899, 'EUR'), // Refume: DPD Pickup, size S
         quantity: 1,
-        includeFor: ['customer', 'provider'],
+        includeFor: ['customer'], // Refume keeps the shipping fee (it buys the label)
       });
     });
 

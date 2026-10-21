@@ -61,13 +61,16 @@ const ShippingDetails = props => {
         className={css.fieldFullWidth}
         type="text"
         autoComplete="shipping phoneNumber"
-        label={intl.formatMessage(
-          { id: 'ShippingDetails.recipientPhoneNumberLabel' },
-          { optionalText: optionalText }
-        )}
+        // Refume: the carrier sends the pickup code to this number, so it's required
+        label="Telefon odbiorcy"
         placeholder={intl.formatMessage({
           id: 'ShippingDetails.recipientPhoneNumberPlaceholder',
         })}
+        validate={value =>
+          String(value || '').replace(/\D/g, '').replace(/^48(?=\d{9}$)/, '').length === 9
+            ? undefined
+            : 'Podaj numer telefonu (9 cyfr) – przewoźnik wyśle na niego kod odbioru.'
+        }
         onUnmount={() => formApi.change('recipientPhoneNumber', undefined)}
       />
       <div className={css.formRow}>

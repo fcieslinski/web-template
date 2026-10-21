@@ -52,6 +52,29 @@ CREATE TABLE IF NOT EXISTS refume_traces (
 );
 CREATE INDEX IF NOT EXISTS refume_traces_hash ON refume_traces (kind, hash);
 CREATE INDEX IF NOT EXISTS refume_traces_seen ON refume_traces (last_seen);
+CREATE TABLE IF NOT EXISTS refume_secrets (
+  key text PRIMARY KEY,
+  value text NOT NULL,
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE TABLE IF NOT EXISTS refume_shipments (
+  tx_id text PRIMARY KEY,
+  status text NOT NULL,
+  package_id text,
+  waybill text,
+  carrier text,
+  tracking_url text,
+  state text,
+  error text,
+  attempts int NOT NULL DEFAULT 0,
+  next_try_at timestamptz,
+  order_uuid text,
+  events jsonb NOT NULL DEFAULT '[]',
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS refume_shipments_package ON refume_shipments (package_id);
+CREATE INDEX IF NOT EXISTS refume_shipments_status ON refume_shipments (status);
 CREATE TABLE IF NOT EXISTS refume_cache (
   ns text NOT NULL,
   key text NOT NULL,
@@ -115,4 +138,21 @@ const cacheSeed = async (ns, entries) => {
   }
 };
 
-module.exports = { isDbConfigured, query, ensureSchema, cacheLoad, cacheSet, cacheSeed };
+/** Runs fn(client) inside a transaction; rolls back when it throws. */
+const withTransaction = async fn => {
+  await ensureSchema();
+  const client = await getPool().connect();
+  try {
+    await client.query('BEGIN');
+    const result = await fn(client);
+    await client.query('COMMIT');
+    return result;
+  } catch (e) {
+    await client.query('ROLLBACK').catch(() => null);
+    throw e;
+  } finally {
+    client.release();
+  }
+};
+
+module.exports = { isDbConfigured, query, ensureSchema, cacheLoad, cacheSet, cacheSeed, withTransaction };

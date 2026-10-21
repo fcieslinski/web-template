@@ -8,6 +8,7 @@ import ReportButton from '../../../components/ReportButton/ReportButton';
 
 import DeliveryInfoMaybe from './DeliveryInfoMaybe';
 import RefumeBundleInfo from './RefumeBundleInfo';
+import ShipmentCard from '../../../components/RefumeShipment/ShipmentCard';
 import DiminishedActionButtonMaybe from './DiminishedActionButtonMaybe';
 
 import css from './RefumeChatLayout.module.css';
@@ -267,6 +268,13 @@ const RefumeChatLayout = props => {
             <h3 className={css.cardTitle}>Szczegóły zamówienia</h3>
             <div className={css.breakdown}>{orderBreakdown}</div>
           </section>
+        ) : null}
+
+        {!isInquiryProcess &&
+        protectedData?.deliveryMethod === 'shipping' &&
+        transactionId &&
+        !['inquiry', 'pending-payment', 'payment-expired'].includes(processState) ? (
+          <ShipmentCard txId={transactionId} isProvider={isProvider} />
         ) : null}
 
         <RefumeBundleInfo bundle={refumeBundle} listing={listing} isProvider={isProvider} />

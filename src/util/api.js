@@ -191,6 +191,12 @@ export const saveModeratorNote = body => post('/api/moderacja/notatka', body);
 export const searchModeration = q =>
   request(`/api/moderacja/szukaj?q=${encodeURIComponent(q)}`, { method: methods.GET });
 export const recordTrace = () => post('/api/slad', {});
+export const fetchShipment = txId =>
+  request(`/api/przesylka?txId=${encodeURIComponent(txId)}`, { method: methods.GET });
+export const retryShipment = body => post('/api/przesylka/ponow', body);
+export const simulateShipment = body => post('/api/przesylka/symuluj', body);
+export const shipmentLabelUrl = txId =>
+  `${apiBaseUrl()}/api/przesylka/etykieta?txId=${encodeURIComponent(txId)}`;
 export const fetchUserCard = id =>
   request(`/api/moderacja/karta?id=${encodeURIComponent(id)}`, { method: methods.GET });
 export const fetchDisputes = () => request('/api/moderacja/spory', { method: methods.GET });

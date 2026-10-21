@@ -1,0 +1,410 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px 18px;
+  border: 1px solid #e7e5e4;
+  border-radius: 18px;
+  background-color: var(--colorWhite);
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.title {
+  margin: 0;
+  padding: 0;
+  font-size: 16px;
+  line-height: 22px;
+  font-weight: var(--fontWeightBold);
+}
+
+.chip {
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: var(--fontWeightBold);
+  white-space: nowrap;
+}
+
+.tone_todo {
+  background-color: hsl(45 100% 90%);
+  color: hsl(30 80% 26%);
+}
+
+.tone_info {
+  background-color: hsl(210 90% 93%);
+  color: hsl(210 70% 30%);
+}
+
+.tone_done {
+  background-color: hsl(140 50% 91%);
+  color: hsl(140 50% 24%);
+}
+
+.tone_problem {
+  background-color: hsl(0 80% 94%);
+  color: hsl(0 60% 34%);
+}
+
+.tone_muted {
+  background-color: #f0efed;
+  color: #57534e;
+}
+
+.carrier {
+  margin: -4px 0 0 0;
+  padding: 0;
+  font-size: 14px;
+  color: #57534e;
+}
+
+.waybill {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.waybillLabel {
+  font-size: 12px;
+  color: #78716c;
+}
+
+.waybillNumber {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: 15px;
+  font-weight: var(--fontWeightBold);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  color: #18181b;
+  text-align: left;
+  cursor: pointer;
+  word-break: break-all;
+}
+
+.copy {
+  font-size: 12px;
+  font-weight: var(--fontWeightSemiBold);
+  color: var(--marketplaceColor);
+  white-space: nowrap;
+}
+
+.steps {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 4px;
+  margin: 4px 0 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 11px;
+  line-height: 14px;
+  color: #a8a29e;
+}
+
+.dot {
+  display: block;
+  height: 4px;
+  border-radius: 4px;
+  background-color: #e7e5e4;
+}
+
+.stepDone {
+  color: #44403c;
+
+  & .dot {
+    background-color: var(--marketplaceColor);
+  }
+}
+
+.stepNow {
+  color: #18181b;
+  font-weight: var(--fontWeightBold);
+
+  & .dot {
+    background: linear-gradient(90deg, var(--marketplaceColor) 50%, #e7e5e4 50%);
+  }
+}
+
+.todo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background-color: #faf8ff;
+  font-size: 13px;
+  line-height: 18px;
+  color: #44403c;
+
+  & strong {
+    color: #18181b;
+  }
+}
+
+.hint {
+  margin: 0;
+  padding: 0;
+  font-size: 13px;
+  line-height: 18px;
+  color: #57534e;
+}
+
+.primary,
+.secondary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  padding: 0 14px;
+  border-radius: 12px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: var(--fontWeightBold);
+  text-decoration: none;
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: none;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+}
+
+.primary {
+  border: none;
+  background-color: #18181b;
+  color: #ffffff;
+
+  &:hover {
+    background-color: #3f3f46;
+    color: #ffffff;
+  }
+}
+
+.secondary {
+  border: 1px solid #e7e5e4;
+  background-color: #ffffff;
+  color: #18181b;
+
+  &:hover {
+    border-color: #d6d3d1;
+    color: #18181b;
+  }
+}
+
+.senderBox {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.problem {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background-color: hsl(40 100% 97%);
+  font-size: 13px;
+  line-height: 18px;
+
+  & p {
+    margin: 0;
+    padding: 0;
+  }
+}
+
+.problemText {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background-color: hsl(0 80% 97%);
+  font-size: 13px;
+  line-height: 18px;
+  color: hsl(0 60% 30%);
+}
+
+.small {
+  font-size: 12px;
+  line-height: 16px;
+  color: #78716c;
+}
+
+.history {
+  font-size: 13px;
+
+  & summary {
+    cursor: pointer;
+    font-weight: var(--fontWeightSemiBold);
+    color: #44403c;
+  }
+
+  & ul {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin: 8px 0 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  & li {
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+.historyTime {
+  font-size: 12px;
+  color: #78716c;
+}
+
+.error {
+  margin: 0;
+  font-size: 13px;
+  color: #b91c1c;
+}
+
+.sandbox {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 10px;
+  border-top: 1px dashed #e7e5e4;
+  font-size: 12px;
+  color: #78716c;
+}
+
+.sandboxButtons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+
+  & button {
+    padding: 4px 10px;
+    border: 1px dashed #c4b5fd;
+    border-radius: 999px;
+    background-color: #faf8ff;
+    font: inherit;
+    font-size: 12px;
+    color: #5b21b6;
+    cursor: pointer;
+  }
+}
+
+/* Sender details form */
+.form,
+.formCompact {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.row {
+  display: flex;
+  gap: 8px;
+}
+
+.field,
+.fieldShort {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+}
+
+.fieldShort {
+  flex: 0 0 104px;
+}
+
+.label {
+  padding: 0;
+  font-size: 13px;
+  font-weight: var(--fontWeightSemiBold);
+  color: #44403c;
+}
+
+.input {
+  height: 42px;
+  padding: 0 12px;
+  border: 1px solid #d6d3d1;
+  border-radius: 10px;
+  background-color: #ffffff;
+  font: inherit;
+  font-size: 15px;
+  box-sizing: border-box;
+  width: 100%;
+  margin: 0;
+
+  &:focus {
+    border-color: var(--marketplaceColor);
+    outline: none;
+  }
+}
+
+.note {
+  margin: 0;
+  font-size: 12px;
+  line-height: 17px;
+  color: #78716c;
+}
+
+/* Events in the chat */
+.event {
+  display: flex;
+  justify-content: center;
+}
+
+.eventPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border: 1px solid #e7e5e4;
+  border-radius: 999px;
+  background-color: #fafaf9;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: var(--fontWeightSemiBold);
+  color: #44403c;
+}
+
+.eventDone {
+  border-color: #a7f3d0;
+  background-color: #ecfdf5;
+  color: #065f46;
+}
+
+.eventProblem {
+  border-color: #fecaca;
+  background-color: #fef2f2;
+  color: #991b1b;
+}
+
+.eventTime {
+  font-weight: 400;
+  color: #78716c;
+}

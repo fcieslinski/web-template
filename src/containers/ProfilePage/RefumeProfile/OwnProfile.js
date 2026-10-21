@@ -11,6 +11,7 @@ import { NamedLink, AvatarLarge, Reviews } from '../../../components';
 import SellerBadges from '../../../components/SellerBadges/SellerBadges';
 import ProfileFacts from './ProfileFacts';
 import BundleSettings from './BundleSettings';
+import SenderSettings from './SenderSettings';
 import RefumeModal from './RefumeModal';
 import {
   SHIPPING_SPEED_OPTIONS,
@@ -529,6 +530,8 @@ const OwnProfile = props => {
       ) : null}
 
       <BundleSettings currentUser={currentUser} />
+
+      <SenderSettings currentUser={currentUser} />
 
       <nav className={css.quickLinks} aria-label="Skróty">
         <NamedLink name="OrdersPage" params={{ tab: 'sprzedane' }}>Sprzedane zamówienia</NamedLink>

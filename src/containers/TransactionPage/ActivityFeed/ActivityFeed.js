@@ -24,6 +24,8 @@ import { hasHiddenPhone, detectChatRisks } from '../../../util/refumeChatSafety'
 import { checkConversation } from '../../../util/api';
 import OfferMessage, { OfferDecision } from '../../../components/RefumePriceOffer/OfferMessage';
 import { getOffers } from '../../../util/refumeOffers';
+import { SHIPMENT_EVENT_TEXT } from '../../../components/RefumeShipment/shipmentStatus';
+import shipCss from '../../../components/RefumeShipment/RefumeShipment.module.css';
 import css from './ActivityFeed.module.css';
 
 const { Money } = sdkTypes;
@@ -269,6 +271,17 @@ const withOffers = (items, metadata, hideOld) => {
     }
   });
   return mergeByDate(items.filter(i => !isOfferChatMessage(i)), extra, hideOld);
+};
+// Refume: shipment events (Furgonetka tracking, order metadata) as short lines in the chat
+const withShipmentEvents = (items, metadata, hideOld) => {
+  const events = Array.isArray(metadata?.refumePrzesylka?.zdarzenia) ? metadata.refumePrzesylka.zdarzenia : [];
+  const seen = new Set();
+  const extra = events
+    .filter(e => e && e.at && SHIPMENT_EVENT_TEXT[e.status])
+    // one line per status (carriers repeat states)
+    .filter(e => (seen.has(e.status) ? false : seen.add(e.status)))
+    .map((e, i) => ({ refumeTeam: true, shipment: e, id: `ship-${i}-${e.status}`, at: e.at }));
+  return mergeByDate(items, extra, hideOld);
 };
 const mergeByDate = (items, team, hideOld) => {
   if (!team.length) return items;
@@ -519,11 +532,36 @@ export const ActivityFeed = props => {
       ) : null}
       <ChatFlagReporter txId={transaction?.id?.uuid} riskyKey={riskyKey} />
       {withTeamMessages(
-        withOffers(items, transaction?.attributes?.metadata, hideOldTransitions),
+        withShipmentEvents(
+          withOffers(items, transaction?.attributes?.metadata, hideOldTransitions),
+          transaction?.attributes?.metadata,
+          hideOldTransitions
+        ),
         transaction?.attributes?.metadata?.refumeSpor,
         hideOldTransitions
       ).map(item => {
-        if (item.offer) {
+        if (item.shipment) {
+          const st = item.shipment.status;
+          return (
+            <li key={item.id} className={css.transitionItem}>
+              <div className={shipCss.event}>
+                <span
+                  className={classNames(shipCss.eventPill, {
+                    [shipCss.eventDone]: st === 'doreczona',
+                    [shipCss.eventProblem]: st === 'problem' || st === 'zwrot',
+                  })}
+                >
+                  📦 {SHIPMENT_EVENT_TEXT[st]}
+                  <span className={shipCss.eventTime}>
+                    {formatDateWithProximity(new Date(item.at), intl, todayString, {
+                      firstDayOfWeek: config.localization.firstDayOfWeek,
+                    })}
+                  </span>
+                </span>
+              </div>
+            </li>
+          );
+        } else if (item.offer) {
           return offerListItem(item);
         } else if (item.offerDecision) {
           return (

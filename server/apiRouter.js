@@ -52,6 +52,7 @@ const { getDisputes, disputeAction } = require('./api/refume-disputes');
 const { requestPhotoCheck } = require('./api/refume-photo-check');
 const { checkConversation } = require('./api/refume-chat-flags');
 const { recordTrace } = require('./api/refume-traces');
+const refumeShipmentsApi = require('./api/refume-shipments');
 
 const createUserWithIdp = require('./api/auth/createUserWithIdp');
 
@@ -65,6 +66,8 @@ const router = express.Router();
 // Refume: gives back stock of bundle items when an order expires or is cancelled
 startBundleSweep();
 require('./api-util/refumeRetention').startRetention();
+// Refume: labels and tracking through Furgonetka for paid orders
+require('./api-util/refumeShipments').startShipments();
 
 // ================ API router middleware: ================ //
 
@@ -135,6 +138,11 @@ router.post('/poszukiwane/powiadom', notifyForListing);
 router.get('/odznaki', getBadges);
 router.post('/odznaki/przelicz', recomputeForTransaction);
 router.post('/slad', recordTrace);
+router.get('/przesylka', refumeShipmentsApi.getShipment);
+router.get('/przesylka/etykieta', refumeShipmentsApi.getLabel);
+router.post('/przesylka/ponow', refumeShipmentsApi.retry);
+router.post('/przesylka/symuluj', refumeShipmentsApi.simulate);
+router.post('/furgonetka/webhook', bodyParser.json({ limit: '64kb' }), refumeShipmentsApi.webhook);
 router.post('/statystyki/wyswietlenie', recordView);
 router.post('/statystyki/polubienie', syncLike);
 router.get('/opis-ai', getAiDescription);

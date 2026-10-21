@@ -55,7 +55,9 @@ const getItemQuantityAndLineItems = (orderData, publicData, currency) => {
           code: 'line-item/shipping-fee',
           unitPrice: shippingFee,
           quantity: 1,
-          includeFor: ['customer', 'provider'],
+          // Refume buys the label (one Furgonetka account), so the fee stays with Refume and
+          // isn't paid out to the seller
+          includeFor: ['customer'],
         },
       ]
     : [];

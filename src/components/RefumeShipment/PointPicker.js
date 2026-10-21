@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useSelector } from 'react-redux';
 
 import { searchPickupPoints } from '../../util/api';
@@ -108,7 +109,9 @@ const PointPicker = ({ service, carrierLabel, value, onChange, city, disabled })
         </button>
       )}
 
-      {open ? (
+      {/* Rendered at the end of <body>: inside the chat's side column a fixed dialog would be
+          clipped by the column's own scrolling and position */}
+      {open && typeof document !== 'undefined' ? createPortal(
         <div className={css.overlay} role="dialog" aria-modal="true" aria-label="Wybierz punkt odbioru">
           <div className={css.backdrop} onClick={() => setOpen(false)} />
           <div className={css.panel}>
@@ -175,7 +178,7 @@ const PointPicker = ({ service, carrierLabel, value, onChange, city, disabled })
             </div>
           </div>
         </div>
-      ) : null}
+      , document.body) : null}
     </div>
   );
 };

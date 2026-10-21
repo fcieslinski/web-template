@@ -245,6 +245,7 @@ const processOrder = async txId => {
     await saveRow(txId, { status: 'pomijana', error: 'Not a shipping order.' });
     return getRow(txId);
   }
+  if (!row.carrier) await saveRow(txId, { carrier });
 
   try {
     let packageId = row.package_id;

@@ -33,7 +33,7 @@ const participant = async (req, res, txId) => {
   const me = (await sdk.currentUser.show()).data.data;
   const userId = me.id.uuid;
   if (moderatorIds().includes(userId)) {
-    return { userId, role: 'moderator' };
+    return { userId, role: 'moderator', carrier: null };
   }
   const tx = await sdk.transactions
     .show({ id: txId, include: ['provider', 'customer'] })
@@ -43,7 +43,7 @@ const participant = async (req, res, txId) => {
   const customerId = tx.data.data.relationships?.customer?.data?.id?.uuid;
   const role = userId === providerId ? 'provider' : userId === customerId ? 'customer' : null;
   if (!role) throw httpError(403, 'Not a participant.');
-  return { userId, role };
+  return { userId, role, carrier: tx.data.data.attributes?.protectedData?.shippingCarrier || null };
 };
 
 const requireEnabled = () => {
@@ -54,7 +54,7 @@ const getShipment = (req, res) => {
   const txId = String(req.query?.txId || '');
   Promise.resolve()
     .then(async () => {
-      const { role } = await participant(req, res, txId);
+      const { role, carrier } = await participant(req, res, txId);
       if (!shipments.isShipmentsEnabled()) {
         return res.status(200).json({ data: { enabled: false } });
       }
@@ -66,7 +66,7 @@ const getShipment = (req, res) => {
           sandbox: furgonetka.env() === 'sandbox',
           role,
           status: row?.status || null,
-          carrier: row?.carrier || null,
+          carrier: row?.carrier || carrier || null,
           waybill: row?.waybill || null,
           trackingUrl: row?.tracking_url || null,
           events: row?.events || [],

@@ -29,6 +29,10 @@ const PointPicker = ({ service, carrierLabel, value, onChange, city, disabled })
   const inputRef = useRef(null);
 
   const run = params => {
+    if (!service) {
+      setState({ loading: false, points: null, error: 'Nie wiemy, którego przewoźnika dotyczy punkt. Odśwież stronę.' });
+      return;
+    }
     setState(s => ({ ...s, loading: true, error: null }));
     searchPickupPoints({ service, ...params })
       .then(res => setState({ loading: false, error: null, points: res?.data || [] }))

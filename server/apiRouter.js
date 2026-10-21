@@ -64,6 +64,7 @@ const router = express.Router();
 
 // Refume: gives back stock of bundle items when an order expires or is cancelled
 startBundleSweep();
+require('./api-util/refumeRetention').startRetention();
 
 // ================ API router middleware: ================ //
 

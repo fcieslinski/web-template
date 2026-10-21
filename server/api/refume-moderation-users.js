@@ -18,6 +18,7 @@
  *      utworzono, status: 'nowe' | 'uwzglednione' | 'odrzucone', odpowiedz?, rozpatrzono?, przez? }]
  * Notes and sent messages are kept in the first moderator's privateData.refumeNotatki.
  */
+const { readList, withList } = require('../api-util/refumeStore');
 const { getSdk, handleError } = require('../api-util/sdk');
 const {
   isIntegrationApiConfigured,
@@ -78,30 +79,12 @@ const moderatorIds = () =>
 
 // ---------- Notes log (first moderator's privateData) ----------
 
-let notesLock = Promise.resolve();
+// Kept in the Refume database (or the first moderator's privateData without one)
 const withNotes = fn => {
-  const run = notesLock.then(async () => {
-    const owner = moderatorIds()[0];
-    if (!owner) throw httpError(500, 'No moderator configured.');
-    const shown = await showUser({ id: owner });
-    const list = shown.data?.attributes?.profile?.privateData?.[NOTES_KEY];
-    const notes = Array.isArray(list) ? list : [];
-    const next = await fn(notes);
-    if (next && next !== notes) {
-      await updateUserProfile({ id: owner, privateData: { [NOTES_KEY]: next.slice(0, MAX_NOTES) } });
-    }
-    return next;
-  });
-  notesLock = run.catch(() => null);
-  return run;
+  if (!moderatorIds()[0]) return Promise.reject(httpError(500, 'No moderator configured.'));
+  return withList(NOTES_KEY, fn, { max: MAX_NOTES, maxWithDb: 20000 });
 };
-const readNotes = async () => {
-  const owner = moderatorIds()[0];
-  if (!owner) return [];
-  const shown = await showUser({ id: owner });
-  const list = shown.data?.attributes?.profile?.privateData?.[NOTES_KEY];
-  return Array.isArray(list) ? list : [];
-};
+const readNotes = async () => (moderatorIds()[0] ? readList(NOTES_KEY) : []);
 const addNote = (entry, moderatorId) =>
   withNotes(notes => [{ id: newId(), utworzono: new Date().toISOString(), przez: moderatorId, ...entry }, ...notes]);
 
@@ -291,7 +274,9 @@ const getUserCard = (req, res) => {
           appeals: (profile.privateData?.[APPEALS_KEY] || []).filter(a => a && a.id),
           notes: notes.filter(n => n.userId === userId),
           notifications: moderationNotifications.slice(0, 30),
-          powiazania: require('./refume-traces').linkedAccounts(userId, users.users),
+          powiazania: await require('./refume-traces')
+            .linkedAccountsFor(userId, users.users)
+            .catch(() => require('./refume-traces').linkedAccounts(userId, users.users)),
         },
       });
     })

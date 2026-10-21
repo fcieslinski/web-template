@@ -82,8 +82,18 @@ module.exports = (req, res) => {
       }
       return getTrustedSdk(req, res, tokenStore);
     })
-    .then(trustedSdk => {
-      return trustedSdk.currentUser.delete({ currentPassword, deleteFromStripe: true });
+    .then(async trustedSdk => {
+      const me = await sdk.currentUser.show().catch(() => null);
+      const response = await trustedSdk.currentUser.delete({ currentPassword, deleteFromStripe: true });
+      // Refume: remove moderation data about this account (traces, notes, chat flags)
+      const userId = me?.data?.data?.id?.uuid;
+      if (userId) {
+        // eslint-disable-next-line global-require
+        require('../api-util/refumeRetention')
+          .purgeUsers([userId])
+          .catch(e => console.error('[refume-retention] purge after delete failed:', e.message));
+      }
+      return response;
     })
     .then(apiResponse => {
       const { status, statusText, data } = apiResponse;

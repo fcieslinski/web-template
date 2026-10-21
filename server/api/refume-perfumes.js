@@ -35,6 +35,17 @@ const loadCache = () => {
   }
 };
 loadCache();
+// With the database: the cache also lives there (files on Render disappear with each deploy)
+const { cacheLoad, cacheSet, cacheSeed } = require('../api-util/refumeDb');
+cacheSeed('fragella', Array.from(cache.entries()).map(([k, v]) => [k, v.data, v.at]))
+  .then(() => cacheLoad('fragella', CACHE_TTL_MS))
+  .then(rows =>
+    rows.forEach(([key, data, at]) => {
+      const current = cache.get(key);
+      if (!current || current.at < at) cache.set(key, { at, data });
+    })
+  )
+  .catch(e => console.error('[refume-perfumes] cache from database:', e.message));
 
 let saveTimer = null;
 const saveCacheSoon = () => {
@@ -123,6 +134,7 @@ const searchFragella = async (query, { force = false } = {}) => {
   }
   cache.set(key, { at: Date.now(), data });
   saveCacheSoon();
+  cacheSet('fragella', key, data);
   return data;
 };
 

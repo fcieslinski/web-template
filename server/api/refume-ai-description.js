@@ -67,9 +67,22 @@ const readCache = () => {
   }
   return fileCache;
 };
+// With the database: descriptions also live there (files on Render disappear with each deploy)
+const { cacheLoad, cacheSet, cacheSeed } = require('../api-util/refumeDb');
+cacheSeed('ai-opis', Object.entries(readCache()).map(([k, v]) => [k, v]))
+  .then(() => cacheLoad('ai-opis'))
+  .then(rows => {
+    const cache = readCache();
+    rows.forEach(([key, value]) => {
+      if (!cache[key]) cache[key] = value;
+    });
+  })
+  .catch(e => console.error('[refume-ai] cache from database:', e.message));
+
 const writeCache = (key, value) => {
   const cache = readCache();
   cache[key] = value;
+  cacheSet('ai-opis', key, value);
   try {
     fs.mkdirSync(path.dirname(CACHE_FILE), { recursive: true });
     fs.writeFileSync(CACHE_FILE, JSON.stringify(cache));

@@ -195,22 +195,11 @@ const ownerId = () =>
     .map(id => id.trim())
     .filter(Boolean)[0] || null;
 
-let lock = Promise.resolve();
+// Kept in the Refume database (or the first moderator's privateData without one)
 const withActive = fn => {
-  const run = lock.then(async () => {
-    const owner = ownerId();
-    if (!owner) throw new Error('REFUME_MODERATOR_USER_IDS is not set.');
-    const shown = await showUser({ id: owner });
-    const list = shown.data?.attributes?.profile?.privateData?.[ACTIVE_KEY];
-    const active = Array.isArray(list) ? list : [];
-    const next = await fn(active);
-    if (next && next !== active) {
-      await updateUserProfile({ id: owner, privateData: { [ACTIVE_KEY]: next } });
-    }
-    return next;
-  });
-  lock = run.catch(() => null);
-  return run;
+  if (!ownerId()) return Promise.reject(new Error('REFUME_MODERATOR_USER_IDS is not set.'));
+  // eslint-disable-next-line global-require
+  return require('./refumeStore').withList(ACTIVE_KEY, fn);
 };
 
 const trackBundle = (txId, bundle) =>

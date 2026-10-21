@@ -16,6 +16,7 @@
 const crypto = require('crypto');
 const { getSdk, handleError } = require('../api-util/sdk');
 const { isIntegrationApiConfigured, updateUserProfile } = require('../api-util/refumeIntegrationApi');
+const { isDbConfigured, query } = require('../api-util/refumeDb');
 
 const TRACES_KEY = 'refumeSlady';
 const DEVICE_COOKIE = 'refume_urz';
@@ -129,6 +130,19 @@ const recordTrace = (req, res) => {
       const previous = lastWrite.get(userId);
       if (previous && previous.key === key && Date.now() - previous.at < REFRESH_MS) return;
 
+      if (isDbConfigured()) {
+        const rows = [['ip', ipHash], ['urz', deviceHash]].filter(([, h]) => h);
+        for (const [kind, h] of rows) {
+          await query(
+            `INSERT INTO refume_traces (user_id, kind, hash) VALUES ($1, $2, $3)
+             ON CONFLICT (user_id, kind, hash) DO UPDATE SET last_seen = now()`,
+            [userId, kind, h]
+          );
+        }
+        lastWrite.set(userId, { key, at: Date.now() });
+        return;
+      }
+
       const now = new Date().toISOString();
       const traces = me.attributes?.profile?.privateData?.[TRACES_KEY] || {};
       const next = {
@@ -218,4 +232,43 @@ const linkedAccounts = (userId, users) => {
   return { summary, linked: linked.slice(0, 50) };
 };
 
-module.exports = { recordTrace, linkedAccounts, TRACES_KEY, clientNetwork };
+/**
+ * Same as linkedAccounts, from the database when there is one. Traces saved earlier in
+ * privateData are added too, so nothing recorded before the database is lost.
+ */
+const linkedAccountsFor = async (userId, users) => {
+  if (!isDbConfigured()) return linkedAccounts(userId, users);
+  const since = `${KEEP_DAYS} days`;
+  const mine = await query(
+    `SELECT kind, hash FROM refume_traces WHERE user_id = $1 AND last_seen > now() - $2::interval`,
+    [userId, since]
+  );
+  const hashes = mine.rows.map(r => r.hash);
+  const related = hashes.length
+    ? await query(
+        `SELECT user_id, kind, hash, first_seen, last_seen FROM refume_traces
+         WHERE hash = ANY($1) AND last_seen > now() - $2::interval`,
+        [hashes, since]
+      )
+    : { rows: [] };
+  // Rows → the privateData shape, merged with what privateData still holds
+  const byUser = new Map(users.map(u => [u.id, { ...u, slady: { ip: [...(u.slady?.ip || [])], urz: [...(u.slady?.urz || [])] } }]));
+  related.rows.forEach(r => {
+    const u = byUser.get(r.user_id);
+    if (!u) return;
+    const list = u.slady[r.kind] || (u.slady[r.kind] = []);
+    if (!list.some(e => e.h === r.hash)) {
+      list.push({ h: r.hash, od: new Date(r.first_seen).toISOString(), do: new Date(r.last_seen).toISOString() });
+    }
+  });
+  // Count of accounts per address needs every account with that hash, which `related` has
+  return linkedAccounts(userId, Array.from(byUser.values()));
+};
+
+/** Removes traces older than KEEP_DAYS (database only; privateData entries expire on read). */
+const purgeOldTraces = () =>
+  isDbConfigured()
+    ? query(`DELETE FROM refume_traces WHERE last_seen < now() - $1::interval`, [`${KEEP_DAYS} days`])
+    : Promise.resolve();
+
+module.exports = { recordTrace, linkedAccounts, linkedAccountsFor, purgeOldTraces, TRACES_KEY, clientNetwork };

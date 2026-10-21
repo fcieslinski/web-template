@@ -40,7 +40,9 @@ const KEY = 'refumeSpor';
 // transaction (its metadata is readable by both parties)
 const PRIVATE_KEY = 'refumeSporyPrywatne';
 const MAX_PRIVATE = 400;
+const MAX_PRIVATE_DB = 20000;
 const MAX_MESSAGES = 50;
+const { readList, withList, isDbConfigured } = require('../api-util/refumeStore');
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const httpError = (status, message) =>
   Object.assign(new Error(message), { status, statusText: message, data: {} });
@@ -58,27 +60,14 @@ const moderatorOwner = () =>
     .map(id => id.trim())
     .filter(Boolean)[0] || null;
 
-const readPrivate = async () => {
-  const owner = moderatorOwner();
-  if (!owner) return [];
-  const shown = await showUser({ id: owner });
-  const list = shown.data?.attributes?.profile?.privateData?.[PRIVATE_KEY];
-  return Array.isArray(list) ? list : [];
-};
+// Kept in the Refume database (or the first moderator's privateData without one)
+const readPrivate = async () => (moderatorOwner() ? readList(PRIVATE_KEY) : []);
 
-let privateLock = Promise.resolve();
 const addPrivate = entry => {
-  const run = privateLock.then(async () => {
-    const owner = moderatorOwner();
-    if (!owner) return;
-    const list = await readPrivate();
-    await updateUserProfile({
-      id: owner,
-      privateData: { [PRIVATE_KEY]: [...list, entry].slice(-MAX_PRIVATE) },
-    });
-  });
-  privateLock = run.catch(() => null);
-  return run;
+  if (!moderatorOwner()) return Promise.resolve();
+  return withList(PRIVATE_KEY, list =>
+    [...list, entry].slice(-(isDbConfigured() ? MAX_PRIVATE_DB : MAX_PRIVATE))
+  );
 };
 
 const IMAGE_VARIANTS = ['square-small2x', 'square-small', 'landscape-crop', 'default'];

@@ -17,11 +17,13 @@ const {
   showUser,
   updateUserProfile,
 } = require('../api-util/refumeIntegrationApi');
+const { readList, withList, isDbConfigured } = require('../api-util/refumeStore');
 const { addNotification } = require('../api-util/refumeNotifications');
 const { detectChatRisks, hasHiddenPhone } = require('../api-util/refumeChatSafety.generated');
 
 const QUEUE_KEY = 'refumeFlagiCzatu';
 const MAX_QUEUE = 120;
+const MAX_QUEUE_DB = 5000;
 const MIN_GAP_MS = 10 * 1000; // per user and conversation
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const uuidOf = id => (typeof id === 'string' ? id : id?.uuid);
@@ -36,36 +38,23 @@ const moderatorIds = () =>
 const queueOwner = () => moderatorIds()[0] || null;
 
 // One write at a time, so concurrent checks don't overwrite each other
-let queueLock = Promise.resolve();
+// Kept in the Refume database (or the first moderator's privateData without one)
 const withQueue = fn => {
-  const run = queueLock.then(async () => {
-    const owner = queueOwner();
-    if (!owner) throw httpError(500, 'No moderator configured.');
-    const shown = await showUser({ id: owner });
-    const list = shown.data?.attributes?.profile?.privateData?.[QUEUE_KEY];
-    const queue = Array.isArray(list) ? list : [];
+  if (!queueOwner()) return Promise.reject(httpError(500, 'No moderator configured.'));
+  return withList(QUEUE_KEY, async queue => {
     const next = await fn(queue);
-    if (next && next !== queue) {
-      // Keep all open flags; drop the oldest handled ones first
-      const open = next.filter(f => f.status === 'nowe');
-      const closed = next.filter(f => f.status !== 'nowe');
-      const trimmed = [...open, ...closed].slice(0, MAX_QUEUE);
-      trimmed.sort((a, b) => (b.utworzono || '').localeCompare(a.utworzono || ''));
-      await updateUserProfile({ id: owner, privateData: { [QUEUE_KEY]: trimmed } });
-    }
-    return next;
+    if (!next || next === queue) return next;
+    // Keep all open flags; drop the oldest handled ones first
+    const limit = isDbConfigured() ? MAX_QUEUE_DB : MAX_QUEUE;
+    const open = next.filter(f => f.status === 'nowe');
+    const closed = next.filter(f => f.status !== 'nowe');
+    const trimmed = [...open, ...closed].slice(0, limit);
+    trimmed.sort((a, b) => (b.utworzono || '').localeCompare(a.utworzono || ''));
+    return trimmed;
   });
-  queueLock = run.catch(() => null);
-  return run;
 };
 
-const readQueue = async () => {
-  const owner = queueOwner();
-  if (!owner) return [];
-  const shown = await showUser({ id: owner });
-  const list = shown.data?.attributes?.profile?.privateData?.[QUEUE_KEY];
-  return Array.isArray(list) ? list : [];
-};
+const readQueue = async () => (queueOwner() ? readList(QUEUE_KEY) : []);
 
 const typesOf = risks =>
   [risks.contact ? 'kontakt' : null, risks.payment ? 'platnosc' : null, risks.links.length ? 'link' : null].filter(

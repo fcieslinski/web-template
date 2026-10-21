@@ -129,11 +129,16 @@ const getOrderParams = (
   const deliveryMethod = pageData.orderData?.deliveryMethod;
   const deliveryMethodMaybe = deliveryMethod ? { deliveryMethod } : {};
   // Refume: chosen carrier (prices the shipping fee on the server) and parcel locker / point code
-  const { shippingCarrier, shippingPointCode } = pageData.orderData || {};
+  const { shippingCarrier, shippingPointCode, shippingPointName } = pageData.orderData || {};
   const isShipping = deliveryMethod === 'shipping';
   const shippingCarrierMaybe = isShipping && shippingCarrier ? { shippingCarrier } : {};
   const shippingPointCodeMaybe =
-    isShipping && shippingPointCode ? { shippingPointCode: shippingPointCode.trim() } : {};
+    isShipping && shippingPointCode
+      ? {
+          shippingPointCode: shippingPointCode.trim(),
+          ...(shippingPointName ? { shippingPointName: String(shippingPointName).slice(0, 200) } : {}),
+        }
+      : {};
   const { listingType, unitType, priceVariants } = pageData?.listing?.attributes?.publicData || {};
 
   // price variant data for fixed duration bookings

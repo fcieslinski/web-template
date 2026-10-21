@@ -73,6 +73,8 @@ CREATE TABLE IF NOT EXISTS refume_shipments (
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now()
 );
+ALTER TABLE refume_shipments ADD COLUMN IF NOT EXISTS point_code text;
+ALTER TABLE refume_shipments ADD COLUMN IF NOT EXISTS point_name text;
 CREATE INDEX IF NOT EXISTS refume_shipments_package ON refume_shipments (package_id);
 CREATE INDEX IF NOT EXISTS refume_shipments_status ON refume_shipments (status);
 CREATE TABLE IF NOT EXISTS refume_cache (

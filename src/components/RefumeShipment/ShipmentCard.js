@@ -2,7 +2,15 @@ import React, { useCallback, useEffect, useState } from 'react';
 import classNames from 'classnames';
 import { useSelector } from 'react-redux';
 
-import { fetchShipment, retryShipment, simulateShipment, shipmentLabelUrl } from '../../util/api';
+import {
+  fetchShipment,
+  retryShipment,
+  changeShipmentPoint,
+  simulateShipment,
+  shipmentLabelUrl,
+} from '../../util/api';
+import { getShippingCarrier } from '../../util/refumeShipping';
+import PointPicker from './PointPicker';
 import SenderDetailsForm from './SenderDetailsForm';
 import { SHIPMENT_STATUS, CARRIER_NAMES, shipmentSteps } from './shipmentStatus';
 
@@ -61,6 +69,16 @@ const ShipmentCard = ({ txId, isProvider, rootClassName }) => {
     retryShipment({ txId })
       .then(load)
       .catch(() => setError('Nie udało się. Spróbuj za chwilę.'))
+      .finally(() => setBusy(false));
+  };
+
+  const choosePoint = point => {
+    if (!point?.code) return;
+    setBusy(true);
+    setError(null);
+    changeShipmentPoint({ txId, code: point.code, name: point.name })
+      .then(load)
+      .catch(() => setError('Nie udało się zapisać punktu. Spróbuj ponownie.'))
       .finally(() => setBusy(false));
   };
 
@@ -154,6 +172,32 @@ const ShipmentCard = ({ txId, isProvider, rootClassName }) => {
             Spróbuj teraz
           </button>
         </div>
+      ) : null}
+
+      {data.status === 'zly-punkt' && !isProvider ? (
+        <div className={css.senderBox}>
+          <p className={css.hint}>
+            Przewoźnik nie przyjął wybranego punktu odbioru (mógł zostać zamknięty). Wybierz inny – etykieta
+            utworzy się od razu.
+          </p>
+          <PointPicker
+            service={getShippingCarrier(data.carrier)?.mapService}
+            carrierLabel={carrier}
+            value={null}
+            disabled={busy}
+            onChange={choosePoint}
+          />
+        </div>
+      ) : null}
+
+      {data.status === 'zly-punkt' && isProvider ? (
+        <p className={css.hint}>Przewoźnik nie przyjął punktu odbioru. Poprosiliśmy kupującego o wybranie innego.</p>
+      ) : null}
+
+      {data.point?.code && data.status !== 'zly-punkt' ? (
+        <p className={css.small}>
+          Punkt odbioru: {data.point.name || data.point.code} ({data.point.code})
+        </p>
       ) : null}
 
       {!isProvider && ['nowa', 'blad', 'brak-danych-nadawcy'].includes(data.status) ? (

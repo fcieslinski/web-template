@@ -73,6 +73,7 @@ const getShipment = (req, res) => {
           labelReady: !!row?.waybill && role !== 'customer',
           error: seesErrors ? row?.error || null : null,
           canRetry: seesErrors && ['blad', 'brak-danych-nadawcy'].includes(row?.status),
+          point: row?.point_code ? { code: row.point_code, name: row.point_name || '' } : null,
         },
       });
     })
@@ -127,6 +128,22 @@ const retry = (req, res) => {
     .catch(e => handleError(res, e));
 };
 
+const changePoint = (req, res) => {
+  const txId = String(req.body?.txId || '');
+  const code = String(req.body?.code || '').trim();
+  const name = String(req.body?.name || '');
+  Promise.resolve()
+    .then(async () => {
+      requireEnabled();
+      if (!/^[A-Za-z0-9-]{3,40}$/.test(code)) throw httpError(400, 'Invalid point code.');
+      const { role } = await participant(req, res, txId);
+      if (role === 'provider') throw httpError(403, 'Only the buyer chooses the pickup point.');
+      const row = await shipments.changePoint(txId, code, name);
+      res.status(200).json({ data: { status: row?.status || null } });
+    })
+    .catch(e => handleError(res, e));
+};
+
 const simulate = (req, res) => {
   const txId = String(req.body?.txId || '');
   const state = String(req.body?.state || '');
@@ -161,4 +178,4 @@ const webhook = (req, res) => {
     .finally(ok);
 };
 
-module.exports = { getShipment, getLabel, retry, simulate, webhook };
+module.exports = { getShipment, getLabel, retry, changePoint, simulate, webhook };

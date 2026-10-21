@@ -14,6 +14,7 @@
 export const REFUME_CARRIERS = {
   orlen: {
     key: 'orlen',
+    mapService: 'orlen', // Furgonetka map of points
     label: 'Orlen Paczka',
     needsPickupPoint: true,
     pickupPointLabel: 'Kod punktu Orlen Paczka',
@@ -21,6 +22,7 @@ export const REFUME_CARRIERS = {
   },
   inpost: {
     key: 'inpost',
+    mapService: 'inpost', // Furgonetka map of points
     label: 'InPost Paczkomat',
     needsPickupPoint: true,
     pickupPointLabel: 'Kod paczkomatu',
@@ -28,6 +30,7 @@ export const REFUME_CARRIERS = {
   },
   'dpd-pickup': {
     key: 'dpd-pickup',
+    mapService: 'dpd', // Furgonetka map of points
     label: 'DPD Pickup',
     needsPickupPoint: true,
     pickupPointLabel: 'Kod punktu DPD Pickup',

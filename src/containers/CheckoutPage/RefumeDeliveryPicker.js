@@ -3,6 +3,8 @@ import classNames from 'classnames';
 
 import { getAvailableCarriers, getShippingCarrier } from '../../util/refumeShipping';
 
+import PointPicker from '../../components/RefumeShipment/PointPicker';
+
 import css from './RefumeDeliveryPicker.module.css';
 
 const formatPrice = subunits => `${(subunits / 100).toFixed(2).replace('.', ',')} zł`;
@@ -59,7 +61,7 @@ const RefumeDeliveryPicker = props => {
   if (!options.length) {
     return null;
   }
-  const { deliveryMethod, shippingCarrier, shippingPointCode } = orderData || {};
+  const { deliveryMethod, shippingCarrier, shippingPointCode, shippingPointName } = orderData || {};
   const selectedKey =
     deliveryMethod === 'pickup' ? 'pickup' : deliveryMethod === 'shipping' ? shippingCarrier : null;
   const selectedCarrier =
@@ -71,13 +73,16 @@ const RefumeDeliveryPicker = props => {
     }
     onChange(
       option.deliveryMethod === 'pickup'
-        ? { deliveryMethod: 'pickup', shippingCarrier: null, shippingPointCode: null }
-        : { deliveryMethod: 'shipping', shippingCarrier: option.key, shippingPointCode: null },
+        ? { deliveryMethod: 'pickup', shippingCarrier: null, shippingPointCode: null, shippingPointName: null }
+        : {
+            deliveryMethod: 'shipping',
+            shippingCarrier: option.key,
+            shippingPointCode: null,
+            shippingPointName: null,
+          },
       { reprice: true }
     );
   };
-
-  const pointId = 'refume-delivery-point';
 
   return (
     <fieldset className={css.root}>
@@ -111,16 +116,18 @@ const RefumeDeliveryPicker = props => {
 
       {selectedCarrier?.needsPickupPoint ? (
         <div className={css.point}>
-          <label htmlFor={pointId} className={css.pointLabel}>
-            {selectedCarrier.pickupPointLabel}
-          </label>
-          <input
-            id={pointId}
-            className={css.pointInput}
-            value={shippingPointCode || ''}
+          <span className={css.pointLabel}>Punkt odbioru</span>
+          <PointPicker
+            service={selectedCarrier.mapService}
+            carrierLabel={selectedCarrier.label}
             placeholder={selectedCarrier.pickupPointPlaceholder}
-            autoComplete="off"
-            onChange={e => onChange({ shippingPointCode: e.target.value }, { reprice: false })}
+            value={shippingPointCode ? { code: shippingPointCode, name: shippingPointName } : null}
+            onChange={point =>
+              onChange(
+                { shippingPointCode: point.code || null, shippingPointName: point.name || null },
+                { reprice: false }
+              )
+            }
           />
         </div>
       ) : null}

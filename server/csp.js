@@ -39,6 +39,8 @@ const defaultDirectives = {
   defaultSrc: [self],
   childSrc: [blob],
   connectSrc: [
+    // Refume: Furgonetka map of pickup points
+    'furgonetka.pl', '*.furgonetka.pl',
     self,
     baseUrl,
     assetCdnBaseUrl,
@@ -74,9 +76,19 @@ const defaultDirectives = {
     '*.sentry.io',
     '*.stripe.com',
   ],
-  fontSrc: [self, data, 'assets-sharetribecom.sharetribe.com', 'fonts.gstatic.com'],
+  fontSrc: [
+    self,
+    data,
+    'assets-sharetribecom.sharetribe.com',
+    'fonts.gstatic.com',
+    // Refume: Furgonetka map of pickup points
+    'furgonetka.pl',
+    '*.furgonetka.pl',
+  ],
   formAction: [self],
   frameSrc: [
+    // Refume: Furgonetka map of pickup points
+    'furgonetka.pl', '*.furgonetka.pl',
     self,
     '*.stripe.com',
     '*.youtube-nocookie.com',
@@ -84,6 +96,8 @@ const defaultDirectives = {
     'https://td.doubleclick.net',
   ],
   imgSrc: [
+    // Refume: Furgonetka map of pickup points
+    'furgonetka.pl', '*.furgonetka.pl', '*.openstreetmap.org', '*.tile.openstreetmap.org',
     self,
     data,
     blob,
@@ -119,6 +133,8 @@ const defaultDirectives = {
     '*.stripe.com',
   ],
   scriptSrc: [
+    // Refume: Furgonetka map of pickup points
+    'furgonetka.pl', '*.furgonetka.pl',
     self,
     (req, res) => `'nonce-${res.locals.cspNonce}'`,
     unsafeEval,
@@ -132,7 +148,15 @@ const defaultDirectives = {
     // Plausible analytics
     'plausible.io',
   ],
-  styleSrc: [self, unsafeInline, 'fonts.googleapis.com', 'api.mapbox.com'],
+  styleSrc: [
+    self,
+    unsafeInline,
+    'fonts.googleapis.com',
+    'api.mapbox.com',
+    // Refume: Furgonetka map of pickup points
+    'furgonetka.pl',
+    '*.furgonetka.pl',
+  ],
 };
 
 /**

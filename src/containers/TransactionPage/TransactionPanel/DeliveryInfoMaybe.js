@@ -51,14 +51,22 @@ const DeliveryInfoMaybe = props => {
 
     // Refume: the shipping option and parcel locker / pickup point the buyer chose
     const carrier = getShippingCarrier(protectedData?.shippingCarrier);
-    const pointCode = protectedData?.shippingPointCode;
+    const rechosen = protectedData?.refumePunkt;
+    const pointCode = rechosen?.kod || protectedData?.shippingPointCode;
+    const pointName = rechosen ? rechosen.nazwa : protectedData?.shippingPointName;
     const carrierInfoMaybe = carrier ? (
       <p className={css.shippingInfoContent}>
         <strong>{carrier.label}</strong>
         {carrier.needsPickupPoint && pointCode ? (
           <>
             <br />
-            {carrier.pickupPointLabel}: {pointCode}
+            {pointName ? (
+              <>
+                {pointName}
+                <br />
+              </>
+            ) : null}
+            Kod punktu: {pointCode}
           </>
         ) : null}
       </p>

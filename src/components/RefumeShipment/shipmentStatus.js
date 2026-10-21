@@ -3,6 +3,7 @@
 export const SHIPMENT_STATUS = {
   nowa: { label: 'Przygotowanie etykiety', tone: 'muted' },
   'brak-danych-nadawcy': { label: 'Czeka na dane nadawcy', tone: 'todo' },
+  'zly-punkt': { label: 'Wybierz punkt odbioru', tone: 'todo' },
   blad: { label: 'Przygotowanie etykiety', tone: 'todo' },
   etykieta: { label: 'Etykieta gotowa', tone: 'info' },
   nadana: { label: 'Paczka nadana', tone: 'info' },

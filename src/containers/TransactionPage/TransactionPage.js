@@ -910,7 +910,15 @@ export const TransactionPageComponent = props => {
       provider={provider}
       transitions={txTransitions}
       processName={processName}
-      protectedData={transaction?.attributes?.protectedData}
+      protectedData={
+        // Refume: a pickup point chosen again after payment (shipment metadata) is shown instead
+        transaction?.attributes?.metadata?.refumePrzesylka?.punkt
+          ? {
+              ...transaction?.attributes?.protectedData,
+              refumePunkt: transaction.attributes.metadata.refumePrzesylka.punkt,
+            }
+          : transaction?.attributes?.protectedData
+      }
       refumeBundle={transaction?.attributes?.metadata?.refumePakiet}
       refumeEmbedded={!!props.embedded}
       refumeDispute={transaction?.attributes?.metadata?.refumeSpor}

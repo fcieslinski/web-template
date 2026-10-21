@@ -68,6 +68,7 @@ const STATUS_OF_STATE = {
 const STATUS_RANK = {
   nowa: 0,
   'brak-danych-nadawcy': 1,
+  'zly-punkt': 1,
   blad: 1,
   etykieta: 2,
   nadana: 3,
@@ -139,6 +140,8 @@ const publishStatus = async (txId, row, extra = {}) => {
     numer: row.waybill || null,
     sledzenie: row.tracking_url || null,
     zdarzenia: (row.events || []).slice(-MAX_EVENTS),
+    // Pickup point chosen again after payment (the first one was refused)
+    punkt: row.point_code ? { kod: row.point_code, nazwa: row.point_name || '' } : null,
     aktualizacja: new Date().toISOString(),
     ...extra,
   };
@@ -151,7 +154,7 @@ const notify = (userId, n) => (userId ? addNotification(userId, n).catch(() => n
  * Builds the Furgonetka package of an order. Throws { code: 'brak-danych-nadawcy' } when the
  * seller hasn't filled in their sender details.
  */
-const buildPackage = async ({ tx, customer, provider, listing }, serviceId) => {
+const buildPackage = async ({ tx, customer, provider, listing }, serviceId, override = {}) => {
   const pd = tx.attributes?.protectedData || {};
   const carrier = pd.shippingCarrier;
   const providerUser = provider ? (await showUser({ id: provider.id })).data : null;
@@ -162,7 +165,7 @@ const buildPackage = async ({ tx, customer, provider, listing }, serviceId) => {
   }
   const sd = pd.shippingDetails || {};
   const address = sd.address || {};
-  const point = String(pd.shippingPointCode || '').trim();
+  const point = String(override.pointCode || pd.shippingPointCode || '').trim();
   const needsPoint = carrier !== 'pocztex';
   if (needsPoint && !point) throw new Error('The order has no pickup point.');
   const size = listingSize(listing);
@@ -233,7 +236,7 @@ const processOrder = async txId => {
     [txId]
   );
   let row = await getRow(txId);
-  if (!['nowa', 'blad', 'brak-danych-nadawcy'].includes(row.status) && row.waybill) return row;
+  if (!['nowa', 'blad', 'brak-danych-nadawcy', 'zly-punkt'].includes(row.status) && row.waybill) return row;
 
   const data = await loadTx(txId);
   const pd = data.tx.attributes?.protectedData || {};
@@ -247,7 +250,7 @@ const processOrder = async txId => {
     let packageId = row.package_id;
     if (!packageId) {
       const serviceId = await serviceIdFor(carrier);
-      const pkg = await buildPackage(data, serviceId);
+      const pkg = await buildPackage(data, serviceId, { pointCode: row.point_code });
       const created = await furgonetka.createPackage(pkg);
       packageId = String(created?.package_id || created?.id || '');
       if (!packageId) throw new Error('Furgonetka did not return a package id.');
@@ -290,19 +293,24 @@ const processOrder = async txId => {
     return row;
   } catch (e) {
     const missingSender = e.code === 'brak-danych-nadawcy';
+    const badPoint = (e.data?.errors || []).some(x => /\/receiver\/point/.test(x.path || ''));
     const regulations = e.status === 409;
     const attempts = (row.attempts || 0) + 1;
-    const status = missingSender ? 'brak-danych-nadawcy' : 'blad';
+    const status = missingSender ? 'brak-danych-nadawcy' : badPoint ? 'zly-punkt' : 'blad';
     const waitMin = missingSender ? 60 : Math.min(240, 2 ** attempts);
     await saveRow(txId, {
       status,
       error: missingSender
         ? 'Sprzedawca nie uzupełnił danych nadawcy.'
+        : badPoint
+        ? 'Przewoźnik nie przyjął punktu odbioru – czekamy, aż kupujący wybierze inny.'
         : regulations
         ? `Zaakceptuj regulamin przewoźnika w panelu Furgonetki: ${errorText(e)}`
         : errorText(e),
       attempts: missingSender ? row.attempts || 0 : attempts,
-      next_try_at: attempts >= MAX_ATTEMPTS && !missingSender ? null : new Date(Date.now() + waitMin * 60000),
+      // A wrong point waits for the buyer to choose another one
+      next_try_at:
+        badPoint || (attempts >= MAX_ATTEMPTS && !missingSender) ? null : new Date(Date.now() + waitMin * 60000),
     });
     row = await getRow(txId);
     await publishStatus(txId, row).catch(() => null);
@@ -315,6 +323,16 @@ const processOrder = async txId => {
         txId,
         tab: 'sales',
         dedupeKey: `nadawca-${txId}`,
+      });
+    } else if (badPoint) {
+      const title = data.listing?.attributes?.title || 'zamówienie';
+      await notify(data.customer?.id, {
+        type: 'przesylka-zly-punkt',
+        title: `Wybierz punkt odbioru – „${title}”`,
+        body: 'Przewoźnik nie przyjął wybranego punktu odbioru. Wybierz inny punkt w rozmowie z zamówieniem.',
+        txId,
+        tab: 'orders',
+        dedupeKey: `punkt-${txId}-${row.point_code || 'pierwszy'}`,
       });
     } else {
       console.error(`[refume-przesylki] ${txId}: ${row.error}`);
@@ -506,8 +524,28 @@ const startShipments = () => {
   setInterval(tick, 60 * 1000).unref?.();
 };
 
+/** The buyer chose another pickup point (after the first one was refused). */
+const changePoint = async (txId, code, name) => {
+  const row = await getRow(txId);
+  if (!row) throw Object.assign(new Error('No shipment.'), { status: 404 });
+  if (row.waybill || !['zly-punkt', 'blad', 'brak-danych-nadawcy', 'nowa'].includes(row.status)) {
+    throw Object.assign(new Error('The label is already made.'), { status: 409 });
+  }
+  if (row.package_id) await furgonetka.deletePackage(row.package_id).catch(() => null);
+  await saveRow(txId, {
+    point_code: String(code).trim().slice(0, 40),
+    point_name: String(name || '').slice(0, 200),
+    // Package with the old point is replaced
+    package_id: null,
+    order_uuid: null,
+    status: row.status === 'zly-punkt' ? 'nowa' : row.status,
+  });
+  return processOrder(txId);
+};
+
 module.exports = {
   isShipmentsEnabled,
+  changePoint,
   processOrder,
   refreshTracking,
   handleWebhook,

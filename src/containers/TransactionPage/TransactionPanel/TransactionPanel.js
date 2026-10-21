@@ -131,6 +131,7 @@ export class TransactionPanelComponent extends Component {
       fileAttachments,
       activityFeed,
       refumeOffersPanel,
+      refumeOfferChip,
       actionButtons,
       isInquiryProcess,
       orderBreakdown,
@@ -231,6 +232,7 @@ export class TransactionPanelComponent extends Component {
           transactionFieldsComponent={transactionFieldsComponent}
           fileAttachments={fileAttachments}
           refumeOffersPanel={refumeOffersPanel}
+          refumeOfferChip={refumeOfferChip}
           orderBreakdown={orderBreakdown}
           showBreakDown={showBreakDown}
           orderPanel={orderPanel}

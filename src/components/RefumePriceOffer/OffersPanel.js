@@ -40,7 +40,7 @@ const errorText = e =>
  * @param {Function} props.onChanged called after a successful action (refetch)
  */
 const OffersPanel = props => {
-  const { transaction, listing, role, onChanged } = props;
+  const { transaction, listing, role, onChanged, compact } = props;
   const [countering, setCountering] = useState(false);
   const [value, setValue] = useState('');
   const [error, setError] = useState(null);
@@ -152,6 +152,69 @@ const OffersPanel = props => {
       {proposeLabel}
     </button>
   );
+
+  // Refume: offers are shown in the chat as cards; above the message box only the
+  // "Zaproponuj cenę" button stays, when a new offer can be sent.
+  if (compact) {
+    if (!canPropose) return null;
+    return (
+      <div className={css.compactBox}>
+        {proposing ? (
+          <form className={css.compactForm} onSubmit={handlePropose}>
+            <label htmlFor={proposeId} className={css.compactLabel}>
+              {role === 'provider' ? 'Cena dla kupującego' : 'Twoja propozycja'}
+              <span className={css.compactHint}> · w ofercie {formatPln(price.amount)}</span>
+            </label>
+            <div className={css.compactRow}>
+              <span className={css.compactInputWrap}>
+                <input
+                  id={proposeId}
+                  className={css.compactInput}
+                  inputMode="decimal"
+                  autoComplete="off"
+                  autoFocus
+                  value={value}
+                  onChange={e => setValue(e.target.value)}
+                />
+                <span className={css.compactSuffix}>zł</span>
+              </span>
+              <button type="submit" className={css.compactSend} disabled={inProgress}>
+                Wyślij
+              </button>
+              <button
+                type="button"
+                className={css.compactCancel}
+                disabled={inProgress}
+                onClick={() => {
+                  setProposing(false);
+                  setError(null);
+                }}
+              >
+                Anuluj
+              </button>
+            </div>
+          </form>
+        ) : (
+          <button
+            type="button"
+            className={css.proposeChip}
+            onClick={() => {
+              setValue('');
+              setError(null);
+              setProposing(true);
+            }}
+          >
+            {proposeLabel}
+          </button>
+        )}
+        {error ? (
+          <p className={css.error} role="alert">
+            {error}
+          </p>
+        ) : null}
+      </div>
+    );
+  }
 
   // No offer yet: just the button
   if (!last) {

@@ -131,3 +131,109 @@
 .proposeAgain {
   margin-top: 10px;
 }
+
+/* Compact: above the message box */
+.compactBox {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.proposeChip {
+  align-self: flex-start;
+  padding: 6px 12px;
+  border: 1px solid #c4b5fd;
+  border-radius: 999px;
+  background-color: #faf8ff;
+  color: #5b21b6;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+
+  &:hover {
+    background-color: #ede9fe;
+  }
+}
+
+.compactForm {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  border: 1.5px solid #c4b5fd;
+  border-radius: 14px;
+  background-color: #faf8ff;
+}
+
+.compactLabel {
+  padding: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: #5b21b6;
+}
+
+.compactHint {
+  font-weight: 500;
+  color: #78716c;
+}
+
+.compactRow {
+  display: flex;
+  gap: 8px;
+}
+
+.compactInputWrap {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+
+.compactInput {
+  width: 100%;
+  box-sizing: border-box;
+  height: 40px;
+  padding: 0 34px 0 12px;
+  border: 1px solid #c4b5fd;
+  border-radius: 10px;
+  background-color: #ffffff;
+  font: inherit;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.compactSuffix {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  transform: translateY(-50%);
+  color: #78716c;
+  font-weight: 700;
+}
+
+.compactSend,
+.compactCancel {
+  height: 40px;
+  padding: 0 14px;
+  border-radius: 10px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.5;
+  }
+}
+
+.compactSend {
+  border: none;
+  background-color: #18181b;
+  color: #ffffff;
+}
+
+.compactCancel {
+  border: 1px solid #e7e5e4;
+  background-color: #ffffff;
+  color: #57534e;
+}

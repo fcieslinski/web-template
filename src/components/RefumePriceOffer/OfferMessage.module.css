@@ -1,0 +1,265 @@
+.line {
+  display: flex;
+  width: 100%;
+}
+
+.lineLeft {
+  justify-content: flex-start;
+  padding-left: 36px;
+}
+
+.lineRight {
+  justify-content: flex-end;
+}
+
+.wrap {
+  display: flex;
+  flex-direction: column;
+  width: min(400px, 100%);
+}
+
+.lineRight .wrap {
+  align-items: flex-end;
+}
+
+.card {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1.5px solid #c4b5fd;
+  overflow: hidden;
+}
+
+.cardTheirs {
+  border-radius: 18px 18px 18px 6px;
+}
+
+.cardMine {
+  border-radius: 18px 18px 6px 18px;
+}
+
+.pending {
+  background-color: #faf8ff;
+}
+
+.accepted {
+  border-color: #86efac;
+  background-color: #f0fdf4;
+}
+
+.closed {
+  border-color: #e7e5e4;
+  background-color: #fafaf9;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 16px 12px 16px;
+}
+
+.label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #5b21b6;
+
+  .accepted & {
+    color: #166534;
+  }
+
+  .closed & {
+    color: #78716c;
+  }
+}
+
+.amountRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+}
+
+.amount {
+  font-size: 28px;
+  line-height: 34px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #18181b;
+}
+
+.amountStruck {
+  color: #78716c;
+  text-decoration: line-through;
+}
+
+.oldPrice {
+  font-size: 15px;
+  color: #78716c;
+}
+
+.off {
+  padding: 1px 8px;
+  border-radius: 999px;
+  background-color: #fee2e2;
+  color: #991b1b;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.status {
+  font-size: 13px;
+  line-height: 18px;
+  color: #57534e;
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  padding: 0 16px 14px 16px;
+
+  & > a:only-child {
+    grid-column: 1 / -1;
+  }
+}
+
+.accept,
+.counter,
+.reject,
+.buy {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  padding: 0 10px;
+  border-radius: 10px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+}
+
+.accept,
+.buy {
+  border: none;
+  background-color: #18181b;
+  color: #ffffff;
+
+  &:hover {
+    background-color: #3f3f46;
+    color: #ffffff;
+    text-decoration: none;
+  }
+}
+
+.counter {
+  border: 1px solid #c4b5fd;
+  background-color: #ffffff;
+  color: #5b21b6;
+}
+
+.reject {
+  border: 1px solid #e7e5e4;
+  background-color: #ffffff;
+  color: #991b1b;
+}
+
+.counterForm {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 0 16px 14px 16px;
+}
+
+.counterLabel {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.counterRow {
+  display: flex;
+  gap: 8px;
+}
+
+.inputWrap {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+
+.input {
+  width: 100%;
+  box-sizing: border-box;
+  height: 42px;
+  padding: 0 34px 0 12px;
+  border: 1px solid #c4b5fd;
+  border-radius: 10px;
+  background-color: #ffffff;
+  font: inherit;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.suffix {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  transform: translateY(-50%);
+  color: #78716c;
+  font-weight: 700;
+}
+
+.error {
+  margin: 0;
+  padding: 0 16px 12px 16px;
+  font-size: 13px;
+  color: #b91c1c;
+}
+
+.date {
+  margin: 4px 4px 0 4px;
+  font-size: 12px;
+  color: #78716c;
+}
+
+.compact {
+  padding: 6px 12px;
+  border: 1px solid #e7e5e4;
+  border-radius: 999px;
+  background-color: #fafaf9;
+  font-size: 12px;
+  line-height: 16px;
+  color: #78716c;
+}
+
+.decisionLine {
+  display: flex;
+  justify-content: center;
+}
+
+.decision {
+  padding: 5px 12px;
+  border: 1px solid #e7e5e4;
+  border-radius: 999px;
+  background-color: #fafaf9;
+  font-size: 12px;
+  font-weight: 700;
+  color: #57534e;
+}
+
+.decisionAccepted {
+  border-color: #a7f3d0;
+  background-color: #ecfdf5;
+  color: #065f46;
+}

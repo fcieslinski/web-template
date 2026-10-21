@@ -90,6 +90,25 @@ import {
   fetchMessages,
 } from './TransactionPage.duck';
 import OffersPanel from '../../components/RefumePriceOffer/OffersPanel';
+import { getOffers, formatPln } from '../../util/refumeOffers';
+
+// Refume: offer state on the item box at the top of the chat
+const refumeOfferChip = (transaction, role) => {
+  if (transaction?.attributes?.lastTransition !== 'transition/inquire') return null;
+  const offers = getOffers(transaction?.attributes?.metadata);
+  const last = offers[offers.length - 1];
+  if (!last) return null;
+  const isCounter = offers.length > 1 && offers[offers.length - 2].status === 'countered';
+  if (last.status === 'pending') {
+    return last.by === role
+      ? { label: 'Czeka na odpowiedź', tone: 'muted' }
+      : { label: isCounter ? 'Kontroferta czeka na Ciebie' : 'Propozycja ceny czeka na Ciebie', tone: 'offer' };
+  }
+  if (isAcceptedOfferValid(last)) {
+    return { label: `Cena ustalona: ${formatPln(last.amount)}`, tone: 'done' };
+  }
+  return null;
+};
 import { getLastOffer, isAcceptedOfferValid } from '../../util/refumeOffers';
 import { types as sdkTypes } from '../../util/sdkLoader';
 import css from './TransactionPage.module.css';
@@ -913,10 +932,12 @@ export const TransactionPageComponent = props => {
             transaction={transaction}
             listing={listing}
             role={transactionRole}
+            compact
             onChanged={() => props.onRefreshOffers(transaction.id, transactionRole, config)}
           />
         ) : null
       }
+      refumeOfferChip={refumeOfferChip(transaction, transactionRole)}
       sendMessageForm={
         showSendMessageForm ? (
           <SendMessageForm
@@ -987,6 +1008,7 @@ export const TransactionPageComponent = props => {
           allowFiles={allowFiles}
           onDownloadFile={onDownloadFile}
           fileDownloads={fileDownloads}
+          onOffersChanged={() => props.onRefreshOffers(transaction.id, transactionRole, config)}
         />
       }
       transactionFieldsComponent={

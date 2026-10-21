@@ -22,6 +22,8 @@ import { stateDataShape } from '../TransactionPage.stateData';
 
 import { hasHiddenPhone, detectChatRisks } from '../../../util/refumeChatSafety';
 import { checkConversation } from '../../../util/api';
+import OfferMessage, { OfferDecision } from '../../../components/RefumePriceOffer/OfferMessage';
+import { getOffers } from '../../../util/refumeOffers';
 import css from './ActivityFeed.module.css';
 
 const { Money } = sdkTypes;
@@ -240,8 +242,38 @@ const withTeamMessages = (items, spor, hideOld) => {
       : []),
   ].filter(t => t.at && t.text);
   if (!team.length) return items;
+  return mergeByDate(items, team, hideOld);
+};
+
+// Refume: price offers from transaction metadata, shown as cards in the chat. The automatic
+// chat messages the server writes for offers are hidden, the cards replace them.
+const OFFER_MESSAGE_RE = /^(💬 (Propozycja ceny|Kontroferta): |✅ Propozycja .* zaakceptowana|❌ Propozycja .* odrzucona)/;
+const isOfferChatMessage = item =>
+  isMessage(item) && OFFER_MESSAGE_RE.test(item.attributes?.content || '');
+const withOffers = (items, metadata, hideOld) => {
+  const offers = getOffers(metadata);
+  if (!offers.length) return items;
+  const extra = [];
+  offers.forEach((offer, i) => {
+    if (!offer.createdAt) return;
+    extra.push({
+      refumeTeam: true,
+      offer,
+      id: `offer-${i}`,
+      at: offer.createdAt,
+      isLast: i === offers.length - 1,
+      isCounter: i > 0 && offers[i - 1].status === 'countered',
+    });
+    if ((offer.status === 'accepted' || offer.status === 'rejected') && offer.decidedAt) {
+      extra.push({ refumeTeam: true, offerDecision: offer, id: `offer-${i}-d`, at: offer.decidedAt });
+    }
+  });
+  return mergeByDate(items.filter(i => !isOfferChatMessage(i)), extra, hideOld);
+};
+const mergeByDate = (items, team, hideOld) => {
+  if (!team.length) return items;
   const first = items.length ? itemDate(items[0]) : 0;
-  const shownTeam = hideOld ? team.filter(t => new Date(t.at).getTime() >= first) : team;
+  const shownTeam = hideOld ? team.filter(t => t.isLast || new Date(t.at).getTime() >= first) : team;
   return [...items, ...shownTeam].sort(
     (a, b) => (a.refumeTeam ? new Date(a.at).getTime() : itemDate(a)) - (b.refumeTeam ? new Date(b.at).getTime() : itemDate(b))
   );
@@ -264,6 +296,7 @@ export const ActivityFeed = props => {
     allowFiles,
     onDownloadFile,
     fileDownloads,
+    onOffersChanged,
   } = props;
   const classes = classNames(rootClassName || css.root, className);
   const processName = stateData.processName;
@@ -453,6 +486,28 @@ export const ActivityFeed = props => {
     </li>
   );
 
+  // Refume: price offer card with Akceptuj / Kontroferta / Odrzuć
+  const offerRole = currentUser?.id && transaction?.id && transaction?.customer?.id ? getUserTxRole(currentUser.id, transaction) : null;
+  const offerOther = offerRole === TX_TRANSITION_ACTOR_PROVIDER ? transaction?.customer : transaction?.provider;
+  const offerListItem = item => (
+    <li key={item.id} className={css.messageItem}>
+      <OfferMessage
+        offer={item.offer}
+        isLast={item.isLast}
+        active={transaction?.attributes?.lastTransition === 'transition/inquire'}
+        isCounter={item.isCounter}
+        role={offerRole}
+        listingPrice={transaction?.listing?.attributes?.price}
+        transactionId={transaction?.id}
+        otherName={offerOther?.attributes?.profile?.displayName}
+        formattedDate={formatDateWithProximity(new Date(item.at), intl, todayString, {
+          firstDayOfWeek: config.localization.firstDayOfWeek,
+        })}
+        onChanged={onOffersChanged}
+      />
+    </li>
+  );
+
   return (
     <ul className={classes}>
       {hasOlderMessages ? (
@@ -463,8 +518,20 @@ export const ActivityFeed = props => {
         </li>
       ) : null}
       <ChatFlagReporter txId={transaction?.id?.uuid} riskyKey={riskyKey} />
-      {withTeamMessages(items, transaction?.attributes?.metadata?.refumeSpor, hideOldTransitions).map(item => {
-        if (item.refumeTeam) {
+      {withTeamMessages(
+        withOffers(items, transaction?.attributes?.metadata, hideOldTransitions),
+        transaction?.attributes?.metadata?.refumeSpor,
+        hideOldTransitions
+      ).map(item => {
+        if (item.offer) {
+          return offerListItem(item);
+        } else if (item.offerDecision) {
+          return (
+            <li key={item.id} className={css.transitionItem}>
+              <OfferDecision offer={item.offerDecision} />
+            </li>
+          );
+        } else if (item.refumeTeam) {
           return teamListItem(item);
         } else if (isMessage(item)) {
           return messageListItem(item);

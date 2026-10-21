@@ -130,6 +130,7 @@ const RefumeChatLayout = props => {
     transactionFieldsComponent,
     fileAttachments,
     refumeOffersPanel,
+    refumeOfferChip,
     orderBreakdown,
     showBreakDown,
     orderPanel,
@@ -199,7 +200,10 @@ const RefumeChatLayout = props => {
               <div className={css.productMeta}>
                 <strong>{formatPrice(listing?.attributes?.price)}</strong>
                 {bundleCount ? <span className={css.bundle}>Zestaw · {bundleCount + 1} rzeczy</span> : null}
-                {statusLabel ? (
+                {refumeOfferChip ? (
+                  <span className={classNames(css.chip, css[`tone_${refumeOfferChip.tone}`])}>{refumeOfferChip.label}</span>
+                ) : null}
+                {statusLabel && !refumeOfferChip ? (
                   <span className={classNames(css.chip, css[`tone_${status.tone}`])}>{statusLabel}</span>
                 ) : null}
               </div>
@@ -214,7 +218,6 @@ const RefumeChatLayout = props => {
             {offer}
             {transactionFieldsComponent}
             {fileAttachments}
-            {refumeOffersPanel ? <div className={css.offers}>{refumeOffersPanel}</div> : null}
             {fetchMessagesError ? (
               <p className={css.error}>
                 <FormattedMessage id="TransactionPanel.messageLoadingFailed" />
@@ -224,6 +227,7 @@ const RefumeChatLayout = props => {
           </div>
 
           <div className={css.composer}>
+            {refumeOffersPanel ? <div className={css.offers}>{refumeOffersPanel}</div> : null}
             {sendMessageForm || (
               <p className={css.notAllowed}>
                 <FormattedMessage id="TransactionPanel.sendingMessageNotAllowed" />
@@ -252,7 +256,11 @@ const RefumeChatLayout = props => {
           </p>
         ) : null}
 
-        {showOrderPanel ? <section className={css.card}>{orderPanel}</section> : null}
+        {showOrderPanel ? (
+          <section className={css.card} id="refume-buy" style={{ scrollMarginTop: 90 }}>
+            {orderPanel}
+          </section>
+        ) : null}
 
         {!isInquiryProcess && showBreakDown && orderBreakdown ? (
           <section className={css.card}>

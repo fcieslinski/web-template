@@ -473,11 +473,16 @@
 }
 
 .offers {
-  margin: 0 0 16px 0;
+  margin: 0 0 8px 0;
 
   @media (--viewportMedium) {
-    margin: 0 0 16px 0;
+    margin: 0 0 8px 0;
   }
+}
+
+.tone_offer {
+  background-color: #ede9fe;
+  color: #5b21b6;
 }
 
 /* Messages from Zespół Refume (disputes) */

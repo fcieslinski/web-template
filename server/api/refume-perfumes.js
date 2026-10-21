@@ -10,7 +10,8 @@
 const { getSdk, handleError } = require('../api-util/sdk');
 const { searchCatalog, normalizeCatalogText } = require('../api-util/refumePerfumeCatalog');
 
-const ENOUGH_RESULTS = 3;
+// Fragella is asked unless the local catalog alone has this many good matches
+const ENOUGH_RESULTS = 5;
 
 const fs = require('fs');
 const path = require('path');
@@ -187,9 +188,68 @@ const dedupe = list => {
   });
 };
 
+// How well a result fits what was typed. Every word must appear (the last one may be
+// unfinished, e.g. "dior hom"); 0 = doesn't fit.
+const relevance = (perfume, query) => {
+  const words = normalizeCatalogText(query).split(' ').filter(Boolean);
+  if (!words.length) return 0;
+  const name = normalizeCatalogText(perfume.name);
+  const key = ` ${normalizeCatalogText(`${perfume.brand} ${perfume.name}`)} `;
+  const tokens = key.trim().split(' ');
+  const last = words[words.length - 1];
+  const fits =
+    words.slice(0, -1).every(w => tokens.includes(w) || key.includes(` ${w}`)) &&
+    tokens.some(t => t.startsWith(last));
+  if (!fits) return 0;
+  let score = 1;
+  const plain = normalizeCatalogText(query);
+  if (name === plain || key.trim() === plain) score += 4;
+  if (key.includes(` ${plain} `) || key.includes(` ${plain}`)) score += 2;
+  // Fewer extra words = closer to what was typed ("Dior Homme" before "Dior Homme Sport")
+  score -= Math.min(2, Math.max(0, tokens.length - words.length) * 0.25);
+  return score;
+};
+
+const rankByQuery = (list, query) =>
+  list
+    .map((p, i) => ({ p, i, r: relevance(p, query) }))
+    .filter(x => x.r > 0)
+    .sort((a, b) => b.r - a.r || a.i - b.i)
+    .map(x => x.p);
+
+// A picture for results without one (e.g. listings): the same perfume among Fragella
+// results. Compared without brand words, so "Dior" + "Dior Homme Intense" matches
+// "Christian Dior" + "Homme Intense".
+const imageKey = p => {
+  const brandWords = normalizeCatalogText(p.brand).split(' ').filter(Boolean);
+  const rest = normalizeCatalogText(p.name)
+    .split(' ')
+    .filter(w => w && !brandWords.includes(w) && !['for', 'men', 'women', 'unisex'].includes(w));
+  return `${brandWords[brandWords.length - 1] || ''}|${rest.join(' ')}`;
+};
+const withImages = (list, pool) => {
+  const byKey = new Map();
+  const remember = p => {
+    const k = imageKey(p);
+    if (p.image && !byKey.has(k)) byKey.set(k, p.image);
+  };
+  pool.forEach(remember);
+  let cacheScanned = false;
+  return list.map(p => {
+    if (p.image) return p;
+    const k = imageKey(p);
+    if (!byKey.has(k) && !cacheScanned) {
+      cacheScanned = true;
+      for (const { data } of cache.values()) (data || []).forEach(remember);
+    }
+    return byKey.has(k) ? { ...p, image: byKey.get(k) } : p;
+  });
+};
+
 /**
- * Order: local catalog → perfumes from Refume listings → Fragella (only when the first two
- * give fewer than ENOUGH_RESULTS), so popular perfumes never use the Fragella quota.
+ * Local catalog first; Fragella is asked unless the catalog alone gives ENOUGH_RESULTS good
+ * matches (results are cached, so repeated searches don't use the quota). Perfumes from
+ * Refume listings are added only when they really match the typed words.
  */
 const searchPerfumes = (req, res) => {
   const query = String(req.query?.q || '').trim().slice(0, 80);
@@ -201,18 +261,23 @@ const searchPerfumes = (req, res) => {
       const sdk = getSdk(req, res);
       await sdk.currentUser.show(); // 401 for anonymous users
 
-      const local = searchCatalog(query, 8);
-      const fromListings = await searchListings(sdk, query).catch(() => []);
-      let results = dedupe([...local, ...fromListings]);
+      const local = rankByQuery(searchCatalog(query, 8), query);
+      const fromListings = rankByQuery(await searchListings(sdk, query).catch(() => []), query);
 
-      if (results.length < ENOUGH_RESULTS && process.env.FRAGELLA_API_KEY) {
-        const remote = await searchFragella(query).catch(e => {
+      let remote = [];
+      if (local.length < ENOUGH_RESULTS && process.env.FRAGELLA_API_KEY) {
+        const found = await searchFragella(query).catch(e => {
           console.error('[refume-perfumes] Fragella failed:', e.message);
           return [];
         });
-        results = dedupe([...results, ...remote.map(r => ({ ...r, source: 'fragella' }))]);
+        const tagged = found.map(r => ({ ...r, source: 'fragella' }));
+        const fitting = rankByQuery(tagged, query);
+        // Nothing fits the words exactly (e.g. a typo): show what Fragella suggests
+        remote = fitting.length ? fitting : tagged;
       }
-      res.status(200).json({ data: results.slice(0, 8) });
+
+      const results = dedupe([...local, ...remote, ...fromListings]);
+      res.status(200).json({ data: withImages(results, remote).slice(0, 8) });
     })
     .catch(e => handleError(res, e));
 };

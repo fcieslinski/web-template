@@ -3,17 +3,17 @@ import { createPortal } from 'react-dom';
 
 import css from './PhotoCropper.module.css';
 
-// Output: 3:4, the shape of the listing tiles
+// Output: 3:4.5 (2:3), the shape of the listing tiles (config.layout.listingImage)
 const OUT_W = 1200;
-const OUT_H = 1600;
+const OUT_H = 1800;
 const MAX_ZOOM = 4;
 
 const clamp = (v, min, max) => Math.min(max, Math.max(min, v));
 
 /**
- * Refume: quick framing of a listing photo in the 3:4 tile shape before it's uploaded.
+ * Refume: quick framing of a listing photo in the 3:4.5 tile shape before it's uploaded.
  * Drag to move, wheel / slider / two fingers to zoom. "Całe zdjęcie" fits the whole photo
- * (white around it). The result is a 1200×1600 JPEG.
+ * (white around it). The result is a 1200×1800 JPEG.
  *
  * @param {Array<File>} props.files photos waiting to be framed (one at a time)
  * @param {Function} props.onDone (croppedFile, originalFile) => void

@@ -44,8 +44,8 @@
 .frame {
   position: relative;
   width: 100%;
-  max-width: 300px;
-  aspect-ratio: 2 / 3;
+  max-width: 340px;
+  aspect-ratio: 4 / 5;
   margin: 0 auto;
   overflow: hidden;
   border-radius: 10px;

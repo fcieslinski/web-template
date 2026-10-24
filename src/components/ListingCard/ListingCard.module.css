@@ -30,7 +30,7 @@
   border-radius: var(--borderRadiusMedium);
   width: 100%;
   height: 100%;
-  /* Refume: photos are framed 3:4.5 (2:3) by the seller when uploading (photo cropper) */
+  /* Refume: photos are framed 4:5 by the seller when uploading (photo cropper) */
   object-fit: cover;
 }
 

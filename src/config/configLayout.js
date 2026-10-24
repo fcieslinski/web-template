@@ -26,8 +26,8 @@ export const listingImage = {
   // Aspect ratio for listing image variants (width/height)
   // Note: This will be converted to separate aspectWidth and aspectHeight values
   // to make calculations easier.
-  // Refume: perfume photos are portrait; 3:4.5 (= 2:3) shows the whole bottle on the cards
-  aspectRatio: '2/3',
+  // Refume: perfume photos are portrait; 4:5 shows the whole bottle on the cards
+  aspectRatio: '4/5',
   // Listings have custom image variants, which are named here.
   variantPrefix: 'listing-card',
 };

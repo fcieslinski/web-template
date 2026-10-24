@@ -328,8 +328,9 @@ const mergeLayouts = (layoutConfig, defaultLayout) => {
     { variantType: 'carousel' }
   );
 
+  // Refume: card photos are always portrait 3:4 (local config), whatever Console's layout says
   const listingImage = validVariantConfig(
-    layoutConfig?.listingImage,
+    null,
     defaultLayout?.listingImage,
     ['cropImage'],
     { variantType: 'cropImage', aspectWidth: 1, aspectHeight: 1, variantPrefix: 'listing-card' }

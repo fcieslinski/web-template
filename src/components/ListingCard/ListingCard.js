@@ -207,9 +207,10 @@ export const ListingCard = props => {
           <div className={css.price} title={priceTooltip}>
             {priceMessage}
             {publicData?.unitType === 'item' ? (
-              <CardPriceWithBuyerFee price={price} intl={intl} />
+              <span className={css.priceFee}>
+                <CardPriceWithBuyerFee price={price} intl={intl} />
+              </span>
             ) : null}
-            {pricePerMl ? <span className={css.pricePerMl}>{pricePerMl}</span> : null}
           </div>
         ) : null}
         <div className={css.mainInfo}>
@@ -218,8 +219,10 @@ export const ListingCard = props => {
               {titleFormatted}
             </div>
           )}
-          {brand ? (
-            <div className={classNames(css.brand, { [css.lightText]: darkMode })}>{brand}</div>
+          {brand || pricePerMl ? (
+            <div className={classNames(css.brand, { [css.lightText]: darkMode })}>
+              {[brand, pricePerMl].filter(Boolean).join(' · ')}
+            </div>
           ) : null}
           <VerifiedProofBadge
             metadata={listing?.attributes?.metadata}

@@ -28,8 +28,9 @@ const MobileListingImage = props => {
     <>
       {showListingImage && isVisible ? (
         <AspectRatioWrapper
-          width={aspectWidth}
-          height={aspectHeight}
+          // Refume: card photos are portrait (3:4); a square frame keeps checkout compact
+          width={Math.max(aspectWidth, aspectHeight)}
+          height={Math.max(aspectWidth, aspectHeight)}
           className={css.listingImageMobile}
         >
           <ResponsiveImage

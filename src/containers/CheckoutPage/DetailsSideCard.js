@@ -62,8 +62,9 @@ const DetailsSideCard = props => {
     <div className={css.detailsContainerDesktop} role="complementary">
       {showListingImage && (
         <AspectRatioWrapper
-          width={aspectWidth}
-          height={aspectHeight}
+          // Refume: card photos are portrait (3:4); a square frame keeps checkout compact
+          width={Math.max(aspectWidth, aspectHeight)}
+          height={Math.max(aspectWidth, aspectHeight)}
           className={css.detailsAspectWrapper}
         >
           <ResponsiveImage

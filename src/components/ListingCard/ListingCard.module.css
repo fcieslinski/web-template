@@ -52,14 +52,26 @@
   composes: textSmall from global;
   /* Layout */
   flex-shrink: 0;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
   color: var(--colorGrey700);
+  /* Refume: price on the left, price with Buyer Protection on the right */
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 8px;
+}
+
+.priceFee {
+  margin-left: auto;
+  white-space: nowrap;
 }
 
 .priceValue {
   /* Font */
-  font-weight: var(--fontWeightSemiBold);
-  color: var(--marketplaceColor);
+  font-size: 17px;
+  line-height: 22px;
+  font-weight: 800;
+  color: #1c1917;
 
   /* Remove default margins from font */
   margin-top: 0;
@@ -96,8 +108,12 @@
   /* Font */
   composes: textSmall from global;
   font-weight: var(--fontWeightBold);
-  color: var(--colorGrey700);
+  color: #1c1917;
   margin: 0;
+  /* Refume: one line, the photo carries the card */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* ⚠️ the calculated height of this selector is hardcoded in SectionListings.js calculateCarouselHeight() as authorInfoHeight & authorInfoHeighMobile */
@@ -197,9 +213,12 @@
 
 /* Refume: perfume brand under the listing title */
 .brand {
-  font-size: 13px;
-  line-height: 18px;
+  font-size: 12px;
+  line-height: 17px;
   color: var(--colorGrey700);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .brand.lightText {
@@ -256,7 +275,7 @@
   }
 
   & .info {
-    padding: 12px 12px 14px 12px;
+    padding: 10px 12px 12px 12px;
   }
 
   & .sellerAbove {

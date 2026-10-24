@@ -42,6 +42,7 @@ import NotesFields from '../EditListingWizard/EditListingDetailsPanel/NotesField
 import ListingImage from '../EditListingWizard/EditListingPhotosPanel/ListingImage';
 import ProofOfPurchase from '../EditListingWizard/EditListingPhotosPanel/ProofOfPurchase';
 
+import PhotoCropper from '../../../components/RefumePhotoCropper/PhotoCropper';
 import css from './RefumeListingEditor.module.css';
 
 const { Money } = sdkTypes;
@@ -289,6 +290,8 @@ const RefumeListingEditor = props => {
     return () => clearTimeout(timer);
   }, [listing?.id?.uuid]);
   const [imageError, setImageError] = useState(null);
+  // Refume: photos wait here to be framed (3:4) before they're uploaded
+  const [cropQueue, setCropQueue] = useState([]);
   // Steps: 0 photos, 1 what you sell, 2 details, 3 notes, 4 price & shipping
   // Sections appear one after another as the seller fills in the previous ones
   const revealedRef = useRef(0);
@@ -357,9 +360,16 @@ const RefumeListingEditor = props => {
 
   const uploadingImages = images.some(img => !img.imageId && !img.attributes);
 
+  const uploadImage = file =>
+    onImageUpload({ id: `${file.name}_${Date.now()}`, file }, listingImageConfig).catch(() =>
+      setImageError('Nie udało się wysłać zdjęcia. Spróbuj ponownie.')
+    );
+
+  // Each new photo is framed first (PhotoCropper), then uploaded
   const addImages = files => {
     setImageError(null);
-    const room = MAX_IMAGES - images.length;
+    const room = MAX_IMAGES - images.length - cropQueue.length;
+    const accepted = [];
     Array.from(files || [])
       .slice(0, Math.max(room, 0))
       .forEach(file => {
@@ -367,10 +377,9 @@ const RefumeListingEditor = props => {
           setImageError('Zdjęcie jest za duże (maks. 20 MB).');
           return;
         }
-        onImageUpload({ id: `${file.name}_${Date.now()}`, file }, listingImageConfig).catch(() =>
-          setImageError('Nie udało się wysłać zdjęcia. Spróbuj ponownie.')
-        );
+        accepted.push(file);
       });
+    if (accepted.length) setCropQueue(q => [...q, ...accepted]);
   };
 
   const goToListing = (id, title) =>
@@ -633,6 +642,16 @@ const RefumeListingEditor = props => {
                 ) : null}
               </div>
               {imageError ? <p className={css.error}>{imageError}</p> : null}
+              {cropQueue.length ? (
+                <PhotoCropper
+                  files={cropQueue}
+                  onDone={(cropped, original) => {
+                    setCropQueue(q => q.filter(f => f !== original));
+                    uploadImage(cropped);
+                  }}
+                  onDiscard={original => setCropQueue(q => q.filter(f => f !== original))}
+                />
+              ) : null}
             </Step>
 
             <Step

@@ -438,15 +438,16 @@
   }
 
   @media (--viewportMedium) {
-    gap: 16px;
-  }
-
-  @media (--viewportLarge) {
+    gap: 14px;
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
-  @media (min-width: 1280px) {
+  @media (--viewportLarge) {
     grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  @media (min-width: 1280px) {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
   }
 }
 

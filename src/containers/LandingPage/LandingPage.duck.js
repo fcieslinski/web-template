@@ -9,8 +9,8 @@ import { addMarketplaceEntities } from '../../ducks/marketplaceData.duck';
 export const ASSET_NAME = 'landing-page';
 
 // Refume: how many of the newest listings the catalog grid on the landing page shows
-// Refume: 5 tiles per row on wide screens, 3 on tablets
-const LATEST_LISTINGS_COUNT = 15;
+// Refume: 6 tiles per row on wide screens (3 rows), 3 on small tablets
+const LATEST_LISTINGS_COUNT = 18;
 
 // ================ Async Thunks ================ //
 

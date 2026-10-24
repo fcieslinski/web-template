@@ -14,7 +14,7 @@
 .aspectRatioWrapper {
   overflow: hidden;
   transition: var(--transitionStyleButton);
-  background: #f4f1ee; /* Loading BG color and frame around photos of other shapes */
+  background: #f4f1ee; /* Loading BG color */
   border-radius: var(--borderRadiusMedium);
 
   @media (--viewportMedium) {
@@ -30,24 +30,10 @@
   border-radius: var(--borderRadiusMedium);
   width: 100%;
   height: 100%;
-  /* Refume: the whole photo is always visible (scaled into the 3:4 frame, never cropped);
-     the frame's soft background fills the rest, so every tile has the same shape */
-  object-fit: contain;
-  position: relative;
-  z-index: 0;
+  /* Refume: photos are framed 3:4 by the seller when uploading (photo cropper) */
+  object-fit: cover;
 }
 
-/* Refume: blurred, enlarged copy of the photo behind it (fills the 3:4 frame) */
-.photoBackdrop {
-  position: absolute;
-  inset: -12%;
-  width: 124%;
-  height: 124%;
-  object-fit: cover;
-  filter: blur(22px) saturate(1.15);
-  opacity: 0.55;
-  pointer-events: none;
-}
 
 .title.lightText {
   color: var(--colorWhite);
@@ -86,8 +72,8 @@
 
 .priceValue {
   /* Font */
-  font-size: 17px;
-  line-height: 22px;
+  font-size: 16px;
+  line-height: 21px;
   font-weight: 800;
   color: #1c1917;
 

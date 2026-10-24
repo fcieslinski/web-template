@@ -14,14 +14,7 @@ if (isServer()) {
 const { createInstance, types, transit, util, file } = exportSdk;
 
 // create image variant from variant name, desired width and aspectRatio
-// Refume: listing card photos are scaled to fit the 3:4 frame, never cropped (the whole
-// bottle stays visible, whatever shape the seller's photo has)
-const createImageVariantConfig = (
-  name,
-  width,
-  aspectRatio,
-  fit = name.startsWith('listing-card') ? 'scale' : 'crop'
-) => {
+const createImageVariantConfig = (name, width, aspectRatio, fit = 'crop') => {
   let variantWidth = width;
   let variantHeight = Math.round(aspectRatio * width);
 

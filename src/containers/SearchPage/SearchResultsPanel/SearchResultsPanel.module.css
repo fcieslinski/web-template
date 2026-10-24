@@ -75,19 +75,19 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
 
   @media (--viewportMedium) {
-    gap: 28px 16px;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  @media (--viewportLarge) {
+    gap: 24px 14px;
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
-  @media (min-width: 1440px) {
+  @media (--viewportLarge) {
     grid-template-columns: repeat(5, minmax(0, 1fr));
   }
 
-  @media (--viewportXLarge) {
+  @media (min-width: 1440px) {
     grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+
+  @media (--viewportXLarge) {
+    grid-template-columns: repeat(7, minmax(0, 1fr));
   }
 }

@@ -65,9 +65,7 @@ const ListingCardImage = props => {
     : [];
 
   const aspectRatioClass = aspectRatioClassName || css.aspectRatioWrapper;
-  // Refume: a blurred copy of the photo fills the frame around it, so photos of any shape
-  // (landscape, square, with a box) look tidy without being cropped
-  const backdropUrl = firstImage?.attributes?.variants?.[variantPrefix]?.url || null;
+
   const ImageComponent = lazyLoadImage ? LazyImage : ResponsiveImage;
 
   return (
@@ -77,9 +75,6 @@ const ListingCardImage = props => {
       height={aspectHeight}
       {...setActivePropsMaybe}
     >
-      {backdropUrl ? (
-        <img className={css.photoBackdrop} src={backdropUrl} alt="" aria-hidden="true" loading="lazy" />
-      ) : null}
       <ImageComponent
         rootClassName={css.rootForImage}
         alt={title}

@@ -33,13 +33,13 @@
   min-width: 0;
   padding: 16px 12px;
   border: 1px solid #e7e3de;
-  border-radius: 20px;
+  border-radius: 12px;
   background-color: var(--colorWhite);
 
   @media (--viewportMedium) {
     gap: 20px;
     padding: 28px;
-    border-radius: 24px;
+    border-radius: 12px;
   }
 }
 
@@ -115,13 +115,13 @@
   gap: 18px;
   padding: 22px 20px;
   border: 1px solid #e7e3de;
-  border-radius: 20px;
+  border-radius: 12px;
   background-color: var(--colorWhite);
 
   @media (--viewportMedium) {
     gap: 26px;
     padding: 36px 40px;
-    border-radius: 24px;
+    border-radius: 12px;
   }
 }
 
@@ -203,7 +203,7 @@
     gap: 8px;
     padding: 16px;
     border: 1px solid #ece8e3;
-    border-radius: 16px;
+    border-radius: 10px;
     background-color: #faf8f6;
   }
 }
@@ -255,7 +255,7 @@
   width: 100%;
   min-height: 50px;
   padding: 0 28px;
-  border-radius: 14px;
+  border-radius: 8px;
   background-color: var(--marketplaceColor);
   color: var(--colorWhite);
   font-size: 16px;
@@ -278,13 +278,13 @@
   flex-direction: column;
   gap: 14px;
   padding: 20px;
-  border-radius: 20px;
+  border-radius: 12px;
   background-color: #2a1726;
   color: var(--colorWhite);
 
   @media (--viewportMedium) {
     padding: 32px;
-    border-radius: 24px;
+    border-radius: 12px;
   }
 }
 
@@ -340,7 +340,7 @@
   gap: 12px;
   padding: 12px 14px;
   border: 1px solid #4a2c42;
-  border-radius: 14px;
+  border-radius: 8px;
   font-size: 14px;
   line-height: 20px;
 
@@ -492,7 +492,7 @@
   gap: 2px;
   padding: 12px 14px;
   border: 1px solid #ece8e3;
-  border-radius: 14px;
+  border-radius: 8px;
   background-color: #faf8f6;
   color: #1c1917;
 
@@ -529,12 +529,12 @@
   gap: 14px;
   padding: 18px;
   border: 1px dashed #c9b3c2;
-  border-radius: 20px;
+  border-radius: 12px;
   background-color: #fbf7fa;
 
   @media (--viewportMedium) {
     padding: 28px;
-    border-radius: 24px;
+    border-radius: 12px;
   }
 }
 
@@ -582,7 +582,7 @@
   min-height: 46px;
   padding: 0 22px;
   border: 1px solid var(--marketplaceColor);
-  border-radius: 12px;
+  border-radius: 8px;
   background-color: var(--colorWhite);
   color: var(--marketplaceColor);
   font-size: 15px;
@@ -604,11 +604,11 @@
 .recentlyViewed {
   padding: 16px 12px;
   border: 1px solid #e7e3de;
-  border-radius: 20px;
+  border-radius: 12px;
   background-color: var(--colorWhite);
 
   @media (--viewportMedium) {
     padding: 24px 28px;
-    border-radius: 24px;
+    border-radius: 12px;
   }
 }

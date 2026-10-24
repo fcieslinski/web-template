@@ -149,10 +149,10 @@
   margin: 0;
   padding: 0;
   font-family: var(--fontFamilyDisplay, var(--fontFamily));
-  font-weight: 400;
-  font-size: 38px;
+  font-weight: var(--fontWeightDisplay, 700);
+  font-size: 40px;
   line-height: 1.05;
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
 
   @media (--viewportMedium) {
     margin: 0;
@@ -509,7 +509,8 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   font-family: var(--fontFamilyDisplay, var(--fontFamily));
-  font-size: 20px;
+  font-weight: var(--fontWeightDisplay, 700);
+  font-size: 21px;
   line-height: 1.15;
 
   @media (--viewportMedium) {

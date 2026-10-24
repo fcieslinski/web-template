@@ -6,6 +6,8 @@ import { ResponsiveImage } from '../../components/';
 
 import css from './Logo.module.css';
 
+const REFUME_WORDMARK = true;
+
 const HEIGHT_24 = 24;
 const HEIGHT_36 = 36;
 const HEIGHT_48 = 48;
@@ -45,6 +47,25 @@ export const LogoComponent = props => {
     logoSettings,
     ...rest
   } = props;
+
+  // Refume: the logo is a typeset wordmark ("Re" + "Fume" in the brand colour), drawn with
+  // the web font, so it's sharp at any size and needs no image upload in Console
+  if (REFUME_WORDMARK) {
+    return (
+      <div className={className || css.root} {...rest}>
+        <span
+          className={classNames(css.wordmark, { [css.wordmarkMobile]: layout === 'mobile' }, logoImageClassName)}
+          role="img"
+          aria-label={marketplaceName || 'Refume'}
+        >
+          <span aria-hidden="true">Re</span>
+          <span aria-hidden="true" className={css.wordmarkAccent}>
+            Fume
+          </span>
+        </span>
+      </div>
+    );
+  }
 
   const hasValidLogoSettings = isValidLogoSettings(logoSettings);
   const logoClasses = className || css.root;

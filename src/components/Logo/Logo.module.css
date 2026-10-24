@@ -36,3 +36,25 @@
 .logo48 {
   max-height: 48px;
 }
+
+/* Refume: typeset wordmark */
+.wordmark {
+  display: inline-flex;
+  align-items: baseline;
+  font-family: 'Fraunces', Georgia, serif;
+  font-weight: 800;
+  font-variation-settings: 'SOFT' 100, 'WONK' 0, 'opsz' 72;
+  font-size: 30px;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: #1c1917;
+  white-space: nowrap;
+}
+
+.wordmarkMobile {
+  font-size: 26px;
+}
+
+.wordmarkAccent {
+  color: var(--marketplaceColor);
+}

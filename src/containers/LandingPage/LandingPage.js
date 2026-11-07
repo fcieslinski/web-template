@@ -27,7 +27,14 @@ const withoutHeroSections = data =>
     : data;
 
 export const LandingPageComponent = props => {
-  const { pageAssetsData, inProgress, error, latestListings, latestListingsInProgress } = props;
+  const {
+    pageAssetsData,
+    inProgress,
+    error,
+    latestListings,
+    latestListingsInProgress,
+    totalListings,
+  } = props;
 
   return (
     <PageBuilder
@@ -37,7 +44,11 @@ export const LandingPageComponent = props => {
       fallbackPage={<FallbackPage error={error} />}
       featuredListings={getFeaturedListingsProps(camelize(ASSET_NAME), props)}
       mainContentBefore={
-        <CatalogHome listings={latestListings} inProgress={latestListingsInProgress} />
+        <CatalogHome
+          listings={latestListings}
+          inProgress={latestListingsInProgress}
+          totalListings={totalListings}
+        />
       }
     />
   );
@@ -56,7 +67,8 @@ const mapStateToProps = state => {
   const getListingEntitiesById = listingIds => getListingsById(state, listingIds);
 
   // Refume: newest listings for the catalog grid
-  const { latestListingIds = [], latestListingsInProgress } = state.LandingPage || {};
+  const { latestListingIds = [], latestListingsInProgress, totalListings } =
+    state.LandingPage || {};
   const latestListings = getListingsById(state, latestListingIds);
 
   return {
@@ -67,6 +79,7 @@ const mapStateToProps = state => {
     error,
     latestListings,
     latestListingsInProgress,
+    totalListings,
   };
 };
 

@@ -95,267 +95,150 @@
   }
 }
 
-/* ================ Sell + trust ================ */
+/* ================ Banner ================ */
 
-.heroRow {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 16px;
-
-  @media (--viewportLarge) {
-    grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
-    gap: 24px;
-  }
+.banner {
+  width: 100%;
+  background-color: #faf6f9;
+  border-bottom: 1px solid #efe4ec;
 }
 
-.sellCard {
+.bannerInner {
   display: flex;
-  flex-direction: column;
+  align-items: center;
   justify-content: space-between;
-  gap: 18px;
-  padding: 22px 20px;
-  border: 1px solid #e7e3de;
-  border-radius: 12px;
-  background-color: var(--colorWhite);
+  gap: 24px;
+  width: 100%;
+  max-width: 1344px;
+  margin: 0 auto;
+  padding: 22px 16px;
+  box-sizing: border-box;
 
   @media (--viewportMedium) {
-    gap: 26px;
-    padding: 36px 40px;
-    border-radius: 12px;
+    padding: 28px 24px 0 24px;
+    min-height: 230px;
+    align-items: flex-end;
   }
 }
 
-.sellIntro {
+.bannerText {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
+  min-width: 0;
+
+  @media (--viewportMedium) {
+    align-self: center;
+    padding-bottom: 28px;
+  }
 }
 
-.badge {
-  align-self: flex-start;
-  padding: 3px 11px;
-  border-radius: 999px;
-  background-color: color-mix(in srgb, var(--marketplaceColor) 10%, white);
+.bannerTitle {
+  margin: 0;
+  padding: 0;
+  font-family: var(--fontFamily);
+  font-size: 26px;
+  line-height: 1.12;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+
+  @media (--viewportMedium) {
+    font-size: 34px;
+  }
+}
+
+.bannerAccent {
+  display: block;
   color: var(--marketplaceColor);
-  font-size: 12px;
-  font-weight: var(--fontWeightBold);
-
-  @media (--viewportMedium) {
-    font-size: 13px;
-  }
 }
 
-.sellTitle {
-  margin: 0;
-  padding: 0;
-  font-family: var(--fontFamilyDisplay, var(--fontFamily));
-  font-weight: var(--fontWeightDisplay, 700);
-  font-size: 40px;
-  line-height: 1.05;
-  letter-spacing: 0;
-
-  @media (--viewportMedium) {
-    margin: 0;
-    padding: 0;
-    font-size: 54px;
-    line-height: 1.05;
-  }
-}
-
-.sellLead {
-  margin: 0;
-  max-width: 520px;
-  font-size: 15px;
-  line-height: 22px;
-  color: #57534e;
-
-  @media (--viewportMedium) {
-    font-size: 17px;
-    line-height: 26px;
-  }
-}
-
-.sellSteps {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 8px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-
-  @media (--viewportMedium) {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 12px;
-  }
-}
-
-.sellStep {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  align-items: center;
-  column-gap: 10px;
-  row-gap: 4px;
-
-  @media (--viewportMedium) {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-    padding: 16px;
-    border: 1px solid #ece8e3;
-    border-radius: 10px;
-    background-color: #faf8f6;
-  }
-}
-
-.sellStepNumber {
+.bannerFacts {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 26px;
-  height: 26px;
-  flex-shrink: 0;
-  border-radius: 50%;
-  background-color: var(--marketplaceColor);
-  color: var(--colorWhite);
-  font-size: 13px;
-  font-weight: var(--fontWeightBold);
-}
-
-.sellStepTitle {
+  flex-wrap: wrap;
+  gap: 4px 20px;
+  margin: 0;
+  padding: 0;
   font-size: 14px;
-  font-weight: var(--fontWeightBold);
+  line-height: 20px;
+  color: #44403c;
 
-  @media (--viewportMedium) {
-    font-size: 15px;
+  & strong {
+    color: #1c1917;
   }
 }
 
-.sellStepText {
-  display: none;
-
-  @media (--viewportMedium) {
-    display: block;
-    font-size: 13px;
-    line-height: 19px;
-    color: #57534e;
-  }
-}
-
-.sellActions {
+.bannerActions {
   display: flex;
-  align-items: center;
-  gap: 16px;
+  flex-wrap: wrap;
+  gap: 8px;
+
+  & > * {
+    flex: 1 1 auto;
+
+    @media (--viewportMedium) {
+      flex: 0 0 auto;
+    }
+  }
 }
 
-.sellButton {
+.sellButton,
+.bannerSecondary {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 100%;
-  min-height: 50px;
-  padding: 0 28px;
+  min-height: 44px;
+  padding: 0 14px;
   border-radius: 8px;
+  font-size: 14.5px;
+  white-space: nowrap;
+
+  @media (--viewportMedium) {
+    padding: 0 20px;
+    font-size: 15px;
+  }
+  font-weight: var(--fontWeightBold);
+
+  &:hover {
+    text-decoration: none;
+  }
+}
+
+.sellButton {
   background-color: var(--marketplaceColor);
   color: var(--colorWhite);
-  font-size: 16px;
-  font-weight: var(--fontWeightBold);
 
   &:hover {
     background-color: var(--marketplaceColorDark);
     color: var(--colorWhite);
-    text-decoration: none;
-  }
-
-  @media (--viewportMedium) {
-    width: auto;
-    min-height: 52px;
   }
 }
 
-.trustCard {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  padding: 20px;
-  border-radius: 12px;
-  background-color: #2a1726;
-  color: var(--colorWhite);
+.bannerSecondary {
+  border: 1.5px solid var(--marketplaceColor);
+  color: var(--marketplaceColor);
+  background-color: transparent;
 
-  @media (--viewportMedium) {
-    padding: 32px;
-    border-radius: 12px;
+  &:hover {
+    background-color: #f1e4ee;
+    color: var(--marketplaceColor);
   }
 }
 
-.trustHead {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: #e9c9de;
-}
-
-.trustTitle {
-  margin: 0;
-  padding: 0;
-  font-family: var(--fontFamily);
-  font-size: 19px;
-  line-height: 26px;
-  font-weight: var(--fontWeightBold);
-  color: var(--colorWhite);
-
-  @media (--viewportMedium) {
-    font-size: 22px;
-  }
-}
-
-.trustLead {
-  margin: 0;
-  font-size: 14px;
-  line-height: 21px;
-  color: #e7dbe3;
-
-  @media (--viewportMedium) {
-    font-size: 15px;
-    line-height: 23px;
-  }
-}
-
-.trustList {
+/* The flasks only on wider screens; phones get the text and buttons */
+.bannerArt {
   display: none;
-  flex-direction: column;
-  gap: 10px;
-  margin: 4px 0 0 0;
-  padding: 0;
-  list-style: none;
+  flex-shrink: 0;
 
   @media (--viewportMedium) {
-    display: flex;
-  }
-}
-
-.trustItem {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  padding: 12px 14px;
-  border: 1px solid #4a2c42;
-  border-radius: 8px;
-  font-size: 14px;
-  line-height: 20px;
-
-  & svg {
-    flex-shrink: 0;
-    color: #e9c9de;
-  }
-
-  & strong {
     display: block;
+    width: 320px;
+    height: auto;
   }
-}
 
-.trustText {
-  color: #d6c3d0;
+  @media (--viewportLarge) {
+    width: 420px;
+  }
 }
 
 /* ================ Quick filters ================ */

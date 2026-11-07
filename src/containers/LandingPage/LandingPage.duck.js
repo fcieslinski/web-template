@@ -62,7 +62,10 @@ export const fetchLatestListings = createAsyncThunk(
         'limit.images': 1,
       });
       dispatch(addMarketplaceEntities(response));
-      return response.data.data.map(listing => listing.id);
+      return {
+        ids: response.data.data.map(listing => listing.id),
+        total: response.data.meta?.totalItems ?? null,
+      };
     } catch (error) {
       // Private marketplaces return 403 to anonymous users; that is expected.
       log.error(
@@ -84,6 +87,7 @@ const landingPageSlice = createSlice({
   name: 'LandingPage',
   initialState: {
     latestListingIds: [],
+    totalListings: null,
     latestListingsInProgress: false,
     latestListingsError: null,
   },
@@ -96,7 +100,8 @@ const landingPageSlice = createSlice({
       })
       .addCase(fetchLatestListings.fulfilled, (state, action) => {
         state.latestListingsInProgress = false;
-        state.latestListingIds = action.payload;
+        state.latestListingIds = action.payload.ids;
+        state.totalListings = action.payload.total;
       })
       .addCase(fetchLatestListings.rejected, (state, action) => {
         state.latestListingsInProgress = false;

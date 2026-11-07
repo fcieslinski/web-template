@@ -19,40 +19,6 @@ const QUICK_FILTERS = [
   { key: 'pudelko', label: 'Z pudełkiem', search: '?pub_pudelko=tak' },
 ];
 
-const SELL_STEPS = [
-  { title: 'Wybierz markę i stan', text: 'Nuty i opis uzupełnią się same.' },
-  { title: 'Zrób zdjęcie pod światło', text: 'Żeby było widać poziom płynu.' },
-  { title: 'Wyślij paczkomatem', text: 'Pieniądze po odbiorze przez kupującego.' },
-];
-
-const TRUST = [
-  {
-    key: 'proof',
-    title: 'Zweryfikowane dowodem zakupu',
-    text: 'Sprawdzamy paragony i faktury.',
-    icon: <path d="M5 12l5 5 9-10" />,
-  },
-  {
-    key: 'ship',
-    title: 'Paczkomaty i kurierzy',
-    text: 'InPost, Orlen Paczka, DPD, Pocztex.',
-    icon: (
-      <>
-        <path d="M3 7h13v10H3z" />
-        <path d="M16 10h4l1 3v4h-5" />
-        <circle cx="7" cy="18" r="1.6" />
-        <circle cx="18" cy="18" r="1.6" />
-      </>
-    ),
-  },
-  {
-    key: 'help',
-    title: 'Pomoc przy sporze',
-    text: 'Zespół Refume rozstrzyga problemy.',
-    icon: <path d="M4 5h16v11H8l-4 4z" />,
-  },
-];
-
 const QuickFilterLink = ({ filter }) =>
   filter.listingType ? (
     <NamedLink
@@ -172,10 +138,83 @@ const WantedTeaser = () => {
   );
 };
 
+const offersLabel = n =>
+  n === 1
+    ? 'oferta'
+    : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20)
+    ? 'oferty'
+    : 'ofert';
+
+// One flask for the banner drawing (viewBox units)
+const Flask = ({ x, y, w, h, body, cap, liquid, shape }) => {
+  const capW = w * 0.42;
+  const capH = h * 0.2;
+  const neckW = w * 0.2;
+  const neckH = h * 0.1;
+  const top = y + capH + neckH;
+  const bodyH = h - capH - neckH;
+  const r = Math.min(w, h) * 0.16;
+  return (
+    <g>
+      <rect x={x + (w - neckW) / 2} y={y + capH} width={neckW} height={neckH + 2} fill="#a8a29e" />
+      <rect x={x + (w - capW) / 2} y={y} width={capW} height={capH} rx={capW * 0.12} fill={cap} />
+      {shape === 'round' ? (
+        <ellipse cx={x + w / 2} cy={top + bodyH / 2} rx={w / 2} ry={bodyH / 2} fill={body} />
+      ) : shape === 'tall' ? (
+        <rect x={x + w * 0.12} y={top} width={w * 0.76} height={bodyH} rx={r * 0.6} fill={body} />
+      ) : (
+        <rect x={x} y={top} width={w} height={bodyH} rx={r} fill={body} />
+      )}
+      <rect x={x + w * 0.14} y={top + bodyH * 0.38} width={w * 0.72} height={bodyH * 0.5} rx={r * 0.6} fill={liquid} opacity="0.55" />
+      <rect x={x + w * 0.16} y={top + bodyH * 0.14} width={w * 0.08} height={bodyH * 0.55} rx={w * 0.04} fill="#fff" opacity="0.45" />
+    </g>
+  );
+};
+
+/** Refume: light band at the top of the home page — tagline, real numbers, two actions. */
+const HomeBanner = ({ totalListings }) => (
+  <section className={css.banner} aria-labelledby="refume-banner-title">
+    <div className={css.bannerInner}>
+      <div className={css.bannerText}>
+        <h1 id="refume-banner-title" className={css.bannerTitle}>
+          Perfumy z drugiej ręki.
+          <span className={css.bannerAccent}> Sprawdzone, tańsze, od ludzi.</span>
+        </h1>
+        <p className={css.bannerFacts}>
+          {totalListings > 0 ? (
+            <span>
+              <strong>{totalListings}</strong> {offersLabel(totalListings)}
+            </span>
+          ) : null}
+          <span>Ochrona Kupującego przy każdym zakupie</span>
+        </p>
+        <div className={css.bannerActions}>
+          <NamedLink name="NewListingPage" className={css.sellButton}>
+            Sprzedaj swoje perfumy
+          </NamedLink>
+          <NamedLink
+            name="SearchPageWithListingType"
+            params={{ listingType: 'sell-used-products' }}
+            className={css.bannerSecondary}
+          >
+            Zobacz odlewki
+          </NamedLink>
+        </div>
+      </div>
+      <svg className={css.bannerArt} viewBox="0 0 420 200" aria-hidden="true">
+        <Flask x={30} y={20} w={80} h={170} body="#efe1ea" cap="#6b2d5c" liquid="#8e4a7c" />
+        <Flask x={130} y={60} w={66} h={130} body="#f3e7d6" cap="#c8a96a" liquid="#d9b779" shape="round" />
+        <Flask x={216} y={4} w={58} h={186} body="#e6dff0" cap="#1c1917" liquid="#9d86c4" shape="tall" />
+        <Flask x={294} y={50} w={84} h={140} body="#dfe7ee" cap="#1c1917" liquid="#8fa9bf" />
+        <rect x="0" y="190" width="420" height="8" rx="2" fill="#e3d2de" />
+      </svg>
+    </div>
+  </section>
+);
+
 /**
- * Refume: catalog-style top of the landing page — category bar, a "sell" card next to a
- * "Ochrona Kupującego" card, quick filters, newest listings, popular brands, "Poszukiwane"
- * and recently viewed, each in its own bordered card.
+ * Refume: catalog-style top of the landing page — category bar, a light banner, quick
+ * filters, newest listings, popular brands, "Poszukiwane" and recently viewed.
  * Content from the Console landing page asset is rendered below this.
  *
  * @param {Object} props
@@ -183,7 +222,7 @@ const WantedTeaser = () => {
  * @param {boolean} props.inProgress whether the newest listings are loading
  */
 const CatalogHome = props => {
-  const { listings = [], inProgress } = props;
+  const { listings = [], inProgress, totalListings } = props;
   const renderSizes = [
     '(max-width: 549px) 50vw',
     '(max-width: 1023px) 33vw',
@@ -194,64 +233,9 @@ const CatalogHome = props => {
   return (
     <div className={css.root}>
       <RefumeCategoryBar />
+      <HomeBanner totalListings={totalListings} />
 
       <div className={css.content}>
-        <div className={css.heroRow}>
-          <section className={css.sellCard} aria-labelledby="refume-sell-title">
-            <div className={css.sellIntro}>
-              <span className={css.badge}>Sprzedaj w 2 minuty</span>
-              <h1 id="refume-sell-title" className={css.sellTitle}>
-                Masz flakon, który tylko stoi?
-              </h1>
-              <p className={css.sellLead}>Wystaw go na Refume. Ktoś właśnie szuka tego zapachu.</p>
-            </div>
-            <ol className={css.sellSteps}>
-              {SELL_STEPS.map((step, i) => (
-                <li key={step.title} className={css.sellStep}>
-                  <span className={css.sellStepNumber} aria-hidden="true">
-                    {i + 1}
-                  </span>
-                  <span className={css.sellStepTitle}>{step.title}</span>
-                  <span className={css.sellStepText}>{step.text}</span>
-                </li>
-              ))}
-            </ol>
-            <div className={css.sellActions}>
-              <NamedLink name="NewListingPage" className={css.sellButton}>
-                Sprzedaj teraz
-              </NamedLink>
-            </div>
-          </section>
-
-          <section className={css.trustCard} aria-labelledby="refume-trust-title">
-            <div className={css.trustHead}>
-              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-                <path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6z" />
-                <path d="M8.5 12l2.5 2.5 4.5-5" />
-              </svg>
-              <h2 id="refume-trust-title" className={css.trustTitle}>
-                Ochrona Kupującego
-              </h2>
-            </div>
-            <p className={css.trustLead}>
-              Płacisz przez Refume – sprzedawca dostaje pieniądze dopiero, gdy potwierdzisz odbiór.
-            </p>
-            <ul className={css.trustList}>
-              {TRUST.map(t => (
-                <li key={t.key} className={css.trustItem}>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-                    {t.icon}
-                  </svg>
-                  <span>
-                    <strong>{t.title}</strong>
-                    <span className={css.trustText}>{t.text}</span>
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </section>
-        </div>
-
         <div className={css.filtersRow}>
           <span className={css.filtersLabel}>Szybkie filtry:</span>
           <ul className={css.pills} aria-label="Szybkie filtry">

@@ -906,3 +906,11 @@
     color: var(--colorGrey900, #1f1f1f);
   }
 }
+
+.aiSource {
+  margin: 8px 0 0 0;
+  padding: 0;
+  font-size: 12px;
+  line-height: 16px;
+  color: #8a837e;
+}

@@ -1,7 +1,11 @@
 /**
  * Refume: short AI description of a perfume ("O tym zapachu"), 3–4 varied sentences in
- * Polish, using only the data given (no facts from the model's own knowledge). Based on the listing (brand, name, notes, accords) and Fragella community
- * data (year, perfumer, rating, longevity, sillage, popularity, seasons, occasions).
+ * Polish, using only the data given (no facts from the model's own knowledge). Based on the listing (brand, name, notes, accords) and — only when the seller picked the perfume from
+ * the Fragella catalog — its community data (year, perfumer, rating, longevity, sillage, seasons).
+ *
+ * Every text is checked against the data (server/api-util/refumeAiCheck.js): notes, names,
+ * years or "who it's for" that aren't in the data mean it's written again; after a second
+ * failed try the listing shows no description.
  *
  * GET /api/opis-ai?listingId=…
  *
@@ -18,6 +22,7 @@ const { getSdk } = require('../api-util/sdk');
 const { isIntegrationApiConfigured, updateListing } = require('../api-util/refumeIntegrationApi');
 const { aiInputOf, aiInputKey, hasEnoughForAi } = require('../api-util/refumeAiInput');
 const { findFragellaPerfume } = require('./refume-perfumes');
+const { findUnsupported } = require('../api-util/refumeAiCheck');
 
 const META_KEY = 'refumeOpisAI';
 const DEFAULT_MODELS = ['gemini-3.5-flash-lite', 'gemini-flash-latest'];
@@ -114,6 +119,9 @@ const SYSTEM_PROMPT = [
   '  pasują do opisu. Jeśli ich nie ma, po prostu o nich nie pisz.',
   '- O odbiorze użytkowników pisz tylko na podstawie oceny, trwałości, projekcji lub',
   '  popularności z danych. Bez tych danych pomiń ten wątek.',
+  '- Wymieniaj tylko nuty i akordy z danych. Żadnych innych składników, nawet „pasujących”.',
+  '- Dla kogo (damski, męski, unisex) pisz tylko, jeśli dane zawierają pole „Dla”, i dokładnie',
+  '  zgodnie z nim.',
   '- „Kultowy” lub „ikoniczny” tylko przy popularności „High” lub „Very high” w danych.',
   '- Nie podawaj ceny, nie porównuj z innymi perfumami, nie wspominaj o ofercie, sprzedającym,',
   '  stanie flakonu ani o źródłach danych.',
@@ -171,7 +179,7 @@ const callGemini = async (model, prompt) => {
       body: JSON.stringify({
         systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
         contents: [{ role: 'user', parts: [{ text: prompt }] }],
-        generationConfig: { temperature: 0.9, maxOutputTokens: 2048 },
+        generationConfig: { temperature: 0.4, maxOutputTokens: 2048 },
       }),
     }
   );
@@ -190,7 +198,7 @@ const callGemini = async (model, prompt) => {
 };
 
 let recentCalls = [];
-const generate = async prompt => {
+const generate = async (prompt, check) => {
   const now = Date.now();
   recentCalls = recentCalls.filter(t => now - t < 60 * 1000);
   if (recentCalls.length >= MAX_PER_MINUTE) {
@@ -201,9 +209,22 @@ const generate = async prompt => {
   let lastError = null;
   for (const model of models) {
     try {
-      const text = await callGemini(model, prompt);
-      if (text.length >= 80) return { text, model };
-      lastError = new Error('Too short answer.');
+      let text = await callGemini(model, prompt);
+      let problems = text.length >= 80 ? check(text) : ['too short'];
+      if (problems.length) {
+        // One more try, telling the model what it made up
+        const retry = `${prompt}\n\nPoprzednia wersja zawierała informacje spoza danych (${problems.join(
+          ', '
+        )}). Napisz opis od nowa, używając wyłącznie danych.`;
+        text = await callGemini(model, retry);
+        problems = text.length >= 80 ? check(text) : ['too short'];
+      }
+      if (!problems.length) return { text, model };
+      console.warn(`[refume-ai] description rejected (${problems.join(', ')})`);
+      lastError = Object.assign(new Error('Description not supported by the data.'), {
+        status: 422,
+      });
+      break;
     } catch (e) {
       lastError = e;
       // Unknown model → try the next one; other errors stop here
@@ -250,13 +271,19 @@ const getAiDescription = (req, res) => {
           return res.status(200).json({ data: null, reason: 'no-key' });
         }
         if (!running.has(key)) {
-          const job = findFragellaPerfume({
-            fragellaId: publicData.fragellaId,
-            query: title,
-            title,
-          })
-            .catch(() => null)
-            .then(perfume => generate(buildPrompt(title, input, perfume)))
+          // Fragella data only for the exact perfume the seller picked from the catalog; a guess
+          // by name could bring facts of a different perfume
+          const job = (publicData.fragellaId
+            ? findFragellaPerfume({ fragellaId: publicData.fragellaId, query: title, title })
+                .catch(() => null)
+                .then(p => (p && p.id === publicData.fragellaId ? p : null))
+            : Promise.resolve(null)
+          )
+            .then(perfume =>
+              generate(buildPrompt(title, input, perfume), text =>
+                findUnsupported(text, { title, input, perfume })
+              )
+            )
             .then(({ text, model }) => {
               const value = { tekst: text, klucz: key, model, utworzono: new Date().toISOString() };
               writeCache(key, value);
@@ -284,6 +311,9 @@ const getAiDescription = (req, res) => {
       console.error(`[refume-ai] ${listingId}: ${e.status || ''} ${e.message}`);
       if (e.status === 404) {
         return res.status(200).json({ data: null, reason: 'not-found' });
+      }
+      if (e.status === 422) {
+        return res.status(200).json({ data: null, reason: 'unverified' });
       }
       // Never break the listing page because of the description
       res.status(200).json({ data: null, reason: 'error' });

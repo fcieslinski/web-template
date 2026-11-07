@@ -110,6 +110,9 @@ const AiPerfumeSummary = props => {
               {expanded ? 'Zwiń' : 'Czytaj więcej'}
             </button>
           ) : null}
+          <p className={css.aiSource}>
+            Opis wygenerowany automatycznie na podstawie nut i danych zapachu z ogłoszenia.
+          </p>
         </div>
       ) : (
         <div className={css.aiSkeleton} aria-label="Przygotowujemy opis zapachu…">

@@ -171,49 +171,66 @@ const Flask = ({ x, y, w, h, body, cap, liquid, shape }) => {
   );
 };
 
-/** Refume: light band at the top of the home page — tagline, real numbers, two actions. */
+const TRUST_POINTS = [
+  'Pieniądze czekają, aż potwierdzisz odbiór paczki',
+  'Coś nie tak z przesyłką? Zgłaszasz problem w zamówieniu',
+  'Każda paczka z numerem śledzenia',
+];
+
+/**
+ * Refume: top of the home page — a plum banner (what Refume is + two actions) next to a
+ * short "Ochrona Kupującego" card.
+ */
 const HomeBanner = ({ totalListings }) => (
-  <section className={css.banner} aria-labelledby="refume-banner-title">
-    <div className={css.bannerInner}>
+  <div className={css.bannerRow}>
+    <section className={css.banner} aria-labelledby="refume-banner-title">
+      <svg className={css.bannerArt} viewBox="40 -20 320 290" preserveAspectRatio="xMaxYMax meet" aria-hidden="true">
+        <circle cx="190" cy="125" r="140" fill="#5e2550" />
+        <Flask x={92} y={104} w={70} h={116} body="#dfc7d7" cap="#d7a3c9" liquid="#b36d9f" shape="round" />
+        <Flask x={172} y={48} w={86} h={172} body="#f1e4ee" cap="#d7a3c9" liquid="#b36d9f" />
+        <Flask x={274} y={86} w={66} h={134} body="#e9d3e2" cap="#ffffff" liquid="#8e4a7c" shape="tall" />
+      </svg>
       <div className={css.bannerText}>
+        <span className={css.bannerEyebrow}>
+          Marketplace perfum
+          {totalListings > 0 ? ` · ${totalListings} ${offersLabel(totalListings)}` : ''}
+        </span>
         <h1 id="refume-banner-title" className={css.bannerTitle}>
-          Perfumy z drugiej ręki.
-          <span className={css.bannerAccent}> Sprawdzone, tańsze, od ludzi.</span>
+          Kupuj i sprzedawaj perfumy, odlewki i flakony
         </h1>
-        <p className={css.bannerFacts}>
-          {totalListings > 0 ? (
-            <span>
-              <strong>{totalListings}</strong> {offersLabel(totalListings)}
-            </span>
-          ) : null}
-          <span>Ochrona Kupującego przy każdym zakupie</span>
-        </p>
         <div className={css.bannerActions}>
-          <NamedLink name="NewListingPage" className={css.sellButton}>
-            Sprzedaj swoje perfumy
+          <NamedLink name="NewListingPage" className={css.bannerPrimary}>
+            Sprzedaj perfumy
           </NamedLink>
-          <NamedLink
-            name="SearchPageWithListingType"
-            params={{ listingType: 'sell-used-products' }}
-            className={css.bannerSecondary}
-          >
-            Zobacz odlewki
+          <NamedLink name="SearchPage" className={css.bannerSecondary}>
+            Przeglądaj oferty
           </NamedLink>
         </div>
       </div>
-      <svg className={css.bannerArt} viewBox="0 0 420 200" aria-hidden="true">
-        <Flask x={30} y={20} w={80} h={170} body="#efe1ea" cap="#6b2d5c" liquid="#8e4a7c" />
-        <Flask x={130} y={60} w={66} h={130} body="#f3e7d6" cap="#c8a96a" liquid="#d9b779" shape="round" />
-        <Flask x={216} y={4} w={58} h={186} body="#e6dff0" cap="#1c1917" liquid="#9d86c4" shape="tall" />
-        <Flask x={294} y={50} w={84} h={140} body="#dfe7ee" cap="#1c1917" liquid="#8fa9bf" />
-        <rect x="0" y="190" width="420" height="8" rx="2" fill="#e3d2de" />
-      </svg>
-    </div>
-  </section>
+    </section>
+
+    <section className={css.trustCard} aria-labelledby="refume-trust-title">
+      <span className={css.trustEyebrow}>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+          <path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6z" />
+          <path d="M8.5 12l2.5 2.5 4.5-5" />
+        </svg>
+        Ochrona Kupującego
+      </span>
+      <h2 id="refume-trust-title" className={css.trustTitle}>
+        Płacisz bezpiecznie, sprzedający dostaje pieniądze po odbiorze
+      </h2>
+      <ul className={css.trustList}>
+        {TRUST_POINTS.map(t => (
+          <li key={t}>{t}</li>
+        ))}
+      </ul>
+    </section>
+  </div>
 );
 
 /**
- * Refume: catalog-style top of the landing page — category bar, a light banner, quick
+ * Refume: catalog-style top of the landing page — category bar, banner + protection card, quick
  * filters, newest listings, popular brands, "Poszukiwane" and recently viewed.
  * Content from the Console landing page asset is rendered below this.
  *
@@ -233,9 +250,10 @@ const CatalogHome = props => {
   return (
     <div className={css.root}>
       <RefumeCategoryBar />
-      <HomeBanner totalListings={totalListings} />
 
       <div className={css.content}>
+        <HomeBanner totalListings={totalListings} />
+
         <div className={css.filtersRow}>
           <span className={css.filtersLabel}>Szybkie filtry:</span>
           <ul className={css.pills} aria-label="Szybkie filtry">

@@ -95,48 +95,69 @@
   }
 }
 
-/* ================ Banner ================ */
+/* ================ Banner + protection ================ */
 
-.banner {
-  width: 100%;
-  background-color: #faf6f9;
-  border-bottom: 1px solid #efe4ec;
+.bannerRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+
+  @media (--viewportLarge) {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    gap: 16px;
+  }
 }
 
-.bannerInner {
+.banner {
+  position: relative;
+  overflow: hidden;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 24px;
-  width: 100%;
-  max-width: 1344px;
-  margin: 0 auto;
-  padding: 32px 16px;
+  min-height: 240px;
+  padding: 28px 22px;
+  border-radius: 10px;
+  background-color: #4e1a3e;
+  color: #ffffff;
   box-sizing: border-box;
 
   @media (--viewportMedium) {
-    padding: 40px 24px 0 24px;
-    min-height: 300px;
-    align-items: flex-end;
+    min-height: 280px;
+    padding: 36px 36px;
   }
+}
 
-  @media (--viewportLarge) {
-    min-height: 330px;
+/* Flasks on the right; on phones they sit faintly behind the text */
+.bannerArt {
+  position: absolute;
+  right: -30px;
+  bottom: 0;
+  height: 75%;
+  width: auto;
+  opacity: 0.3;
+
+  @media (--viewportMedium) {
+    right: 12px;
+    height: 100%;
+    opacity: 1;
   }
 }
 
 .bannerText {
+  position: relative;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
+  max-width: 470px;
   min-width: 0;
+}
 
-  gap: 16px;
-
-  @media (--viewportMedium) {
-    align-self: center;
-    padding-bottom: 40px;
-  }
+.bannerEyebrow {
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #d7a3c9;
 }
 
 .bannerTitle {
@@ -144,37 +165,14 @@
   padding: 0;
   font-family: var(--fontFamily);
   font-size: 28px;
-  line-height: 1.12;
+  line-height: 1.15;
   font-weight: 800;
-  letter-spacing: -0.015em;
+  letter-spacing: -0.01em;
+  color: #ffffff;
   text-wrap: balance;
 
   @media (--viewportMedium) {
-    font-size: 36px;
-  }
-
-  @media (--viewportLarge) {
-    font-size: 42px;
-  }
-}
-
-.bannerAccent {
-  display: block;
-  color: var(--marketplaceColor);
-}
-
-.bannerFacts {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 20px;
-  margin: 0;
-  padding: 0;
-  font-size: 14px;
-  line-height: 20px;
-  color: #44403c;
-
-  & strong {
-    color: #1c1917;
+    font-size: 34px;
   }
 }
 
@@ -182,6 +180,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+  margin-top: 4px;
 
   & > * {
     flex: 1 1 auto;
@@ -192,7 +191,7 @@
   }
 }
 
-.sellButton,
+.bannerPrimary,
 .bannerSecondary {
   display: inline-flex;
   align-items: center;
@@ -201,53 +200,99 @@
   padding: 0 14px;
   border-radius: 8px;
   font-size: 14.5px;
+  font-weight: var(--fontWeightBold);
   white-space: nowrap;
 
   @media (--viewportMedium) {
-    padding: 0 20px;
+    padding: 0 18px;
     font-size: 15px;
   }
-  font-weight: var(--fontWeightBold);
 
   &:hover {
     text-decoration: none;
   }
 }
 
-.sellButton {
-  background-color: var(--marketplaceColor);
-  color: var(--colorWhite);
+.bannerPrimary {
+  background-color: #ffffff;
+  color: #4e1a3e;
 
   &:hover {
-    background-color: var(--marketplaceColorDark);
-    color: var(--colorWhite);
+    background-color: #f1e4ee;
+    color: #4e1a3e;
   }
 }
 
 .bannerSecondary {
-  border: 1.5px solid var(--marketplaceColor);
-  color: var(--marketplaceColor);
-  background-color: transparent;
+  border: 1.5px solid rgba(255, 255, 255, 0.6);
+  color: #ffffff;
 
   &:hover {
-    background-color: #f1e4ee;
-    color: var(--marketplaceColor);
+    border-color: #ffffff;
+    color: #ffffff;
   }
 }
 
-/* The flasks only on wider screens; phones get the text and buttons */
-.bannerArt {
-  display: none;
-  flex-shrink: 0;
+.trustCard {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 24px 22px;
+  border-radius: 10px;
+  background-color: #e7f1ea;
+  color: #1c1917;
+  box-sizing: border-box;
+}
 
-  @media (--viewportMedium) {
-    display: block;
-    width: 360px;
-    height: auto;
+.trustEyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #2f7a4f;
+}
+
+.trustTitle {
+  margin: 0;
+  padding: 0;
+  font-family: var(--fontFamily);
+  font-size: 21px;
+  line-height: 1.25;
+  font-weight: 800;
+  letter-spacing: 0;
+  color: #1c1917;
+}
+
+.trustList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: auto 0 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 14px;
+  line-height: 20px;
+  color: #3f4a43;
+
+  & li {
+    position: relative;
+    padding-left: 22px;
   }
 
-  @media (--viewportLarge) {
-    width: 520px;
+  & li::before {
+    content: '';
+    position: absolute;
+    left: 2px;
+    top: 5px;
+    width: 10px;
+    height: 6px;
+    border-left: 2px solid #2f7a4f;
+    border-bottom: 2px solid #2f7a4f;
+    transform: rotate(-45deg);
   }
 }
 

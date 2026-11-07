@@ -4,7 +4,7 @@
 
 .root {
   width: 100%;
-  background-color: #f6f4f1;
+  background-color: #ffffff;
   color: #1c1917;
 }
 
@@ -25,6 +25,26 @@
 }
 
 /* ================ Shared cards ================ */
+
+/* Newest listings sit straight on the white page */
+.latest {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+
+  @media (--viewportMedium) {
+    gap: 18px;
+  }
+}
+
+.sectionCount {
+  margin-left: 10px;
+  font-size: 14px;
+  font-weight: var(--fontWeightMedium);
+  color: #78716c;
+  letter-spacing: 0;
+}
 
 .card {
   display: flex;
@@ -99,8 +119,8 @@
 
 .hero {
   width: 100%;
-  background-color: #f7f5f2;
-  border-bottom: 1px solid #e7e5e4;
+  background-color: #f3efe9;
+  border-bottom: 1px solid #e6e0d8;
 }
 
 .heroInner {
@@ -124,6 +144,12 @@
   gap: 8px;
   width: 100%;
   max-width: 980px;
+  margin: 0;
+
+  /* Desktop: the search is in the top bar */
+  @media (--viewportLarge) {
+    display: none;
+  }
 }
 
 .heroField {

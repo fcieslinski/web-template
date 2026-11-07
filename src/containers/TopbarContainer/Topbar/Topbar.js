@@ -163,8 +163,7 @@ const TopbarComponent = props => {
 
     const topbarSearchParams = () => {
       if (isMainSearchTypeKeywords(config)) {
-        // Refume: the desktop search has a category select. When it was submitted,
-        // set the top-level category (empty = all) and clear any subcategory.
+        // Refume: keep the category the user is browsing (empty = all), clear any subcategory.
         const categoryMaybe =
           values && 'refumeCategory' in values
             ? {
@@ -279,7 +278,7 @@ const TopbarComponent = props => {
 
   const topbarSearcInitialValues = () => {
     if (isMainSearchTypeKeywords(config)) {
-      // Refume: preselect the category in the desktop search select
+      // Refume: searching from a category page stays in that category
       return { keywords, refumeCategory: pub_categoryLevel1 || '' };
     }
 
@@ -311,10 +310,8 @@ const TopbarComponent = props => {
   const showSearchNotOnLandingPage =
     searchFormDisplay === SEARCH_DISPLAY_NOT_LANDING_PAGE && resolvedCurrentPage !== 'LandingPage';
 
-  // Refume: the home page has its own big search box
   const showSearchForm =
-    (showSearchOnAllPages || showSearchOnSearchPage || showSearchNotOnLandingPage) &&
-    resolvedCurrentPage !== 'LandingPage';
+    showSearchOnAllPages || showSearchOnSearchPage || showSearchNotOnLandingPage;
 
   const mobileSearchButtonMaybe = showSearchForm ? (
     <Button

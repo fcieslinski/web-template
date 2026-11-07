@@ -12,67 +12,57 @@ import css from './TopbarSearchForm.module.css';
 
 const identity = v => v;
 
-// Refume: top-level categories for the select in the desktop search field.
-// Values match pub_categoryLevel1 ids set up in Sharetribe Console.
-const REFUME_SEARCH_CATEGORIES = [
-  { value: '', label: 'Wszystko' },
-  { value: 'damskie', label: 'Damskie' },
-  { value: 'meskie', label: 'Męskie' },
-  { value: 'unisex', label: 'Unisex' },
-];
-
-const RefumeCategorySelect = () => (
-  <Field
-    name="refumeCategory"
-    render={({ input }) => (
-      <>
-        <label htmlFor="refume-search-category" className={css.visuallyHidden}>
-          Kategoria
-        </label>
-        <select {...input} id="refume-search-category" className={css.categorySelect}>
-          {REFUME_SEARCH_CATEGORIES.map(c => (
-            <option key={c.value || 'all'} value={c.value}>
-              {c.label}
-            </option>
-          ))}
-        </select>
-      </>
-    )}
-  />
-);
+const SEARCH_PLACEHOLDER = 'Czego szukasz? np. Sauvage, wanilia';
 
 const KeywordSearchField = props => {
   const { keywordSearchWrapperClasses, iconClass, intl, isMobile = false, inputRef } = props;
+  const input = (
+    <Field
+      name="keywords"
+      render={({ input }) => (
+        <input
+          className={isMobile ? css.mobileInput : css.refumeSearchInput}
+          {...input}
+          id={isMobile ? 'keyword-search-mobile' : 'keyword-search'}
+          data-testid={isMobile ? 'keyword-search-mobile' : 'keyword-search'}
+          ref={inputRef}
+          type="text"
+          placeholder={SEARCH_PLACEHOLDER}
+          aria-label="Czego szukasz?"
+          autoComplete="off"
+        />
+      )}
+    />
+  );
+
+  if (isMobile) {
+    return (
+      <div className={keywordSearchWrapperClasses}>
+        <button
+          className={css.searchSubmit}
+          aria-label={intl.formatMessage({ id: 'TopbarDesktop.screenreader.search' })}
+        >
+          <div className={iconClass}>
+            <IconSearchDesktop />
+          </div>
+        </button>
+        {input}
+      </div>
+    );
+  }
+
+  // Refume: desktop — bordered field with a "Szukaj" button, same height as "Sprzedaj"
   return (
-    <div className={keywordSearchWrapperClasses}>
-      {isMobile ? null : <RefumeCategorySelect />}
-      <button
-        className={css.searchSubmit}
-        aria-label={intl.formatMessage({ id: 'TopbarDesktop.screenreader.search' })}
-      >
-        <div className={iconClass}>
+    <div className={css.refumeSearchRow}>
+      <label className={css.refumeSearchBox} htmlFor="keyword-search">
+        <span className={css.refumeSearchIcon} aria-hidden="true">
           <IconSearchDesktop />
-        </div>
+        </span>
+        {input}
+      </label>
+      <button type="submit" className={css.refumeSearchButton}>
+        Szukaj
       </button>
-      <Field
-        name="keywords"
-        render={({ input, meta }) => {
-          return (
-            <input
-              className={isMobile ? css.mobileInput : css.desktopInput}
-              {...input}
-              id={isMobile ? 'keyword-search-mobile' : 'keyword-search'}
-              data-testid={isMobile ? 'keyword-search-mobile' : 'keyword-search'}
-              ref={inputRef}
-              type="text"
-              placeholder={intl.formatMessage({
-                id: 'TopbarSearchForm.placeholder',
-              })}
-              autoComplete="off"
-            />
-          );
-        }}
-      />
     </div>
   );
 };
@@ -162,9 +152,7 @@ const TopbarSearchForm = props => {
 
   const onKeywordSubmit = values => {
     if (isMainSearchTypeKeywords(appConfig)) {
-      // Refume: pass the category from the desktop select along with keywords
-      const categoryMaybe = props.isMobile ? {} : { refumeCategory: values.refumeCategory || '' };
-      onSubmit({ keywords: values.keywords, ...categoryMaybe });
+      onSubmit({ keywords: values.keywords });
       // blur search input to hide software keyboard
       searchInpuRef?.current?.blur();
     }

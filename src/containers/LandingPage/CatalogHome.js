@@ -135,8 +135,9 @@ const TileBottle = ({ color }) => (
 );
 
 /**
- * Refume: top of the home page in the style of classifieds sites — a big search box and
- * category tiles with the number of listings in each.
+ * Refume: top of the home page in the style of classifieds sites — category tiles with the
+ * number of listings in each on a beige band. Phones and tablets also get a search box here
+ * (on desktop it's in the top bar).
  */
 const SearchHero = ({ categoryCounts = {} }) => {
   const history = useHistory();
@@ -213,7 +214,7 @@ const SearchHero = ({ categoryCounts = {} }) => {
  * @param {boolean} props.inProgress whether the newest listings are loading
  */
 const CatalogHome = props => {
-  const { listings = [], inProgress, categoryCounts } = props;
+  const { listings = [], inProgress, categoryCounts, totalListings } = props;
   const renderSizes = [
     '(max-width: 549px) 50vw',
     '(max-width: 1023px) 33vw',
@@ -226,10 +227,15 @@ const CatalogHome = props => {
       <SearchHero categoryCounts={categoryCounts} />
 
       <div className={css.content}>
-        <section className={css.card} aria-labelledby="refume-latest-title">
+        <section className={css.latest} aria-labelledby="refume-latest-title">
           <div className={css.sectionHeader}>
             <h2 id="refume-latest-title" className={css.sectionTitle}>
-              Nowe ogłoszenia
+              Ostatnio dodane
+              {totalListings > 0 ? (
+                <span className={css.sectionCount}>
+                  {totalListings} {pluralOffers(totalListings)}
+                </span>
+              ) : null}
             </h2>
             <NamedLink name="SearchPage" className={css.seeAll}>
               Zobacz wszystkie →

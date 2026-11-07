@@ -43,6 +43,7 @@ import ListingImage from '../EditListingWizard/EditListingPhotosPanel/ListingIma
 import ProofOfPurchase from '../EditListingWizard/EditListingPhotosPanel/ProofOfPurchase';
 
 import PhotoCropper from '../../../components/RefumePhotoCropper/PhotoCropper';
+import { BottleProgress, PublishSpray, SPRAY_MS } from '../../../components/RefumeBottle/RefumeBottle';
 import css from './RefumeListingEditor.module.css';
 
 const { Money } = sdkTypes;
@@ -279,6 +280,7 @@ const RefumeListingEditor = props => {
   const routes = useRouteConfiguration();
   const [submitError, setSubmitError] = useState(null);
   const [proofFile, setProofFile] = useState(null);
+  const [spraying, setSpraying] = useState(false);
 
   // Links like "Dodaj dowód" open the editor at the proof-of-purchase section
   useEffect(() => {
@@ -466,7 +468,9 @@ const RefumeListingEditor = props => {
         await dispatch(uploadProofOfPurchase({ listingId, file: proofFile })).catch(() => null);
       }
       if (!isPublished) {
-        // The page redirects to the new listing once it's published
+        // "Psik" first: the page redirects to the new listing as soon as it's published
+        setSpraying(true);
+        await new Promise(resolve => setTimeout(resolve, SPRAY_MS));
         await onPublishListingDraft(listingId);
         // Let people waiting for this perfume know ("Poszukiwane")
         notifyScentRequests({ listingId }).catch(() => null);
@@ -476,6 +480,7 @@ const RefumeListingEditor = props => {
         goToListing(listingId, data.title);
       }
     } catch (e) {
+      setSpraying(false);
       const apiError = e?.apiErrors?.[0] || e?.error?.apiErrors?.[0];
       const needsPayout = /stripe|payout/i.test(JSON.stringify(apiError || e?.message || ''));
       setSubmitError(
@@ -589,6 +594,22 @@ const RefumeListingEditor = props => {
                   : 'Wypełniaj od góry — kolejne sekcje pojawią się same.'}
               </p>
             </header>
+
+            {!isPublished ? (
+              <BottleProgress
+                className={css.progress}
+                steps={[
+                  { label: 'Zdjęcia', done: images.length > 0 && !uploadingImages },
+                  { label: 'Perfumy', done: basicsOk },
+                  { label: 'Szczegóły', done: basicsOk && detailsReady },
+                  {
+                    label: 'Cena i wysyłka',
+                    done: !!values.price && !errors.price && !shippingError,
+                  },
+                ]}
+              />
+            ) : null}
+            <PublishSpray show={spraying} />
 
             <Step
               id="step-0"

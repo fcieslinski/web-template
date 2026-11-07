@@ -19,8 +19,7 @@
 
   @media (--viewportMedium) {
     &:hover {
-      transform: scale(1.02);
-      box-shadow: var(--boxShadowListingCard);
+      opacity: 0.92;
     }
   }
 }
@@ -226,6 +225,21 @@
 }
 
 .brand.lightText {
+  color: var(--colorWhite);
+}
+
+/* Refume: price per ml · city · when added */
+.meta {
+  margin-top: 1px;
+  font-size: 12px;
+  line-height: 17px;
+  color: #8a837e;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.meta.lightText {
   color: var(--colorWhite);
 }
 

@@ -33,6 +33,7 @@ export const fetchLatestListings = createAsyncThunk(
         stockMode: 'match-undefined',
         include: ['images', 'author'],
         'fields.listing': [
+          'createdAt',
           'title',
           'price',
           'deleted',
@@ -50,7 +51,7 @@ export const fetchLatestListings = createAsyncThunk(
           'publicData.pojemnosc_odlewki',
           'metadata.weryfikacja',
         ],
-        'fields.user': ['profile.displayName', 'profile.abbreviatedName'],
+        'fields.user': ['profile.displayName', 'profile.abbreviatedName', 'profile.publicData'],
         'fields.image': [
           'variants.listing-card',
           'variants.listing-card-2x',

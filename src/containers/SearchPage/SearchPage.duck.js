@@ -434,6 +434,7 @@ export const loadData = (params, search, config) => (dispatch, getState, sdk) =>
       perPage: RESULT_PAGE_SIZE,
       include: ['author', 'images'],
       'fields.listing': [
+        'createdAt',
         'title',
         'geolocation',
         'price',
@@ -456,7 +457,7 @@ export const loadData = (params, search, config) => (dispatch, getState, sdk) =>
         'publicData.pojemnosc_odlewki',
         'metadata.weryfikacja',
       ],
-      'fields.user': ['profile.displayName', 'profile.abbreviatedName'],
+      'fields.user': ['profile.displayName', 'profile.abbreviatedName', 'profile.publicData'],
       'fields.image': [
         'variants.scaled-small',
         'variants.scaled-medium',

@@ -18,7 +18,7 @@ import {
 } from '../../components';
 
 import { getListingCardTranslations } from './ListingCard.helpers';
-import { BottleLevelBadge, formatPricePerMl } from './ListingCard.refume';
+import { formatAddedAgo, formatPricePerMl, getStanInfo } from './ListingCard.refume';
 import VerifiedProofBadge from '../VerifiedProofBadge/VerifiedProofBadge';
 import FavoriteButton from '../FavoriteButton/FavoriteButton';
 import { CardPriceWithBuyerFee } from '../RefumePrice/PriceWithBuyerFee';
@@ -82,7 +82,6 @@ const ListingCardImage = props => {
         variants={variants}
         sizes={renderSizes}
       />
-      <BottleLevelBadge publicData={listing?.attributes?.publicData} id={listing?.id?.uuid} />
     </AspectRatioWrapper>
   );
 };
@@ -142,6 +141,15 @@ export const ListingCard = props => {
   // Refume: catalog-style cards show the seller above the photo and the brand under the title
   const sellerName = listing?.author?.attributes?.profile?.displayName || '';
   const brand = showBrand ? publicData?.marka : null;
+  // Refume: like classifieds sites — condition next to the brand, then city and when it was added
+  const stanLabel = getStanInfo(publicData)?.label || null;
+  const sellerCity = listing?.author?.attributes?.profile?.publicData?.refumeMiasto;
+  const addedAgo = formatAddedAgo(listing?.attributes?.createdAt);
+  const metaLine = [
+    pricePerMl,
+    typeof sellerCity === 'string' && sellerCity.trim() ? sellerCity.trim() : null,
+    addedAgo,
+  ].filter(Boolean);
   const showAuthorAbove = authorAbove && showAuthorInfo && sellerName;
 
   const { listingType, cardStyle } = publicData || {};
@@ -220,9 +228,14 @@ export const ListingCard = props => {
               {titleFormatted}
             </div>
           )}
-          {brand || pricePerMl ? (
+          {brand || stanLabel ? (
             <div className={classNames(css.brand, { [css.lightText]: darkMode })}>
-              {[brand, pricePerMl].filter(Boolean).join(' · ')}
+              {[brand, stanLabel].filter(Boolean).join(' · ')}
+            </div>
+          ) : null}
+          {metaLine.length ? (
+            <div className={classNames(css.meta, { [css.lightText]: darkMode })}>
+              {metaLine.join(' · ')}
             </div>
           ) : null}
           <VerifiedProofBadge

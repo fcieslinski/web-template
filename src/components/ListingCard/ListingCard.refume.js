@@ -128,3 +128,23 @@ export const BottleLevelBadge = props => {
     </div>
   );
 };
+
+/**
+ * How long ago a listing was added, e.g. "15 min temu", "3 godz. temu", "wczoraj",
+ * "4 dni temu", or a date for older ones. Null without a date.
+ */
+export const formatAddedAgo = (date, now = Date.now()) => {
+  const t = date instanceof Date ? date.getTime() : new Date(date || NaN).getTime();
+  if (!Number.isFinite(t)) {
+    return null;
+  }
+  const min = Math.max(0, Math.round((now - t) / 60000));
+  if (min < 1) return 'przed chwilą';
+  if (min < 60) return `${min} min temu`;
+  const h = Math.floor(min / 60);
+  if (h < 24) return `${h} godz. temu`;
+  const d = Math.floor(h / 24);
+  if (d === 1) return 'wczoraj';
+  if (d < 30) return `${d} dni temu`;
+  return new Date(t).toLocaleDateString('pl-PL', { day: 'numeric', month: 'short' });
+};

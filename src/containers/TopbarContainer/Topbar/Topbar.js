@@ -311,8 +311,10 @@ const TopbarComponent = props => {
   const showSearchNotOnLandingPage =
     searchFormDisplay === SEARCH_DISPLAY_NOT_LANDING_PAGE && resolvedCurrentPage !== 'LandingPage';
 
+  // Refume: the home page has its own big search box
   const showSearchForm =
-    showSearchOnAllPages || showSearchOnSearchPage || showSearchNotOnLandingPage;
+    (showSearchOnAllPages || showSearchOnSearchPage || showSearchNotOnLandingPage) &&
+    resolvedCurrentPage !== 'LandingPage';
 
   const mobileSearchButtonMaybe = showSearchForm ? (
     <Button

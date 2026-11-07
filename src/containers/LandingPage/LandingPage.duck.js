@@ -83,11 +83,46 @@ export const fetchLatestListings = createAsyncThunk(
 
 // ================ Slice ================ //
 
+// Refume: category tiles on the home page, with the number of listings in each
+export const HOME_CATEGORIES = [
+  { key: 'damskie', label: 'Damskie', query: { pub_categoryLevel1: 'damskie' }, to: { search: '?pub_categoryLevel1=damskie' } },
+  { key: 'meskie', label: 'Męskie', query: { pub_categoryLevel1: 'meskie' }, to: { search: '?pub_categoryLevel1=meskie' } },
+  { key: 'unisex', label: 'Unisex', query: { pub_categoryLevel1: 'unisex' }, to: { search: '?pub_categoryLevel1=unisex' } },
+  { key: 'odlewki', label: 'Odlewki', query: { pub_listingType: 'sell-used-products' }, listingType: 'sell-used-products' },
+  { key: 'flakony', label: 'Flakony', query: { pub_listingType: 'sell-new-products' }, listingType: 'sell-new-products' },
+  { key: 'folia', label: 'Nowe w folii', query: { pub_stan: 'nowe-folia' }, to: { search: '?pub_stan=nowe-folia' } },
+  { key: 'do100', label: 'Do 100 zł', query: { price: '0,10000' }, to: { search: '?price=0,100' } },
+  { key: 'pudelko', label: 'Z pudełkiem', query: { pub_pudelko: 'tak' }, to: { search: '?pub_pudelko=tak' } },
+];
+
+export const fetchCategoryCounts = createAsyncThunk(
+  'LandingPage/fetchCategoryCounts',
+  async (_, { extra: sdk }) => {
+    const counts = await Promise.all(
+      HOME_CATEGORIES.map(c =>
+        sdk.listings
+          .query({
+            ...c.query,
+            perPage: 1,
+            page: 1,
+            minStock: 1,
+            stockMode: 'match-undefined',
+            'fields.listing': ['title'],
+          })
+          .then(res => [c.key, res.data.meta?.totalItems ?? null])
+          .catch(() => [c.key, null])
+      )
+    );
+    return Object.fromEntries(counts);
+  }
+);
+
 const landingPageSlice = createSlice({
   name: 'LandingPage',
   initialState: {
     latestListingIds: [],
     totalListings: null,
+    categoryCounts: {},
     latestListingsInProgress: false,
     latestListingsError: null,
   },
@@ -102,6 +137,9 @@ const landingPageSlice = createSlice({
         state.latestListingsInProgress = false;
         state.latestListingIds = action.payload.ids;
         state.totalListings = action.payload.total;
+      })
+      .addCase(fetchCategoryCounts.fulfilled, (state, action) => {
+        state.categoryCounts = action.payload || {};
       })
       .addCase(fetchLatestListings.rejected, (state, action) => {
         state.latestListingsInProgress = false;
@@ -121,5 +159,6 @@ export const loadData = (params, search, config) => dispatch => {
     dispatch(fetchPageAssets(pageAsset, true)),
     // A failure here must not break the landing page, so it is caught.
     dispatch(fetchLatestListings(listingImageConfig)).catch(() => null),
+    dispatch(fetchCategoryCounts()).catch(() => null),
   ]);
 };

@@ -1,38 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
+import { useHistory } from 'react-router-dom';
 
 import { ListingCard, NamedLink } from '../../components';
-import RefumeCategoryBar from '../../components/RefumeCategoryBar/RefumeCategoryBar';
 import RecentlyViewed from '../../components/RecentlyViewed/RecentlyViewed';
 import { fetchScentRequests } from '../../util/api';
+import { HOME_CATEGORIES } from './LandingPage.duck';
 
 import css from './CatalogHome.module.css';
-
-// Quick filters shown as pills. Values match the "stan" listing field and the
-// "Odlewka" listing type set up in Sharetribe Console. Price is in whole złoty.
-const QUICK_FILTERS = [
-  { key: 'folia', label: 'Nowe w folii', search: '?pub_stan=nowe-folia' },
-  { key: '90', label: '90–100%', search: '?pub_stan=90-100' },
-  { key: '70', label: '70–90%', search: '?pub_stan=70-90' },
-  { key: 'odlewki', label: 'Odlewki', listingType: 'sell-used-products' },
-  { key: 'do100', label: 'Do 100 zł', search: '?price=0,100' },
-  { key: 'pudelko', label: 'Z pudełkiem', search: '?pub_pudelko=tak' },
-];
-
-const QuickFilterLink = ({ filter }) =>
-  filter.listingType ? (
-    <NamedLink
-      className={css.pill}
-      name="SearchPageWithListingType"
-      params={{ listingType: filter.listingType }}
-    >
-      {filter.label}
-    </NamedLink>
-  ) : (
-    <NamedLink className={css.pill} name="SearchPage" to={{ search: filter.search }}>
-      {filter.label}
-    </NamedLink>
-  );
 
 const pluralOffers = n =>
   n === 1
@@ -138,100 +113,99 @@ const WantedTeaser = () => {
   );
 };
 
-const offersLabel = n =>
-  n === 1
-    ? 'oferta'
-    : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20)
-    ? 'oferty'
-    : 'ofert';
-
-// One flask for the banner drawing (viewBox units)
-const Flask = ({ x, y, w, h, body, cap, liquid, shape }) => {
-  const capW = w * 0.42;
-  const capH = h * 0.2;
-  const neckW = w * 0.2;
-  const neckH = h * 0.1;
-  const top = y + capH + neckH;
-  const bodyH = h - capH - neckH;
-  const r = Math.min(w, h) * 0.16;
-  return (
-    <g>
-      <rect x={x + (w - neckW) / 2} y={y + capH} width={neckW} height={neckH + 2} fill="#a8a29e" />
-      <rect x={x + (w - capW) / 2} y={y} width={capW} height={capH} rx={capW * 0.12} fill={cap} />
-      {shape === 'round' ? (
-        <ellipse cx={x + w / 2} cy={top + bodyH / 2} rx={w / 2} ry={bodyH / 2} fill={body} />
-      ) : shape === 'tall' ? (
-        <rect x={x + w * 0.12} y={top} width={w * 0.76} height={bodyH} rx={r * 0.6} fill={body} />
-      ) : (
-        <rect x={x} y={top} width={w} height={bodyH} rx={r} fill={body} />
-      )}
-      <rect x={x + w * 0.14} y={top + bodyH * 0.38} width={w * 0.72} height={bodyH * 0.5} rx={r * 0.6} fill={liquid} opacity="0.55" />
-      <rect x={x + w * 0.16} y={top + bodyH * 0.14} width={w * 0.08} height={bodyH * 0.55} rx={w * 0.04} fill="#fff" opacity="0.45" />
-    </g>
-  );
+// Colours of the round picture on each category tile
+const TILE_COLORS = {
+  damskie: ['#efe1ea', '#d9bfd0'],
+  meskie: ['#e3e8ee', '#c5d0da'],
+  unisex: ['#ece6f1', '#d3c6de'],
+  odlewki: ['#f3eadf', '#e0cfb9'],
+  flakony: ['#e6ece6', '#cbd8cc'],
+  folia: ['#f1e6e3', '#ddc6bf'],
+  do100: ['#eee9e2', '#d8cebf'],
+  pudelko: ['#e9e6ef', '#cfc9dc'],
 };
 
-const TRUST_POINTS = [
-  'Pieniądze czekają, aż potwierdzisz odbiór paczki',
-  'Coś nie tak z przesyłką? Zgłaszasz problem w zamówieniu',
-  'Każda paczka z numerem śledzenia',
-];
-
-/**
- * Refume: top of the home page — a plum banner (what Refume is + two actions) next to a
- * short "Ochrona Kupującego" card.
- */
-const HomeBanner = ({ totalListings }) => (
-  <div className={css.bannerRow}>
-    <section className={css.banner} aria-labelledby="refume-banner-title">
-      <svg className={css.bannerArt} viewBox="40 -20 320 290" preserveAspectRatio="xMaxYMax meet" aria-hidden="true">
-        <circle cx="190" cy="125" r="140" fill="#5e2550" />
-        <Flask x={92} y={104} w={70} h={116} body="#dfc7d7" cap="#d7a3c9" liquid="#b36d9f" shape="round" />
-        <Flask x={172} y={48} w={86} h={172} body="#f1e4ee" cap="#d7a3c9" liquid="#b36d9f" />
-        <Flask x={274} y={86} w={66} h={134} body="#e9d3e2" cap="#ffffff" liquid="#8e4a7c" shape="tall" />
-      </svg>
-      <div className={css.bannerText}>
-        <span className={css.bannerEyebrow}>
-          Marketplace perfum
-          {totalListings > 0 ? ` · ${totalListings} ${offersLabel(totalListings)}` : ''}
-        </span>
-        <h1 id="refume-banner-title" className={css.bannerTitle}>
-          Kupuj i sprzedawaj perfumy, odlewki i flakony
-        </h1>
-        <div className={css.bannerActions}>
-          <NamedLink name="NewListingPage" className={css.bannerPrimary}>
-            Sprzedaj perfumy
-          </NamedLink>
-          <NamedLink name="SearchPage" className={css.bannerSecondary}>
-            Przeglądaj oferty
-          </NamedLink>
-        </div>
-      </div>
-    </section>
-
-    <section className={css.trustCard} aria-labelledby="refume-trust-title">
-      <span className={css.trustEyebrow}>
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-          <path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6z" />
-          <path d="M8.5 12l2.5 2.5 4.5-5" />
-        </svg>
-        Ochrona Kupującego
-      </span>
-      <h2 id="refume-trust-title" className={css.trustTitle}>
-        Płacisz bezpiecznie, sprzedający dostaje pieniądze po odbiorze
-      </h2>
-      <ul className={css.trustList}>
-        {TRUST_POINTS.map(t => (
-          <li key={t}>{t}</li>
-        ))}
-      </ul>
-    </section>
-  </div>
+const TileBottle = ({ color }) => (
+  <svg width="30" height="40" viewBox="0 0 34 44" aria-hidden="true">
+    <rect x="12" y="2" width="10" height="8" rx="1.5" fill="#1c1917" opacity="0.75" />
+    <rect x="14.5" y="10" width="5" height="4" fill="#a8a29e" />
+    <rect x="4" y="14" width="26" height="28" rx="5" fill="#ffffff" opacity="0.85" />
+    <rect x="7" y="25" width="20" height="14" rx="3" fill={color} />
+  </svg>
 );
 
 /**
- * Refume: catalog-style top of the landing page — category bar, banner + protection card, quick
- * filters, newest listings, popular brands, "Poszukiwane" and recently viewed.
+ * Refume: top of the home page in the style of classifieds sites — a big search box and
+ * category tiles with the number of listings in each.
+ */
+const SearchHero = ({ categoryCounts = {} }) => {
+  const history = useHistory();
+  const [phrase, setPhrase] = useState('');
+  const onSubmit = e => {
+    e.preventDefault();
+    const q = phrase.trim();
+    history.push(q ? `/s?keywords=${encodeURIComponent(q)}` : '/s');
+  };
+  return (
+    <section className={css.hero} aria-label="Szukaj perfum">
+      <div className={css.heroInner}>
+        <form className={css.heroSearch} onSubmit={onSubmit} role="search">
+          <label className={css.heroField} htmlFor="refume-home-search">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+              <circle cx="11" cy="11" r="7" />
+              <path d="M20 20l-3.5-3.5" />
+            </svg>
+            <input
+              id="refume-home-search"
+              className={css.heroInput}
+              type="search"
+              value={phrase}
+              onChange={e => setPhrase(e.target.value)}
+              placeholder="Czego szukasz? np. Sauvage, wanilia"
+              aria-label="Czego szukasz?"
+              autoComplete="off"
+            />
+          </label>
+          <button type="submit" className={css.heroButton}>
+            Szukaj
+          </button>
+        </form>
+
+        <ul className={css.tiles} aria-label="Kategorie">
+          {HOME_CATEGORIES.map(c => {
+            const [from, to] = TILE_COLORS[c.key] || ['#eee', '#ddd'];
+            const count = categoryCounts[c.key];
+            const linkProps = c.listingType
+              ? { name: 'SearchPageWithListingType', params: { listingType: c.listingType } }
+              : { name: 'SearchPage', to: c.to };
+            return (
+              <li key={c.key}>
+                <NamedLink className={css.tile} {...linkProps}>
+                  <span
+                    className={css.tilePicture}
+                    style={{ background: `linear-gradient(160deg, ${from}, ${to})` }}
+                  >
+                    <TileBottle color={to} />
+                  </span>
+                  <span className={css.tileLabel}>{c.label}</span>
+                  {typeof count === 'number' ? (
+                    <span className={css.tileCount}>
+                      {count} {pluralOffers(count)}
+                    </span>
+                  ) : null}
+                </NamedLink>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+    </section>
+  );
+};
+
+/**
+ * Refume: catalog-style landing page — search box with category tiles, newest listings,
+ * popular brands, "Poszukiwane" and recently viewed.
  * Content from the Console landing page asset is rendered below this.
  *
  * @param {Object} props
@@ -239,7 +213,7 @@ const HomeBanner = ({ totalListings }) => (
  * @param {boolean} props.inProgress whether the newest listings are loading
  */
 const CatalogHome = props => {
-  const { listings = [], inProgress, totalListings } = props;
+  const { listings = [], inProgress, categoryCounts } = props;
   const renderSizes = [
     '(max-width: 549px) 50vw',
     '(max-width: 1023px) 33vw',
@@ -249,22 +223,9 @@ const CatalogHome = props => {
 
   return (
     <div className={css.root}>
-      <RefumeCategoryBar />
+      <SearchHero categoryCounts={categoryCounts} />
 
       <div className={css.content}>
-        <HomeBanner totalListings={totalListings} />
-
-        <div className={css.filtersRow}>
-          <span className={css.filtersLabel}>Szybkie filtry:</span>
-          <ul className={css.pills} aria-label="Szybkie filtry">
-            {QUICK_FILTERS.map(filter => (
-              <li key={filter.key}>
-                <QuickFilterLink filter={filter} />
-              </li>
-            ))}
-          </ul>
-        </div>
-
         <section className={css.card} aria-labelledby="refume-latest-title">
           <div className={css.sectionHeader}>
             <h2 id="refume-latest-title" className={css.sectionTitle}>

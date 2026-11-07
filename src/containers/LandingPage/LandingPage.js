@@ -34,6 +34,7 @@ export const LandingPageComponent = props => {
     latestListings,
     latestListingsInProgress,
     totalListings,
+    categoryCounts,
   } = props;
 
   return (
@@ -48,6 +49,7 @@ export const LandingPageComponent = props => {
           listings={latestListings}
           inProgress={latestListingsInProgress}
           totalListings={totalListings}
+          categoryCounts={categoryCounts}
         />
       }
     />
@@ -67,7 +69,7 @@ const mapStateToProps = state => {
   const getListingEntitiesById = listingIds => getListingsById(state, listingIds);
 
   // Refume: newest listings for the catalog grid
-  const { latestListingIds = [], latestListingsInProgress, totalListings } =
+  const { latestListingIds = [], latestListingsInProgress, totalListings, categoryCounts } =
     state.LandingPage || {};
   const latestListings = getListingsById(state, latestListingIds);
 
@@ -80,6 +82,7 @@ const mapStateToProps = state => {
     latestListings,
     latestListingsInProgress,
     totalListings,
+    categoryCounts,
   };
 };
 

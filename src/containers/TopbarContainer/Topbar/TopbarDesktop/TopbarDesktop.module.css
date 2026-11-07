@@ -317,9 +317,17 @@
   align-items: center;
 }
 
-/* No divider line next to the search pill */
+/* No divider line next to the search; the search row sits in the middle of the bar's height */
 .searchLink {
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
   border-left-width: 0;
+  box-sizing: border-box;
+
+  @media (--viewportLarge) {
+    padding: 0 32px;
+  }
 }
 
 /* Refume: items waiting in the moderator panel */

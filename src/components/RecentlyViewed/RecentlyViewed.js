@@ -86,7 +86,7 @@ const RecentlyViewed = props => {
       </div>
       <div className={css.grid}>
         {listings.map(l => (
-          <ListingCard key={l.id.uuid} listing={l} showAuthorInfo={false} />
+          <ListingCard key={l.id.uuid} listing={l} showAuthorInfo={false} framed />
         ))}
       </div>
     </section>

@@ -249,6 +249,7 @@ const CatalogHome = props => {
                   key={listing.id.uuid}
                   listing={listing}
                   renderSizes={renderSizes}
+                  framed
                 />
               ))}
             </div>

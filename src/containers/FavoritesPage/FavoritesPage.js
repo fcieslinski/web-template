@@ -80,7 +80,7 @@ const FavoritesPage = () => {
           ) : (
             <div className={css.grid}>
               {visible.map(l => (
-                <ListingCard key={l.id.uuid} listing={l} showAuthorInfo={false} />
+                <ListingCard key={l.id.uuid} listing={l} showAuthorInfo={false} framed />
               ))}
             </div>
           )}

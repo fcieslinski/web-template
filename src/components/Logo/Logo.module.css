@@ -37,24 +37,23 @@
   max-height: 48px;
 }
 
-/* Refume: typeset wordmark */
+/* Refume: typeset wordmark (Inter, "Re" ink + "Fume" plum) */
 .wordmark {
   display: inline-flex;
   align-items: baseline;
-  font-family: 'Fraunces', Georgia, serif;
-  font-weight: 800;
-  font-variation-settings: 'SOFT' 100, 'WONK' 0, 'opsz' 72;
-  font-size: 30px;
+  font-family: 'Inter', 'Manrope', -apple-system, Helvetica, Arial, sans-serif;
+  font-weight: 500;
+  font-size: 31px;
   line-height: 1;
-  letter-spacing: -0.02em;
-  color: #1c1917;
+  letter-spacing: -0.035em;
+  color: #141414;
   white-space: nowrap;
 }
 
 .wordmarkMobile {
-  font-size: 26px;
+  font-size: 27px;
 }
 
 .wordmarkAccent {
-  color: var(--marketplaceColor);
+  color: #4e1a3e;
 }
